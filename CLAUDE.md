@@ -8,6 +8,23 @@ El diseño vive en el GDD del proyecto en Claude ("Project Ridge — GDD"). Si a
 - Target: iPhone 13 (A15) o superior, 30fps estables, horizontal.
 - Unity MCP disponible: úsalo para crear/editar escenas, leer la consola y correr play mode.
 
+## Setup en máquina nueva
+La config de git es local (`.git/config`) y no viaja con el repo: repetir en cada máquina después de clonar.
+
+1. Git LFS (una vez por máquina, antes de clonar): `git lfs install`. Clonar normal; si los binarios quedaron como punteros, `git lfs pull`. Verificar con `git lfs ls-files`.
+2. Versión de Unity del proyecto: ver `m_EditorVersion` en `ProjectSettings/ProjectVersion.txt` (hoy `6000.3.26f1`). Usar el UnityYAMLMerge de esa versión exacta.
+3. Ruta de UnityYAMLMerge (`<ver>` = versión del paso 2):
+   - Windows: `C:/Program Files/Unity/Hub/Editor/<ver>/Editor/Data/Tools/UnityYAMLMerge.exe`
+   - Mac: `/Applications/Unity/Hub/Editor/<ver>/Unity.app/Contents/Tools/UnityYAMLMerge`
+4. Registrar el merge driver `unityyamlmerge` (el nombre que usa `.gitattributes`), en la raíz del repo:
+   ```
+   git config merge.unityyamlmerge.name "Unity SmartMerge (UnityYAMLMerge)"
+   git config merge.unityyamlmerge.driver '"<ruta>" merge -h -p --force %O %B %A %A'
+   git config merge.unityyamlmerge.recursive binary
+   ```
+5. Verificar: `git check-attr merge -- Assets/Scenes/SampleScene.unity` debe decir `unityyamlmerge`, y la ruta debe existir.
+6. Al actualizar la versión de Unity del proyecto, actualizar la ruta del driver en cada máquina.
+
 ## Reglas de trabajo
 - Nunca digas que algo funciona sin haberlo probado. Lo que no se pudo verificar se marca `UNVERIFIED` en BUILD_STATUS.md.
 - Commit de checkpoint antes de cualquier cambio grande (refactor, actualización de paquetes, cambio de render pipeline).
