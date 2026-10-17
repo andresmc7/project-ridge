@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ProjectRidge.Core;
 using UnityEngine;
 using UnityEngine.AI;
@@ -32,8 +33,33 @@ namespace ProjectRidge.AI
         private float zigzagSeed;
         private float nextRepath;
 
+        /// <summary>Enemigos activos (para el HUD de sigilo y las alertas del OVNI).</summary>
+        public static readonly List<EnemyController> Active = new List<EnemyController>();
+
         public EnemyState State { get; private set; } = EnemyState.Patrol;
+        public EnemyPerception Perception => perception;
+        public EnemyConfig Config => config;
         public event Action<EnemyState> StateChanged;
+
+        /// <summary>
+        /// Vuelve a patrullar sin recuerdo del jugador. Si está cerca del punto de reaparición, salta a su ruta
+        /// para no acampar ahí (respawn mínimo del playable; M4 lo reemplaza por checkpoints).
+        /// </summary>
+        public void ResetAfterPlayerRespawn(Vector3 spawn, float clearRadius)
+        {
+            perception.ResetAwareness();
+            if (patrolPoints.Length > 0 && Vector3.Distance(transform.position, spawn) < clearRadius)
+                agent.Warp(patrolPoints[0].position);
+            agent.isStopped = false;
+            EnterPatrol();
+        }
+
+        /// <summary>Alerta externa (p. ej. el OVNI te detectó): va a investigar esa posición si no está ya cazando.</summary>
+        public void AlertTo(Vector3 position)
+        {
+            if (State == EnemyState.Chase || State == EnemyState.Attack) return;
+            EnterInvestigate(position);
+        }
 
         private void Awake()
         {
@@ -41,8 +67,17 @@ namespace ProjectRidge.AI
             zigzagSeed = UnityEngine.Random.value * 10f;
         }
 
-        private void OnEnable() => perception.NoiseHeard += OnNoiseHeard;
-        private void OnDisable() => perception.NoiseHeard -= OnNoiseHeard;
+        private void OnEnable()
+        {
+            Active.Add(this);
+            perception.NoiseHeard += OnNoiseHeard;
+        }
+
+        private void OnDisable()
+        {
+            Active.Remove(this);
+            perception.NoiseHeard -= OnNoiseHeard;
+        }
 
         private void Start() => EnterPatrol();
 

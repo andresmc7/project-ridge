@@ -18,6 +18,8 @@ namespace ProjectRidge.Player
 
         private void Awake() => Current = config.maxHealth;
 
+        public void Restore() => Current = config.maxHealth;
+
         public void TakeDamage(float amount)
         {
             if (IsDead || amount <= 0f) return;

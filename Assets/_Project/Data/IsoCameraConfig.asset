@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35e12d8569ce4e64ab2b22789067e53d, type: 3}
   m_Name: IsoCameraConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.IsoCameraConfig
-  pitch: 50
+  pitch: 58
   yaw: 45
-  distance: 14
+  distance: 18
   targetHeight: 1
-  fieldOfView: 40
+  fieldOfView: 45
   positionDamping: 0.3
+  occludedAlpha: 0.22
+  occlusionFadeSpeed: 4
+  occlusionPadding: 0.4
+  occlusionCheckInterval: 0.1

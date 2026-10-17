@@ -2,6 +2,22 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-17 — Look dev (esquina del bosque) + OVNI (M3 parcial) + HUD + playable Windows
+Máquina: Windows 11, Unity 6000.3.26f1. Escena: `Assets/_Project/Scenes/LookDev_ForestCorner.unity` (primera del build).
+
+- Compila: 0 errores. Herramientas de editor regenerables en el menú `Project Ridge/Look Dev` y `Project Ridge/HUD`.
+- Arte: terreno con 4 capas Poly Haven (CC0), 130 coníferas procedurales (570–850 tris) con el atlas de ramitas de `fir_tree_01`, rocas, roca grande con LODs, helechos, ramas, tronco y tocones. Luna Mixed, niebla, post-proceso (ACES, color, bloom, viñeta).
+- Cámara: pitch 58°, distancia 18 m, FOV 45°. Los árboles y rocas que tapan al jugador se desvanecen (probado en play: el jugador se ve a través del árbol).
+- Probado en play: el Lurker patrulla el claro sin emboscar el inicio (25 s después del inicio sigue a 23.6 m); respawn a los 2 s con vida llena.
+- Build Windows: `Builds/Windows/ProjectRidge.exe` generado con éxito (182 MB, 0 errores). **Ese build es anterior al OVNI y al HUD nuevo.**
+- OVNI: no se ve; solo haz (luz spot con sombras + cono aditivo) y zumbido sintetizado 3D. Escanea el claro, te sigue al detectarte y alerta al Lurker. Exposición por raycast desde la luz (rocas, terreno y copas tapan).
+  - Probado: en campo abierto se llena la exposición → HUNTED, el OVNI te sigue y el Lurker va a tu posición.
+  - Problema encontrado y corregido en código: con el haz a 52° y midiendo la cabeza, agachado detrás de la roca grande seguías iluminado. Ahora el haz va a ~37° y agachado solo cuenta el pecho. `UNVERIFIED`: repetir la prueba de escondite tras el cambio.
+  - Corregido en código: el Lurker se quedaba atacando en el punto de respawn; ahora al reaparecer olvida al jugador y vuelve a su ruta si estaba cerca. `UNVERIFIED` en play.
+- HUD: controles táctiles circulares y discretos (solo móvil/editor), indicador SAFE / ALERT / HUNTED con barra. `UNVERIFIED`: aspecto en pantalla (no hay captura del HUD), zumbido audible (no se puede oír desde aquí).
+- Rendimiento (editor, sin Profiler de dispositivo): ~808k triángulos y ~125 batches en la vista general de la escena. Demasiado para un A15: las rocas de Poly Haven (roca grande 66k, tronco 100k, tocones 41k) son lo más caro. Pendiente: reemplazar o reducir.
+- Pendiente: hornear la iluminación (configurada, no ejecutada).
+
 ## 2026-10-17 — M2: ruido + percepción + IA del Lurker (Sandbox_Greybox)
 Máquina: Windows 11, Unity 6000.3.26f1, editor (play mode vía Unity MCP). Sin paquetes nuevos (AI Navigation 2.0.15 ya estaba).
 
