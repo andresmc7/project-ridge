@@ -2,6 +2,28 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-17 — M1: movimiento + cámara + input (Sandbox_Greybox)
+Máquina: Windows 11, Unity 6000.3.26f1, editor (play mode vía Unity MCP). Paquete nuevo: `com.unity.cinemachine` 3.1.7 (+ `com.unity.splines` 2.9.1).
+
+- Compila: 0 errores. Consola en play mode: 0 errores (solo el warning conocido de `Account API`).
+- Escena `Assets/_Project/Scenes/Sandbox_Greybox.unity` (primera en Build Settings): suelo 60×60 con muros perimetrales, bloques, rampa de 12.8°, plataforma de 1 m, pasto alto (triggers en capa `TallGrass`), luna direccional Mixed con sombras, niebla.
+- Input: `ProjectRidgeInput.inputactions` es ahora el asset project-wide (reemplaza al `InputSystem_Actions` del template, que queda sin usar).
+- Probado en play mode con dispositivos virtuales del Input System (gamepad, teclado y mouse simulados):
+  - Walk 2.50 / Jog 4.00 / Sprint 5.50 / Crouch 1.50 m/s, iguales a `PlayerMovementConfig`. Umbral del stick: 0.5 → Walk, 1.0 → Jog.
+  - Movimiento relativo a la cámara y giro hacia la dirección de avance.
+  - Sprint: Shift se mantiene (teclado); L3 y botón táctil alternan, y se cancela al detenerse o agacharse. Agachado no hay sprint.
+  - Crouch (toggle): altura 1.80 → 1.10 y vuelta.
+  - Los 16 bindings de botones (teclado, mouse, control) disparan su acción.
+  - Colisión: no atraviesa `Wall_Test` (ni con sprint), ni `Rock_Tall` rotada, ni el escalón de 1 m; sube la rampa a la plataforma; no se sale de los muros perimetrales; rodea esquinas sin quedarse pegado.
+  - Pasto alto: `IsInTallGrass` true dentro, false fuera.
+  - Cámara: pitch 50°, yaw 45°, distancia 14 m, según `IsoCameraConfig`.
+  - Controles en pantalla: con eventos de puntero simulados en el editor, el stick llega a `Move (1,0)` y los 5 botones a sus acciones.
+- `UNVERIFIED`: táctil hasta probar en dispositivo (iPhone/iPad), incluida la safe area real.
+- `UNVERIFIED`: control físico (MFi/PS/Xbox); solo se probó con un gamepad virtual.
+- `UNVERIFIED`: aspecto visual de la escena desde la cámara de juego (la captura por MCP falló).
+- No probado: levantarse bajo un techo bajo (no hay techo en el sandbox).
+- Nota de pruebas: para correr play mode con el editor sin foco se activó `runInBackground` temporalmente y se restauró a `false`.
+
 ## 2026-10-17 — Unity MCP (`com.unity.ai.assistant` 2.20.0-pre.2)
 Máquina: Windows 11, Unity 6000.3.26f1.
 
