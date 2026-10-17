@@ -78,7 +78,8 @@ ThirdParty/    Assets externos, sin modificar
 ```
 
 ## Rendimiento (iOS)
-- Iluminación horneada por defecto. Máximo 4 luces dinámicas visibles a la vez: linterna, rayo del OVNI, bengala ardiendo y una luz local (p. ej. farol del refugio). Si se pasa del límite, la luz local se apaga o se hornea.
+- Iluminación horneada por defecto. La luna es la luz principal: direccional en modo Mixed, aparte del límite de luces dinámicas.
+- Máximo 4 luces dinámicas visibles a la vez: linterna, rayo del OVNI, bengala ardiendo y una luz local (p. ej. farol del refugio). Si se pasa del límite, la luz local se apaga o se hornea.
 - Sombras en tiempo real solo de la luz principal (luna, con shadow distance corta ~25–30 m) y de la linterna, para que el papá y el alien proyecten sombra. Las demás luces dinámicas, sin sombras.
 - Revisar draw calls y memoria en cada hito de look dev con el Profiler.
 - LODs en vegetación y rocas.
