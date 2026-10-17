@@ -1,7 +1,30 @@
 # Project Ridge — reglas para Claude Code
 
 Survival-horror de acción/aventura para iOS. Unity 6 LTS, URP, C#.
-El diseño vive en el GDD del proyecto en Claude ("Project Ridge — GDD"). Si algo aquí choca con el GDD, pregunta.
+El diseño vive en el GDD del proyecto en Claude ("Project Ridge — GDD"). La meta del PoC está en `docs/MASTER_SPEC.md` (nivel "The Hollow", el papá solo). Si algo aquí choca con el GDD o el spec, pregunta.
+
+## Hitos del PoC
+Trabaja un hito a la vez. Cada uno cierra con las pruebas que le tocan de la sección 22 del spec, ejecutadas de verdad.
+
+| Hito | Contenido |
+|---|---|
+| M1 | Movimiento + cámara + input (greybox) |
+| M2 | Sistema de ruido + percepción + IA del alien (greybox) |
+| M3 | Rayo del OVNI y exposición |
+| M4 | Combate (garrote + pistola de bengalas), recursos, interacción, pistas |
+| M5 | Layout de The Hollow en greybox: dos rutas, objetivos, checkpoints, final |
+| M6 | Arte: papá y alien animados, entorno, iluminación |
+| M7 | Audio |
+| M8 | UI, controles táctiles, rendimiento en iPhone |
+
+En paralelo hay un carril de look dev (una esquina del bosque con arte final) que no bloquea los hitos de sistemas.
+
+## Decisiones fijas
+- El PoC tiene un solo humano: el papá. Nada de familia visible ni compañeros.
+- Armas: garrote de madera (silencioso, durabilidad) + pistola de bengalas (ruidosa; la bengala arde con luz y ruido y atrae enemigos; a quemarropa aturde; 2–3 en todo el nivel).
+- Si el OVNI te atrapa: vuelves al último checkpoint.
+- Lurker (el alien): alto, flaco, errático. Quietud total y arranques violentos en zig-zag.
+- Solo horizontal.
 
 ## Entorno
 - Desarrollo en Windows (RTX 4070). Builds de iOS en Mac o en la nube; nunca asumir que hay Mac disponible.
@@ -35,7 +58,7 @@ La config de git es local (`.git/config`) y no viaja con el repo: repetir en cad
 ## Arquitectura
 - Datos en ScriptableObjects (armas, recursos, enemigos, radios de ruido). Nada de números mágicos en código.
 - Sistema de ruido central: `NoiseSystem` emite eventos `NoiseEvent(posición, radio, tipo)`. Todo lo que hace ruido pasa por ahí; toda IA que escucha se suscribe ahí.
-- IA de enemigos como máquina de estados explícita: Patrol → Suspicious → Investigate → Hunt → LostTrack → Return.
+- IA de enemigos como máquina de estados explícita, con los estados del spec: Patrol → Investigate → Search → Chase → Attack → Search → Patrol.
 - Input con el Input System nuevo: táctil + control (MFi/PS/Xbox) desde el inicio.
 - Cámara: Cinemachine, 3/4 alta fija, sin rotación del jugador.
 
@@ -44,7 +67,7 @@ La config de git es local (`.git/config`) y no viaja con el repo: repetir en cad
 Assets/_Project/
   Scripts/{Core,Player,AI,Noise,Items,UI,Camera}
   Data/        ScriptableObjects
-  Scenes/      Prologue, Level01_Forest, Sandbox_Greybox
+  Scenes/      Sandbox_Greybox, TheHollow (Prologue queda para el juego completo)
   Art/         Modelos, materiales, texturas propias
   Audio/
   Prefabs/
@@ -57,5 +80,6 @@ ThirdParty/    Assets externos, sin modificar
 - LODs en vegetación y rocas. Sin sombras en tiempo real salvo la linterna.
 
 ## Archivos de estado
+- docs/MASTER_SPEC.md: meta y pruebas de aceptación del PoC.
 - BUILD_STATUS.md: qué compila, qué se probó, dónde y cuándo.
 - ASSETS.md: inventario y licencias de todo asset externo.
