@@ -28,7 +28,7 @@ En paralelo hay un carril de look dev (una esquina del bosque con arte final) qu
 
 ## Entorno
 - Desarrollo en Windows (RTX 4070). Builds de iOS en Mac o en la nube; nunca asumir que hay Mac disponible.
-- Target: iPhone 13 (A15) o superior, 30fps estables, horizontal.
+- Targets: iPhone y iPad con A15 o superior (iPhone 13 / iPad equivalente). Base: 30 fps estables. 60 fps opcional en modelos Pro y chips M. Solo horizontal. El iPad entra en el PoC: UI, safe areas y aspect ratios deben funcionar en ambos.
 - Unity MCP disponible: úsalo para crear/editar escenas, leer la consola y correr play mode.
 
 ## Setup en máquina nueva
@@ -54,13 +54,16 @@ La config de git es local (`.git/config`) y no viaja con el repo: repetir en cad
 - Cambios pequeños y verificables. Después de cada sistema: correr play mode y revisar la consola sin errores.
 - No instales paquetes ni assets sin anotarlos en ASSETS.md (fuente, licencia, link). Sin licencia clara, no entra.
 - Assets de IA con licencia no comercial = placeholder. Se marcan con prefijo `PH_`.
+- Prohibido usar las herramientas `Unity_AssetGeneration_*` del MCP de Unity ni cualquier función que gaste créditos de Unity AI.
+- Orden de trabajo: manda este archivo. Sistemas en greybox (M1–M5) + carril de look dev en paralelo. La "Phase 2" de la sección 23 del spec queda reemplazada por eso.
+- Carpetas y escenas (`Assets/_Project/`, `Sandbox_Greybox`, `TheHollow`) se crean cuando el hito que las necesita empieza; no antes.
 
 ## Arquitectura
 - Datos en ScriptableObjects (armas, recursos, enemigos, radios de ruido). Nada de números mágicos en código.
 - Sistema de ruido central: `NoiseSystem` emite eventos `NoiseEvent(posición, radio, tipo)`. Todo lo que hace ruido pasa por ahí; toda IA que escucha se suscribe ahí.
 - IA de enemigos como máquina de estados explícita, con los estados del spec: Patrol → Investigate → Search → Chase → Attack → Search → Patrol.
 - Input con el Input System nuevo: táctil + control (MFi/PS/Xbox) desde el inicio.
-- Cámara: Cinemachine, 3/4 alta fija, sin rotación del jugador.
+- Cámara: Cinemachine, 3/4 alta, ángulo fijo. El jugador no rota la cámara. El personaje sí gira libremente (hacia donde camina, y hacia el objetivo al apuntar o atacar).
 
 ## Estructura
 ```
@@ -75,9 +78,10 @@ ThirdParty/    Assets externos, sin modificar
 ```
 
 ## Rendimiento (iOS)
-- Iluminación horneada por defecto. Máximo 3 luces en tiempo real a la vez (linterna, rayo del OVNI, fogata).
+- Iluminación horneada por defecto. Máximo 4 luces dinámicas visibles a la vez: linterna, rayo del OVNI, bengala ardiendo y una luz local (p. ej. farol del refugio). Si se pasa del límite, la luz local se apaga o se hornea.
+- Sombras en tiempo real solo de la luz principal (luna, con shadow distance corta ~25–30 m) y de la linterna, para que el papá y el alien proyecten sombra. Las demás luces dinámicas, sin sombras.
 - Revisar draw calls y memoria en cada hito de look dev con el Profiler.
-- LODs en vegetación y rocas. Sin sombras en tiempo real salvo la linterna.
+- LODs en vegetación y rocas.
 
 ## Archivos de estado
 - docs/MASTER_SPEC.md: meta y pruebas de aceptación del PoC.

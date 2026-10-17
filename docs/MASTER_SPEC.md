@@ -6,6 +6,8 @@
 > - Se trabaja **por hitos (M1–M8)** según `CLAUDE.md`. Cada hito cierra con su grupo de pruebas de la sección 22.
 > - Dos carriles en paralelo: **sistemas en greybox** (M1–M5) y **look dev** (una esquina del bosque con arte e iluminación finales). El layout de The Hollow se viste con arte cuando ya funciona en greybox. El greybox nunca es el resultado final (sección 19).
 > - **Decisión de armas para el PoC:** melee silencioso (garrote de madera con durabilidad) + **pistola de bengalas** como arma ruidosa. La bengala disparada a distancia cae, arde unos segundos con luz y ruido, y atrae a los enemigos (distracción). A quemarropa aturde. Munición muy limitada (2–3 en todo el nivel). Donde este documento dice "firearm", aplica a la pistola de bengalas. El revólver queda para el juego completo.
+> - La "Phase 2 — Build the visual foundation" de la sección 23 queda reemplazada por el carril de look dev: los sistemas se construyen primero en greybox.
+> - Presupuesto de luces, sombras y dispositivos objetivo: ver `CLAUDE.md` (manda sobre las secciones 4 y 20 en caso de conflicto).
 > - Si algo de este spec choca con `CLAUDE.md` o con una instrucción directa de Andres, pregunta antes de actuar.
 
 ## 1. YOUR ROLE AND PRIMARY OBJECTIVE
