@@ -27,6 +27,7 @@ namespace ProjectRidge.Player
         public bool SprintRequested => keyboardSprintHeld || sprintLatched;
 
         public event Action CrouchPressed;
+        public event Action FlashlightPressed;
         /// <summary>Interact, Attack, Aim, Flashlight y Pause. Sin gameplay todavía (M4); por ahora solo los muestra el debug.</summary>
         public event Action<InputAction> ActionPerformed;
 
@@ -41,6 +42,7 @@ namespace ProjectRidge.Player
             sprint.action.performed += OnSprintPerformed;
             sprint.action.canceled += OnSprintCanceled;
             crouch.action.performed += OnCrouchPerformed;
+            flashlight.action.performed += OnFlashlightPerformed;
             foreach (var reference in OtherActions())
             {
                 reference.action.Enable();
@@ -53,6 +55,7 @@ namespace ProjectRidge.Player
             sprint.action.performed -= OnSprintPerformed;
             sprint.action.canceled -= OnSprintCanceled;
             crouch.action.performed -= OnCrouchPerformed;
+            flashlight.action.performed -= OnFlashlightPerformed;
             foreach (var reference in OtherActions())
                 reference.action.performed -= OnOtherPerformed;
             keyboardSprintHeld = false;
@@ -78,6 +81,8 @@ namespace ProjectRidge.Player
         }
 
         private void OnCrouchPerformed(InputAction.CallbackContext context) => CrouchPressed?.Invoke();
+
+        private void OnFlashlightPerformed(InputAction.CallbackContext context) => FlashlightPressed?.Invoke();
 
         private void OnOtherPerformed(InputAction.CallbackContext context) => ActionPerformed?.Invoke(context.action);
     }

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e7bc9ea2e19ff84d95c87498ea471fa, type: 3}
+  m_Name: EnemyConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.AI.EnemyConfig
+  patrolSpeed: 1.2
+  investigateSpeed: 2.2
+  searchSpeed: 1.8
+  chaseSpeed: 4.8
+  viewDistance: 14
+  viewAngle: 110
+  proximityRadius: 1.8
+  perceptionInterval: 0.1
+  suspicionGainNear: 2.5
+  suspicionGainFar: 0.35
+  suspicionDecay: 0.2
+  investigateThreshold: 0.35
+  chaseThreshold: 1
+  hearingSensitivity: 1
+  hearingPositionError: 0.15
+  patrolPause: 1.5
+  alertFreeze: 0.9
+  arriveDistance: 0.6
+  investigateTimeout: 12
+  searchDuration: 10
+  searchRadius: 6
+  searchLookPause: 1.2
+  searchTurnSpeed: 120
+  navSampleDistance: 3
+  repathInterval: 0.2
+  loseSightTime: 2.5
+  zigzagAmplitude: 1.4
+  zigzagFrequency: 1.1
+  zigzagMinDistance: 4
+  attackRange: 1.7
+  attackWindup: 0.45
+  attackActive: 0.15
+  attackRecovery: 1
+  attackDamage: 35
+  attackArc: 100
+  eyesCalm: {r: 0.6, g: 0.02, b: 0.02, a: 1}
+  eyesAlert: {r: 2.5, g: 0.15, b: 0.05, a: 1}
+  eyesHunt: {r: 6, g: 0.1, b: 0.05, a: 1}
