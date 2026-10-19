@@ -2,6 +2,24 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-19 — Nivel compacto, personajes Quaternius, eventos con guion, atmósfera y perfil iPhone (A18+)
+Máquina: Windows 11 (RTX 4070), Unity 6000.3.26f1, editor (play mode vía Unity MCP). Escena: `TheHollow.unity`, regenerable con `Project Ridge/The Hollow/Build All`.
+
+- Compila: 0 errores. Consola en play tras Build All: 0 errores.
+- **Personajes** (Quaternius CC0, ver ASSETS.md): papá con ropa por regiones del esqueleto, pelo/barba, linterna y garrote; Lurker deformado (alargado y adelgazado) con capa procedural de tics. Verificado en capturas en play: dedos hacia adelante al caminar/trotar, agachado, capa de antorcha, garrote en la mano.
+- **Piedra de distracción** (G / LB / THROW): parábola con ápice fijo hacia el suelo real del destino (salva bordes). Probado: la piedra choca con la meseta si el jugador lanza contra el muro de 4 m (correcto); al caer junto al Lurker B: Patrol → Investigate → camina al punto → Search.
+- **Clímax en la radio**: 25 s de transmisión, cuenta en el objetivo, ruido cada 6 s, OVNI barriendo alrededor de la camioneta. Probado: con los Lurker activos y el papá quieto, el Lurker A llega y lo mata (esperado); sin Lurkers, al terminar → `Ending` y texto final. Corregido: si el flujo sale de Playing a mitad de la transmisión, la radio quedaba bloqueada; ahora se puede reintentar.
+- **Respawn**: los Lurker cercanos vuelven al punto de su ruta más lejano al checkpoint y no ven ni oyen durante 6 s (antes había bucle de muerte junto a la camioneta). Probado: el Lurker A reaparece en (16.5, 4.5) y el papá revive sin ataque inmediato.
+- **Aparición con guion**: el Lurker cruza la otra orilla y se detiene a mirar al papá la primera vez que queda bien en cuadro a 5–13 m; luego huye. Probado: se detuvo en el viewport (0.29, 0.77) a 8.5 m, de frente al papá (dot 1.00), y desapareció al final del recorrido. `UNVERIFIED`: que se lea bien en pantalla (en la captura queda muy oscuro entre rocas).
+- **Haz del OVNI**: volumen analítico (intersección rayo-cono recortada por profundidad, 10 pasos), solo caras traseras: sin bordes duros ni "pared" cerca de la cámara. El OVNI se proyecta sobre el terreno (antes saltaba a las copas, y el haz terminaba a 13 m del suelo). Altura 20 m, desplazamiento 15 m (la nave nunca cruza el encuadre). Verificado en captura en el prado.
+- **Luz y gradación**: cubemap de reflejo nocturno propio (los charcos reflejaban un cielo brillante); exposición 2.15 y contraste 12. Luminancia media de captura: antes 0.02–0.05 (85–97 % casi negro), ahora ~0.2 con bordes oscuros. Linterna 16/18 m. Dial ámbar emisivo en la camioneta como guía hacia la meta (sin gastar luz). Lluvia nace por debajo de la cámara.
+- **Perfil iPhone** (`Mobile` = calidad por defecto de iPhone, `Mobile_RPAsset`): escala 0.8 con FSR + nitidez 0.85, sombras de luna 28 m / 2 cascadas / 2048, SSAO igual que PC a media resolución (antes tenía los valores por defecto: intensidad 3, radio 0.035, otro look), Forward con todas las variantes de la vegetación. Verificado en el editor forzando `Mobile_RPAsset` en play: mismo look que PC; 616 batches, ~990 draws, 541k tris, 559 shadow casters en el puente.
+- Medido en el editor con el perfil PC en 6 puntos del nivel: 457–688 batches, 617–1130 draws, 342–591k tris, ~100 SetPass (SRP Batcher), 338–739 shadow casters, render 4–5 ms en la RTX 4070.
+- Orientación: quitado el retrato (estaba permitido); solo horizontal izquierda/derecha.
+- Build Windows `Builds/Windows/ProjectRidge.exe` (181 MB, 0 errores, 0 warnings): arrancado 35 s; log del player sin excepciones, ambos Lurkers en el NavMesh.
+- `UNVERIFIED`: rendimiento real en iPhone 16/17/18 y iPad M (no hay dispositivo ni Mac aquí). Riesgos a vigilar en el primer build: ~1000 draws (árboles con viento no se combinan), 3 luces con sombra (luna, linterna y reflector del OVNI; CLAUDE.md pide solo luna y linterna, pero las sombras del reflector son las que muestran dónde esconderse — decisión pendiente).
+- `UNVERIFIED`: cómo suena el audio nuevo (lluvia, arroyo, radio, piedra).
+
 ## 2026-10-19 — The Hollow completo (M4–M7 en PoC): combate, nivel, personajes, flujo, audio
 Máquina: Windows 11, Unity 6000.3.26f1, editor (play mode vía Unity MCP). Escena: `Assets/_Project/Scenes/TheHollow.unity` (primera y única del build). Regenerable con `Project Ridge/The Hollow/Build All`.
 

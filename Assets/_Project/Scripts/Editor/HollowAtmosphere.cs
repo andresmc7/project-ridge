@@ -189,8 +189,17 @@ namespace ProjectRidge.EditorTools
                 var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 asset.supportsCameraDepthTexture = true;
                 asset.supportsHDR = true;
-                asset.shadowDistance = 32f;
+                asset.shadowDistance = 28f; // CLAUDE.md: sombra de luna corta (~25–30 m); el encuadre llega a ~25 m
                 asset.shadowCascadeCount = 2;
+                if (asset.name.StartsWith("Mobile"))
+                {
+                    // iPhone 16+ (A18): sombras nítidas y escala de render con FSR (reescalado + nitidez) en vez de bilineal.
+                    asset.mainLightShadowmapResolution = 2048;
+                    asset.renderScale = 0.8f;
+                    asset.upscalingFilter = UpscalingFilterSelection.FSR;
+                    asset.fsrOverrideSharpness = true;
+                    asset.fsrSharpness = 0.85f;
+                }
                 var so = new SerializedObject(asset);
                 var cookies = so.FindProperty("m_SupportsLightCookies");
                 if (cookies != null) cookies.boolValue = true;
@@ -205,7 +214,8 @@ namespace ProjectRidge.EditorTools
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (!path.StartsWith("Assets/")) continue; // nunca tocar los renderers de los paquetes
                 var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
-                if (data.rendererFeatures.Any(f => f != null && f.GetType().Name == "ScreenSpaceAmbientOcclusion")) { log.AppendLine("SSAO already in " + data.name); continue; }
+                var existing = data.rendererFeatures.FirstOrDefault(f => f != null && f.GetType().Name == "ScreenSpaceAmbientOcclusion");
+                if (existing != null) { ConfigureSsao(existing, path.Contains("Mobile")); log.AppendLine("SSAO configured in " + data.name); continue; }
                 var feature = (ScriptableRendererFeature)ScriptableObject.CreateInstance("ScreenSpaceAmbientOcclusion");
                 if (feature == null) { log.AppendLine("SSAO type not found"); continue; }
                 feature.name = "SSAO";
@@ -217,6 +227,7 @@ namespace ProjectRidge.EditorTools
                 map.arraySize++;
                 map.GetArrayElementAtIndex(map.arraySize - 1).longValue = localId;
                 so.ApplyModifiedPropertiesWithoutUndo();
+                ConfigureSsao(feature, path.Contains("Mobile"));
                 EditorUtility.SetDirty(data);
                 log.AppendLine("SSAO added to " + data.name);
             }
@@ -226,6 +237,18 @@ namespace ProjectRidge.EditorTools
             cam.renderPostProcessing = true;
             cam.requiresDepthTexture = true;
             AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>Mismo AO en PC y iPhone (el de por defecto de CreateInstance es otro look); en móvil a media resolución.</summary>
+        static void ConfigureSsao(ScriptableRendererFeature feature, bool mobile)
+        {
+            var so = new SerializedObject(feature);
+            so.FindProperty("m_Settings.Intensity").floatValue = 0.4f;
+            so.FindProperty("m_Settings.Radius").floatValue = 0.3f;
+            so.FindProperty("m_Settings.DirectLightingStrength").floatValue = 0.25f;
+            so.FindProperty("m_Settings.Downsample").boolValue = mobile;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(feature);
         }
 
         static void SetupMoon(System.Text.StringBuilder log)
