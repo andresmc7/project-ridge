@@ -31,7 +31,22 @@ namespace ProjectRidge.Player
         public bool IsGrounded => controller.isGrounded;
         public PlayerMovementConfig Config => config;
 
+        /// <summary>Lo baja el combate mientras golpea (1 = normal, 0 = quieto).</summary>
+        public float SpeedMultiplier { get; set; } = 1f;
+        /// <summary>Sin control (muerto, fabricando, menús). La gravedad sigue.</summary>
+        public bool InputLocked { get; set; }
+        /// <summary>Dirección de movimiento pedida este frame (plana, normalizada; cero si no hay input).</summary>
+        public Vector3 DesiredDirection { get; private set; }
+
         public event Action<MovementMode> ModeChanged;
+
+        /// <summary>Gira de inmediato hacia un punto (atacar o disparar a un objetivo).</summary>
+        public void FaceTowards(Vector3 point)
+        {
+            Vector3 to = point - transform.position;
+            to.y = 0f;
+            if (to.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(to, Vector3.up);
+        }
 
         private void Awake()
         {
@@ -49,7 +64,7 @@ namespace ProjectRidge.Player
         private void Update()
         {
             float dt = Time.deltaTime;
-            Vector2 stick = Vector2.ClampMagnitude(input.Move, 1f);
+            Vector2 stick = InputLocked ? Vector2.zero : Vector2.ClampMagnitude(input.Move, 1f);
             float tilt = stick.magnitude;
             bool hasInput = tilt >= config.stickDeadzone;
 
@@ -60,7 +75,8 @@ namespace ProjectRidge.Player
             MovementMode mode = ResolveMode(hasInput, tilt);
             Vector3 desiredDirection = hasInput ? CameraRelative(stick / tilt) : Vector3.zero;
 
-            float targetSpeed = hasInput ? SpeedFor(mode) : 0f;
+            DesiredDirection = desiredDirection;
+            float targetSpeed = hasInput ? SpeedFor(mode) * SpeedMultiplier : 0f;
             Vector3 targetVelocity = desiredDirection * targetSpeed;
             float rate = targetVelocity.sqrMagnitude >= horizontalVelocity.sqrMagnitude ? config.acceleration : config.deceleration;
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * dt);
@@ -71,7 +87,7 @@ namespace ProjectRidge.Player
 
             controller.Move((horizontalVelocity + Vector3.up * verticalVelocity) * dt);
 
-            if (hasInput)
+            if (hasInput && SpeedMultiplier > 0.5f)
             {
                 Quaternion target = Quaternion.LookRotation(desiredDirection, Vector3.up);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, target, config.turnSpeed * dt);

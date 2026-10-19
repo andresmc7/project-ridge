@@ -19,6 +19,7 @@ namespace ProjectRidge.Player
         [SerializeField] private InputActionReference flashlight;
         [SerializeField] private InputActionReference pause;
         [SerializeField] private InputActionReference heal;
+        [SerializeField] private InputActionReference fire;
 
         // Teclado: Shift se mantiene. Control y táctil: el botón alterna (mantener L3 mientras se mueve el stick es incómodo).
         private bool keyboardSprintHeld;
@@ -26,13 +27,16 @@ namespace ProjectRidge.Player
 
         public Vector2 Move => move.action.ReadValue<Vector2>();
         public bool SprintRequested => keyboardSprintHeld || sprintLatched;
+        public bool AimHeld => aim.action.IsPressed();
 
         public event Action CrouchPressed;
         public event Action FlashlightPressed;
         public event Action InteractPressed;
         public event Action AttackPressed;
         public event Action HealPressed;
-        /// <summary>Interact, Attack, Aim, Flashlight y Pause. Sin gameplay todavía (M4); por ahora solo los muestra el debug.</summary>
+        public event Action FirePressed;
+        public event Action PausePressed;
+        /// <summary>Todas las acciones de botón (para el debug overlay).</summary>
         public event Action<InputAction> ActionPerformed;
 
         /// <summary>Lo llama el controlador cuando el sprint con toggle debe terminar (jugador quieto o agachado).</summary>
@@ -67,8 +71,14 @@ namespace ProjectRidge.Player
         }
 
         private InputActionReference[] otherActions;
-        private InputActionReference[] OtherActions() =>
-            otherActions ??= heal != null ? new[] { interact, attack, aim, flashlight, pause, heal } : new[] { interact, attack, aim, flashlight, pause };
+        private InputActionReference[] OtherActions()
+        {
+            if (otherActions != null) return otherActions;
+            var list = new System.Collections.Generic.List<InputActionReference> { interact, attack, aim, flashlight, pause };
+            if (heal != null) list.Add(heal);
+            if (fire != null) list.Add(fire);
+            return otherActions = list.ToArray();
+        }
 
         private void OnSprintPerformed(InputAction.CallbackContext context)
         {
@@ -93,7 +103,9 @@ namespace ProjectRidge.Player
             var action = context.action;
             if (action == interact.action) InteractPressed?.Invoke();
             else if (action == attack.action) AttackPressed?.Invoke();
+            else if (action == pause.action) PausePressed?.Invoke();
             else if (heal != null && action == heal.action) HealPressed?.Invoke();
+            else if (fire != null && action == fire.action) FirePressed?.Invoke();
             ActionPerformed?.Invoke(action);
         }
     }

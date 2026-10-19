@@ -128,6 +128,146 @@ namespace ProjectRidge.EditorTools
             return "Items set up: " + Pickups.Length + " pickups, 2 crates in " + scene.path;
         }
 
+        const string PrefabDir = "Assets/_Project/Prefabs";
+
+        [MenuItem("Project Ridge/Items/Setup Combat in Active Scene")]
+        public static string BuildCombat()
+        {
+            PolyHavenMaterialBuilder.EnsureFolder(PrefabDir);
+            PolyHavenMaterialBuilder.EnsureFolder(MatDir);
+            var combatConfig = Asset<CombatConfig>(DataDir + "/CombatConfig.asset", c => { });
+            var flare = AssetDatabase.LoadAssetAtPath<ItemDefinition>(ItemsDir + "/Flare.asset");
+            var scrap = AssetDatabase.LoadAssetAtPath<ItemDefinition>(ItemsDir + "/Scrap.asset");
+            var prefab = BuildFlarePrefab(combatConfig);
+
+            var health = Object.FindFirstObjectByType<PlayerHealth>();
+            var player = health.gameObject;
+            var input = player.GetComponent<PlayerInputHandler>();
+            var so = new SerializedObject(input);
+            so.FindProperty("fire").objectReferenceValue = ActionRef("Fire");
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var muzzle = player.transform.Find("Muzzle");
+            if (muzzle == null)
+            {
+                muzzle = new GameObject("Muzzle").transform;
+                muzzle.SetParent(player.transform, false);
+                muzzle.localPosition = new Vector3(0.25f, 1.3f, 0.45f);
+            }
+
+            var combat = Ensure<PlayerCombat>(player);
+            so = new SerializedObject(combat);
+            so.FindProperty("config").objectReferenceValue = combatConfig;
+            so.FindProperty("input").objectReferenceValue = input;
+            so.FindProperty("controller").objectReferenceValue = player.GetComponent<PlayerController>();
+            so.FindProperty("health").objectReferenceValue = health;
+            so.FindProperty("inventory").objectReferenceValue = player.GetComponent<PlayerInventory>();
+            so.FindProperty("interactor").objectReferenceValue = player.GetComponent<PlayerInteractor>();
+            so.FindProperty("flareItem").objectReferenceValue = flare;
+            so.FindProperty("scrapItem").objectReferenceValue = scrap;
+            so.FindProperty("flarePrefab").objectReferenceValue = prefab;
+            so.FindProperty("muzzle").objectReferenceValue = muzzle;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            int enemies = 0;
+            foreach (var enemy in Object.FindObjectsByType<ProjectRidge.AI.EnemyController>(FindObjectsSortMode.None))
+            {
+                var eh = Ensure<ProjectRidge.AI.EnemyHealth>(enemy.gameObject);
+                var eso = new SerializedObject(eh);
+                eso.FindProperty("config").objectReferenceValue = enemy.Config;
+                eso.FindProperty("enemy").objectReferenceValue = enemy;
+                eso.ApplyModifiedPropertiesWithoutUndo();
+                enemies++;
+            }
+
+            var scene = EditorSceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            return "Combat set up on player + " + enemies + " enemies";
+        }
+
+        static FlareProjectile BuildFlarePrefab(CombatConfig config)
+        {
+            var root = new GameObject("FlareProjectile");
+            var stick = Part(root.transform, PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.05f, 0.09f, 0.05f),
+                Mat("Item_FlareBurning", new Color(0.9f, 0.25f, 0.1f), new Color(4f, 0.9f, 0.4f)));
+            stick.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var lightGo = new GameObject("Glow");
+            lightGo.transform.SetParent(root.transform, false);
+            lightGo.transform.localPosition = new Vector3(0f, 0.35f, 0f);
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.shadows = LightShadows.None; // solo la luna y la linterna proyectan sombra
+            light.color = config.lightColor;
+            light.range = config.lightRange;
+            light.intensity = config.lightIntensity;
+            light.enabled = false;
+
+            var fxGo = new GameObject("Sparks");
+            fxGo.transform.SetParent(root.transform, false);
+            var ps = fxGo.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.playOnAwake = false;
+            main.loop = true;
+            main.duration = 1f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.8f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.8f, 2.2f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.06f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.75f, 0.35f), new Color(1f, 0.3f, 0.1f));
+            main.gravityModifier = 0.6f;
+            main.maxParticles = 80;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var emission = ps.emission;
+            emission.rateOverTime = 45f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 35f;
+            shape.radius = 0.02f;
+            shape.rotation = new Vector3(-90f, 0f, 0f);
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.4f, 0.1f), 1f) },
+                         new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = grad;
+            var psr = fxGo.GetComponent<ParticleSystemRenderer>();
+            psr.sharedMaterial = SparkMaterial();
+            psr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            var fp = root.AddComponent<FlareProjectile>();
+            var so = new SerializedObject(fp);
+            so.FindProperty("config").objectReferenceValue = config;
+            so.FindProperty("glow").objectReferenceValue = light;
+            so.FindProperty("sparks").objectReferenceValue = ps;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var saved = PrefabUtility.SaveAsPrefabAsset(root, PrefabDir + "/FlareProjectile.prefab");
+            Object.DestroyImmediate(root);
+            return saved.GetComponent<FlareProjectile>();
+        }
+
+        static Material SparkMaterial()
+        {
+            string path = MatDir + "/FX_Spark.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m != null) return m;
+            m = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            m.SetFloat("_Surface", 1f);   // transparente
+            m.SetFloat("_Blend", 2f);     // aditivo
+            m.SetColor("_BaseColor", new Color(1f, 0.6f, 0.3f, 1f));
+            m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.renderQueue = 3000;
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
         static void Crate(Transform root, string name, Vector3 pos, float yaw, InteractionConfig config, Material wood, params SearchableContainer.Entry[] contents)
         {
             var go = new GameObject(name);

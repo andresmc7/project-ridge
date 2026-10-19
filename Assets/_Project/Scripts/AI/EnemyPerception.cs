@@ -43,6 +43,14 @@ namespace ProjectRidge.AI
 
         public void ForgetTarget() => HasLastKnownPosition = false;
 
+        /// <summary>Sabe dónde estás (p. ej. le acabas de pegar).</summary>
+        public void Notice(Vector3 position)
+        {
+            Suspicion = 1f;
+            LastKnownPosition = position;
+            HasLastKnownPosition = true;
+        }
+
         /// <summary>Olvida todo (p. ej. tras el respawn del jugador).</summary>
         public void ResetAwareness()
         {

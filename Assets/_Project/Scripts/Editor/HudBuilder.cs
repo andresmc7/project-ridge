@@ -26,7 +26,7 @@ namespace ProjectRidge.EditorTools
 
             var canvas = GameObject.Find("HUD");
             var safe = canvas.transform.Find("SafeArea");
-            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash" })
+            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash", "Fire" })
             {
                 var old = safe.Find(n);
                 if (old != null) Object.DestroyImmediate(old.gameObject);
@@ -63,6 +63,7 @@ namespace ProjectRidge.EditorTools
             Button("Crouch", touch, br, new Vector2(-150f, 320f), 98f, "CROUCH", "<Gamepad>/buttonEast", disc, ring);
             Button("Sprint", touch, br, new Vector2(-300f, 272f), 98f, "SPRINT", "<Gamepad>/leftStickPress", disc, ring);
             Button("Heal", touch, br, new Vector2(-430f, 110f), 80f, "HEAL", "<Gamepad>/dpad/up", disc, ring);
+            Button("Fire", touch, br, new Vector2(-150f, 460f), 86f, "FLARE", "<Gamepad>/rightShoulder", disc, ring);
             Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-64f, -60f), 64f, "II", "<Gamepad>/start", disc, ring);
 
             // --- Vida y recursos (arriba a la izquierda), aviso de interacción y mensajes (abajo al centro)
@@ -79,6 +80,10 @@ namespace ProjectRidge.EditorTools
             var resources = Label("Resources", survival, Vector2.zero, new Vector2(420f, 28f), "", 17, FontStyle.Bold);
             Anchor(resources.rectTransform, new Vector2(0f, 1f), new Vector2(260f, -76f));
             resources.alignment = TextAnchor.MiddleLeft;
+            var weapon = Label("Weapon", survival, Vector2.zero, new Vector2(420f, 26f), "", 16, FontStyle.Bold);
+            Anchor(weapon.rectTransform, new Vector2(0f, 1f), new Vector2(260f, -100f));
+            weapon.alignment = TextAnchor.MiddleLeft;
+            weapon.color = new Color(1f, 1f, 1f, 0.7f);
             var prompt = Label("Prompt", survival, Vector2.zero, new Vector2(600f, 34f), "", 22, FontStyle.Bold);
             Anchor(prompt.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f));
             var toast = Label("Toast", survival, Vector2.zero, new Vector2(600f, 30f), "", 19, FontStyle.Normal);
@@ -97,6 +102,8 @@ namespace ProjectRidge.EditorTools
                     AssetDatabase.LoadAssetAtPath<ProjectRidge.Items.ItemDefinition>("Assets/_Project/Data/Items/" + ShownItems[i] + ".asset");
             sso.FindProperty("healthFill").objectReferenceValue = healthFill;
             sso.FindProperty("resourcesLabel").objectReferenceValue = resources;
+            sso.FindProperty("weaponLabel").objectReferenceValue = weapon;
+            sso.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
             sso.FindProperty("promptLabel").objectReferenceValue = prompt;
             sso.FindProperty("toastLabel").objectReferenceValue = toast;
             sso.FindProperty("damageFlash").objectReferenceValue = flash;

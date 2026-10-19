@@ -76,6 +76,9 @@ namespace ProjectRidge.AI
         [Tooltip("Ángulo frontal en el que el golpe conecta.")]
         [Range(10f, 360f)] public float attackArc = 100f;
 
+        [Header("Vida")]
+        [Min(1f)] public float maxHealth = 100f;
+
         [Header("Feedback (ojos)")]
         [ColorUsage(false, true)] public Color eyesCalm = new Color(0.6f, 0.02f, 0.02f);
         [ColorUsage(false, true)] public Color eyesAlert = new Color(2.5f, 0.15f, 0.05f);

@@ -6,16 +6,18 @@ using UnityEngine.UI;
 
 namespace ProjectRidge.UI
 {
-    /// <summary>HUD sobrio: vida, recursos, aviso de interacción y mensajes breves ("+1 Medkit").</summary>
+    /// <summary>HUD sobrio: vida, arma, recursos, aviso de interacción y mensajes breves ("+1 Medkit").</summary>
     public class SurvivalHud : MonoBehaviour
     {
         [SerializeField] private PlayerHealth health;
         [SerializeField] private PlayerInventory inventory;
         [SerializeField] private PlayerInteractor interactor;
+        [SerializeField] private PlayerCombat combat;
         [SerializeField] private ItemDefinition[] shownItems;
 
         [SerializeField] private Image healthFill;
         [SerializeField] private Text resourcesLabel;
+        [SerializeField] private Text weaponLabel;
         [SerializeField] private Text promptLabel;
         [SerializeField] private Text toastLabel;
         [SerializeField] private CanvasGroup damageFlash;
@@ -27,6 +29,7 @@ namespace ProjectRidge.UI
         private readonly StringBuilder builder = new StringBuilder(64);
         private float toastUntil;
         private Interactable shownPrompt;
+        private int shownDurability = -1;
         private bool dirty = true;
 
         private void OnEnable()
@@ -59,6 +62,8 @@ namespace ProjectRidge.UI
         private void Update()
         {
             healthFill.fillAmount = health.Current / health.Max;
+            // Vida baja: la barra se enrojece.
+            healthFill.color = Color.Lerp(new Color(0.75f, 0.12f, 0.08f, 0.95f), new Color(0.86f, 0.82f, 0.74f, 0.9f), Mathf.InverseLerp(0.2f, 0.5f, health.Current / health.Max));
 
             if (dirty)
             {
@@ -70,6 +75,23 @@ namespace ProjectRidge.UI
                     builder.Append(item.shortLabel).Append("  ").Append(inventory.Count(item));
                 }
                 resourcesLabel.text = builder.ToString();
+            }
+
+            if (combat != null && weaponLabel != null && combat.ClubDurability != shownDurability)
+            {
+                shownDurability = combat.ClubDurability;
+                builder.Clear();
+                if (combat.HasClub)
+                {
+                    builder.Append("CLUB  ");
+                    for (int i = 0; i < combat.ClubMaxDurability; i++) builder.Append(i < shownDurability ? '|' : '.');
+                }
+                else
+                {
+                    builder.Append("NO CLUB");
+                }
+                weaponLabel.text = builder.ToString();
+                dirty = true;
             }
 
             var current = interactor.Current;

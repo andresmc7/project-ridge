@@ -32,6 +32,8 @@ namespace ProjectRidge.AI
         private bool attackLanded;
         private float zigzagSeed;
         private float nextRepath;
+        private float stunEnd;
+        private Vector3 knockbackVelocity;
 
         /// <summary>Enemigos activos (para el HUD de sigilo y las alertas del OVNI).</summary>
         public static readonly List<EnemyController> Active = new List<EnemyController>();
@@ -57,8 +59,41 @@ namespace ProjectRidge.AI
         /// <summary>Alerta externa (p. ej. el OVNI te detectó): va a investigar esa posición si no está ya cazando.</summary>
         public void AlertTo(Vector3 position)
         {
-            if (State == EnemyState.Chase || State == EnemyState.Attack) return;
+            if (State != EnemyState.Patrol && State != EnemyState.Investigate && State != EnemyState.Search) return;
             EnterInvestigate(position);
+        }
+
+        public bool IsDead => State == EnemyState.Dead;
+        /// <summary>Cazando o atacando: un golpe ahora no es por sorpresa.</summary>
+        public bool IsHunting => State == EnemyState.Chase || State == EnemyState.Attack;
+
+        /// <summary>
+        /// Lo golpearon o aturdieron: interrumpe lo que hacía (incluido su ataque), retrocede un poco
+        /// y al recuperarse sabe dónde estás.
+        /// </summary>
+        public void Interrupt(float seconds, Vector3 attackerPosition, float knockback)
+        {
+            if (IsDead) return;
+            perception.Notice(attackerPosition);
+            stunEnd = Mathf.Max(stunEnd, Time.time + seconds);
+            Vector3 away = transform.position - attackerPosition;
+            away.y = 0f;
+            knockbackVelocity = away.sqrMagnitude > 0.001f ? away.normalized * knockback : Vector3.zero;
+            SetState(EnemyState.Stunned);
+            agent.isStopped = true;
+            agent.ResetPath();
+        }
+
+        public void Die()
+        {
+            if (IsDead) return;
+            SetState(EnemyState.Dead);
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.enabled = false;
+            perception.enabled = false;
+            if (TryGetComponent(out Collider body)) body.enabled = false;
+            Active.Remove(this);
         }
 
         private void Awake()
@@ -69,7 +104,7 @@ namespace ProjectRidge.AI
 
         private void OnEnable()
         {
-            Active.Add(this);
+            if (!IsDead) Active.Add(this);
             perception.NoiseHeard += OnNoiseHeard;
         }
 
@@ -84,6 +119,12 @@ namespace ProjectRidge.AI
         private void Update()
         {
             stateTime += Time.deltaTime;
+            if (State == EnemyState.Dead) return;
+            if (State == EnemyState.Stunned)
+            {
+                TickStunned();
+                return;
+            }
 
             if (State != EnemyState.Chase && State != EnemyState.Attack
                 && perception.CanSeeTarget && perception.Suspicion >= config.chaseThreshold)
@@ -147,7 +188,7 @@ namespace ProjectRidge.AI
 
         private void OnNoiseHeard(Vector3 position)
         {
-            if (State == EnemyState.Chase || State == EnemyState.Attack) return;
+            if (State != EnemyState.Patrol && State != EnemyState.Investigate && State != EnemyState.Search) return;
             if (State == EnemyState.Investigate)
             {
                 investigateTarget = position;
@@ -313,6 +354,21 @@ namespace ProjectRidge.AI
             Vector3 to = targetPos - transform.position;
             to.y = 0f;
             return to.magnitude <= config.attackRange && Vector3.Angle(transform.forward, to) <= config.attackArc * 0.5f;
+        }
+
+        // ---------- Stunned (golpe, bengala)
+
+        private void TickStunned()
+        {
+            if (knockbackVelocity.sqrMagnitude > 0.0001f)
+            {
+                agent.Move(knockbackVelocity * Time.deltaTime);
+                knockbackVelocity = Vector3.MoveTowards(knockbackVelocity, Vector3.zero, 12f * Time.deltaTime);
+            }
+            if (Time.time < stunEnd) return;
+            agent.isStopped = false;
+            if (perception.CanSeeTarget) EnterChase();
+            else EnterInvestigate(perception.LastKnownPosition);
         }
 
         // ---------- Utilidades
