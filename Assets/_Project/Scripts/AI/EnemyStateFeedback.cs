@@ -12,12 +12,12 @@ namespace ProjectRidge.AI
         [SerializeField] private EnemyPerception perception;
         [SerializeField] private Renderer[] eyes;
 
+        // Se crea perezosamente: tras un domain reload en play mode Awake no vuelve a correr.
         private MaterialPropertyBlock block;
-
-        private void Awake() => block = new MaterialPropertyBlock();
 
         private void LateUpdate()
         {
+            block ??= new MaterialPropertyBlock();
             Color color;
             switch (enemy.State)
             {

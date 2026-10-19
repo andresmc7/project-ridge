@@ -20,6 +20,12 @@ namespace ProjectRidge.Player
 
         public void Restore() => Current = config.maxHealth;
 
+        public void Heal(float amount)
+        {
+            if (IsDead || amount <= 0f) return;
+            Current = Mathf.Min(config.maxHealth, Current + amount);
+        }
+
         public void TakeDamage(float amount)
         {
             if (IsDead || amount <= 0f) return;

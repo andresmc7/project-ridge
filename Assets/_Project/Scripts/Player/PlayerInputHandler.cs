@@ -18,6 +18,7 @@ namespace ProjectRidge.Player
         [SerializeField] private InputActionReference aim;
         [SerializeField] private InputActionReference flashlight;
         [SerializeField] private InputActionReference pause;
+        [SerializeField] private InputActionReference heal;
 
         // Teclado: Shift se mantiene. Control y táctil: el botón alterna (mantener L3 mientras se mueve el stick es incómodo).
         private bool keyboardSprintHeld;
@@ -28,6 +29,9 @@ namespace ProjectRidge.Player
 
         public event Action CrouchPressed;
         public event Action FlashlightPressed;
+        public event Action InteractPressed;
+        public event Action AttackPressed;
+        public event Action HealPressed;
         /// <summary>Interact, Attack, Aim, Flashlight y Pause. Sin gameplay todavía (M4); por ahora solo los muestra el debug.</summary>
         public event Action<InputAction> ActionPerformed;
 
@@ -64,7 +68,7 @@ namespace ProjectRidge.Player
 
         private InputActionReference[] otherActions;
         private InputActionReference[] OtherActions() =>
-            otherActions ??= new[] { interact, attack, aim, flashlight, pause };
+            otherActions ??= heal != null ? new[] { interact, attack, aim, flashlight, pause, heal } : new[] { interact, attack, aim, flashlight, pause };
 
         private void OnSprintPerformed(InputAction.CallbackContext context)
         {
@@ -84,6 +88,13 @@ namespace ProjectRidge.Player
 
         private void OnFlashlightPerformed(InputAction.CallbackContext context) => FlashlightPressed?.Invoke();
 
-        private void OnOtherPerformed(InputAction.CallbackContext context) => ActionPerformed?.Invoke(context.action);
+        private void OnOtherPerformed(InputAction.CallbackContext context)
+        {
+            var action = context.action;
+            if (action == interact.action) InteractPressed?.Invoke();
+            else if (action == attack.action) AttackPressed?.Invoke();
+            else if (heal != null && action == heal.action) HealPressed?.Invoke();
+            ActionPerformed?.Invoke(action);
+        }
     }
 }

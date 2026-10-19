@@ -26,11 +26,20 @@ namespace ProjectRidge.EditorTools
 
             var canvas = GameObject.Find("HUD");
             var safe = canvas.transform.Find("SafeArea");
-            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud" })
+            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash" })
             {
                 var old = safe.Find(n);
                 if (old != null) Object.DestroyImmediate(old.gameObject);
             }
+
+            // --- Destello de daño (detrás de todo lo demás)
+            var flashRt = Stretch("DamageFlash", safe);
+            flashRt.SetAsFirstSibling();
+            Img(flashRt, white, new Color(0.45f, 0f, 0f, 0.35f), false);
+            var flash = flashRt.gameObject.AddComponent<CanvasGroup>();
+            flash.alpha = 0f;
+            flash.interactable = false;
+            flash.blocksRaycasts = false;
 
             // --- Controles táctiles
             var touch = Stretch("TouchControls", safe);
@@ -53,7 +62,45 @@ namespace ProjectRidge.EditorTools
             Button("Interact", touch, br, new Vector2(-300f, 120f), 98f, "USE", "<Gamepad>/buttonSouth", disc, ring);
             Button("Crouch", touch, br, new Vector2(-150f, 320f), 98f, "CROUCH", "<Gamepad>/buttonEast", disc, ring);
             Button("Sprint", touch, br, new Vector2(-300f, 272f), 98f, "SPRINT", "<Gamepad>/leftStickPress", disc, ring);
+            Button("Heal", touch, br, new Vector2(-430f, 110f), 80f, "HEAL", "<Gamepad>/dpad/up", disc, ring);
             Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-64f, -60f), 64f, "II", "<Gamepad>/start", disc, ring);
+
+            // --- Vida y recursos (arriba a la izquierda), aviso de interacción y mensajes (abajo al centro)
+            var survival = Stretch("SurvivalHud", safe);
+            var healthBg = Rect("HealthBg", survival, new Vector2(0f, 1f), new Vector2(170f, -48f), 0f);
+            healthBg.sizeDelta = new Vector2(240f, 6f);
+            Img(healthBg, white, new Color(1f, 1f, 1f, 0.14f), false);
+            var healthRt = Rect("HealthFill", healthBg, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
+            healthRt.anchorMin = Vector2.zero; healthRt.anchorMax = Vector2.one; healthRt.offsetMin = healthRt.offsetMax = Vector2.zero;
+            var healthFill = Img(healthRt, white, new Color(0.86f, 0.82f, 0.74f, 0.9f), false);
+            healthFill.type = Image.Type.Filled;
+            healthFill.fillMethod = Image.FillMethod.Horizontal;
+            healthFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            var resources = Label("Resources", survival, Vector2.zero, new Vector2(420f, 28f), "", 17, FontStyle.Bold);
+            Anchor(resources.rectTransform, new Vector2(0f, 1f), new Vector2(260f, -76f));
+            resources.alignment = TextAnchor.MiddleLeft;
+            var prompt = Label("Prompt", survival, Vector2.zero, new Vector2(600f, 34f), "", 22, FontStyle.Bold);
+            Anchor(prompt.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f));
+            var toast = Label("Toast", survival, Vector2.zero, new Vector2(600f, 30f), "", 19, FontStyle.Normal);
+            Anchor(toast.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 196f));
+
+            var survivalHud = survival.gameObject.AddComponent<ProjectRidge.UI.SurvivalHud>();
+            var sso = new SerializedObject(survivalHud);
+            var player = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerHealth>();
+            sso.FindProperty("health").objectReferenceValue = player;
+            sso.FindProperty("inventory").objectReferenceValue = player.GetComponent<ProjectRidge.Items.PlayerInventory>();
+            sso.FindProperty("interactor").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInteractor>();
+            var items = sso.FindProperty("shownItems");
+            items.arraySize = ShownItems.Length;
+            for (int i = 0; i < ShownItems.Length; i++)
+                items.GetArrayElementAtIndex(i).objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<ProjectRidge.Items.ItemDefinition>("Assets/_Project/Data/Items/" + ShownItems[i] + ".asset");
+            sso.FindProperty("healthFill").objectReferenceValue = healthFill;
+            sso.FindProperty("resourcesLabel").objectReferenceValue = resources;
+            sso.FindProperty("promptLabel").objectReferenceValue = prompt;
+            sso.FindProperty("toastLabel").objectReferenceValue = toast;
+            sso.FindProperty("damageFlash").objectReferenceValue = flash;
+            sso.ApplyModifiedPropertiesWithoutUndo();
 
             // --- Indicador de sigilo (arriba al centro)
             var hud = Rect("StealthHud", safe, new Vector2(0.5f, 1f), new Vector2(0f, -62f), 0f);
@@ -137,6 +184,14 @@ namespace ProjectRidge.EditorTools
             rt.anchoredPosition = pos;
             rt.sizeDelta = new Vector2(size, size);
             return rt;
+        }
+
+        static readonly string[] ShownItems = { "Medkit", "Flare", "Scrap" };
+
+        static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pos)
+        {
+            rt.anchorMin = rt.anchorMax = anchor;
+            rt.anchoredPosition = pos;
         }
 
         static Image Img(RectTransform rt, Sprite sprite, Color color, bool raycast)

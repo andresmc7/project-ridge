@@ -2,6 +2,23 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-19 — Recursos e interacción (M4 parcial) en LookDev_ForestCorner
+Máquina: Windows 11, Unity 6000.3.26f1, editor (play mode vía Unity MCP).
+
+- Compila: 0 errores. Consola en play: 0 errores (solo el warning conocido de `Account API`).
+- Nuevo: `ItemDefinition` (Medkit máx 3, Flare máx 3, Scrap máx 9), `InteractionConfig`, `PlayerInventory`, `PlayerInteractor`, `PlayerHealing`, `Pickup`, `SearchableContainer`, `SurvivalHud`. Acción Heal (H / cruceta arriba / botón táctil HEAL). Herramienta `Project Ridge/Items/Setup Items in Active Scene`.
+- Escena: 6 objetos sueltos (2 botiquines, 1 bengala, 3 chatarra) y 2 cajas (inicio y claro).
+- Probado en play con teclado virtual por el Input System:
+  - E junto a un botiquín → inventario 1, objeto desaparece.
+  - H con 40 de vida → 90 y botiquín consumido; H sin botiquines → mensaje "No medkits".
+  - E en la caja del inicio → +1 Medkit +2 Scrap, tapa abierta, mensaje en el HUD.
+  - HUD (captura en play): barra de vida, contador de recursos, aviso "[E] Pick up Scrap", destello rojo al recibir daño, botón HEAL.
+- Arreglado: `EnemyStateFeedback` lanzaba `ArgumentNullException` cada frame tras una recarga de scripts en play mode.
+- Arreglado: E en el mismo frame en que el jugador llega junto al objeto no hacía nada; ahora el interactor busca el más cercano al pulsar.
+- Verificado (pendiente desde la entrada anterior): agachado detrás de la roca el rayo del OVNI no lo ilumina; de pie en el mismo lugar y agachado en campo abierto, sí.
+- `UNVERIFIED`: que el ruido de recoger/registrar atraiga al Lurker en partida real (usa `NoiseSystem`, probado en M2 con otros ruidos).
+- `UNVERIFIED`: lectura de los objetos en la oscuridad a escala de iPhone.
+
 ## 2026-10-17 — Look dev (esquina del bosque) + OVNI (M3 parcial) + HUD + playable Windows
 Máquina: Windows 11, Unity 6000.3.26f1. Escena: `Assets/_Project/Scenes/LookDev_ForestCorner.unity` (primera del build).
 
