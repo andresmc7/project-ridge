@@ -19,7 +19,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 20
+  m_StaticEditorFlags: 16
   m_IsActive: 1
 --- !u!4 &344791590367085204
 Transform:
@@ -70,8 +70,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 5159276ca993b37419ca63502907b619, type: 2}
-  - {fileID: 2100000, guid: 1edefe112fbed9a44bff58a056597a1a, type: 2}
+  - {fileID: 2100000, guid: e799d4e167660d14586b99b0a067addb, type: 2}
+  - {fileID: 2100000, guid: 0a7c9b9625412d2499ae79a2f05e28ea, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -110,11 +110,11 @@ MonoBehaviour:
   renderers:
   - {fileID: 3174220412524799058}
   opaqueMaterials:
-  - {fileID: 2100000, guid: 5159276ca993b37419ca63502907b619, type: 2}
-  - {fileID: 2100000, guid: 1edefe112fbed9a44bff58a056597a1a, type: 2}
+  - {fileID: 2100000, guid: e799d4e167660d14586b99b0a067addb, type: 2}
+  - {fileID: 2100000, guid: 0a7c9b9625412d2499ae79a2f05e28ea, type: 2}
   fadedMaterials:
-  - {fileID: 2100000, guid: d9ffbc087acd4354288f40f74ad8513d, type: 2}
-  - {fileID: 2100000, guid: 59a48f9d327d2724ebd4a0736eda254c, type: 2}
+  - {fileID: 2100000, guid: 9a5f4a5aeabc8cb4bb9de675115b38de, type: 2}
+  - {fileID: 2100000, guid: e9b638bb80f75984ba52074b323770f7, type: 2}
 --- !u!136 &7486558333147600569
 CapsuleCollider:
   m_ObjectHideFlags: 0

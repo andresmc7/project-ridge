@@ -157,7 +157,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 69b88ac6d1a9e5d4b85d00ed388993c9, type: 2}
+  - {fileID: 2100000, guid: 6fa21501afe32684fb5542de79f8d6a7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -198,7 +198,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 20
+  m_StaticEditorFlags: 16
   m_IsActive: 1
 --- !u!4 &7320856089867379557
 Transform:
@@ -235,10 +235,10 @@ MonoBehaviour:
   - {fileID: 2912789560700767214}
   opaqueMaterials:
   - {fileID: 2100000, guid: 5159276ca993b37419ca63502907b619, type: 2}
-  - {fileID: 2100000, guid: 69b88ac6d1a9e5d4b85d00ed388993c9, type: 2}
+  - {fileID: 2100000, guid: 6fa21501afe32684fb5542de79f8d6a7, type: 2}
   fadedMaterials:
   - {fileID: 2100000, guid: d9ffbc087acd4354288f40f74ad8513d, type: 2}
-  - {fileID: 2100000, guid: 4d4b243ed8d1a164987792a688ae87bf, type: 2}
+  - {fileID: 2100000, guid: 181b7b84f910996488a0cc028f101c0d, type: 2}
 --- !u!136 &7217090642124001688
 CapsuleCollider:
   m_ObjectHideFlags: 0

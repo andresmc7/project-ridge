@@ -13,6 +13,7 @@ namespace ProjectRidge.EditorTools
             EditorSceneManager.SaveOpenScenes();
             log.Append(Build());
             log.Append(CharacterBuilder.Build());
+            log.Append(BuildAtmosphere(UnityEngine.Terrain.activeTerrain, UnityEngine.GameObject.Find("Player")));
             log.AppendLine(HudBuilder.Build());
             log.AppendLine(HudBuilder.BuildFlow());
             if (AssetDatabase.LoadAssetAtPath<ProjectRidge.Core.AudioBank>("Assets/_Project/Data/AudioBank.asset") == null)

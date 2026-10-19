@@ -152,6 +152,15 @@ namespace ProjectRidge.EditorTools
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, path); }
             else m.CopyPropertiesFromMaterial(src);
+            if (src.shader.name != "Universal Render Pipeline/Lit")
+            {
+                // Shaders propios (viento): la versión desvanecida usa URP Lit transparente con las mismas texturas.
+                m.shader = Shader.Find("Universal Render Pipeline/Lit");
+                m.SetTexture("_BaseMap", src.GetTexture("_BaseMap"));
+                m.SetColor("_BaseColor", src.GetColor("_BaseColor"));
+                if (src.HasProperty("_BumpMap") && src.GetTexture("_BumpMap") != null) { m.SetTexture("_BumpMap", src.GetTexture("_BumpMap")); m.EnableKeyword("_NORMALMAP"); }
+                m.SetFloat("_Smoothness", src.GetFloat("_Smoothness"));
+            }
             m.SetFloat("_Surface", 1f);
             m.SetFloat("_Blend", 0f);
             m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);

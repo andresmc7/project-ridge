@@ -397,6 +397,10 @@ namespace ProjectRidge.EditorTools
             mesh.SetVertices(v);
             mesh.SetUVs(0, uv);
             mesh.SetTriangles(t, 0);
+            // UV2.x = altura sobre la base: el viento la usa también cuando la mata se combina con otras.
+            var heightUv = new List<Vector2>(v.Count);
+            foreach (var p in v) heightUv.Add(new Vector2(p.y, 0f));
+            mesh.SetUVs(1, heightUv);
             // Normales hacia arriba: el pasto se ilumina parejo (como en los dioramas) y no parpadea por cara.
             var n = new Vector3[v.Count];
             for (int i = 0; i < n.Length; i++) n[i] = Vector3.up;

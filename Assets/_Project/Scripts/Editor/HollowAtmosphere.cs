@@ -1,0 +1,582 @@
+using System.IO;
+using System.Linq;
+using ProjectRidge.Core;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+namespace ProjectRidge.EditorTools
+{
+    /// <summary>
+    /// Atmósfera de The Hollow: luna con sombras de nubes, niebla densa y bancos de niebla baja, llovizna, esporas,
+    /// hojas que caen, luciérnagas y polillas, vaho del papá, charcos en el sendero, haz volumétrico del OVNI con
+    /// polvo y resplandor en el cielo, SSAO y la gradación (sombras frías, luces cálidas, grano, aberración).
+    /// </summary>
+    public static partial class HollowBuilder
+    {
+        const string FxDir = DataDir + "/FX";
+
+        // ------------------------------------------------------------------ Texturas procedurales
+
+        static Texture2D WriteTex(string name, int w, int h, System.Func<int, int, Color> px, bool repeat, bool alphaIsTransparency = true, bool linear = false)
+        {
+            PolyHavenMaterialBuilder.EnsureFolder(FxDir);
+            string path = FxDir + "/" + name + ".png";
+            var t = new Texture2D(w, h, TextureFormat.RGBA32, false, linear);
+            var arr = new Color[w * h];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) arr[y * w + x] = px(x, y);
+            t.SetPixels(arr);
+            t.Apply();
+            File.WriteAllBytes(path, t.EncodeToPNG());
+            Object.DestroyImmediate(t);
+            AssetDatabase.ImportAsset(path);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+            imp.wrapMode = repeat ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+            imp.alphaIsTransparency = alphaIsTransparency;
+            imp.sRGBTexture = !linear;
+            imp.mipmapEnabled = true;
+            imp.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        static float TileFbm(float u, float v, int octaves, float seed)
+        {
+            // fbm periódico: ruido sobre un toro 4D aproximado con dos círculos.
+            float sum = 0f, amp = 0.5f, norm = 0f, freq = 1f;
+            for (int o = 0; o < octaves; o++)
+            {
+                float a = u * Mathf.PI * 2f, b = v * Mathf.PI * 2f;
+                float nx = Mathf.Cos(a) * freq + seed, ny = Mathf.Sin(a) * freq + seed * 0.7f;
+                float nz = Mathf.Cos(b) * freq + seed * 1.3f, nw = Mathf.Sin(b) * freq + seed * 0.4f;
+                float n = (Mathf.PerlinNoise(nx + nz * 1.7f, ny + nw * 1.3f) + Mathf.PerlinNoise(nz + nx * 0.6f, nw + ny * 0.9f)) * 0.5f;
+                sum += n * amp; norm += amp; amp *= 0.5f; freq *= 2f;
+            }
+            return sum / norm;
+        }
+
+        static Texture2D NoiseTex() => WriteTex("Tex_Noise", 256, 256, (x, y) =>
+        {
+            float n = TileFbm(x / 256f, y / 256f, 4, 3.1f);
+            n = Mathf.Clamp01((n - 0.3f) * 2.2f);
+            return new Color(n, n, n, n);
+        }, true, false, true);
+
+        static Texture2D CloudCookie() => WriteTex("Tex_CloudCookie", 256, 256, (x, y) =>
+        {
+            float n = TileFbm(x / 256f, y / 256f, 5, 11.7f);
+            float c = Mathf.Lerp(0.55f, 1f, Mathf.SmoothStep(0.35f, 0.65f, n));
+            return new Color(c, c, c, c);
+        }, true, false, true);
+
+        static Texture2D SoftDot() => WriteTex("Tex_SoftDot", 64, 64, (x, y) =>
+        {
+            float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(32f, 32f)) / 32f;
+            float a = Mathf.Pow(Mathf.Clamp01(1f - d), 2.2f);
+            return new Color(1f, 1f, 1f, a);
+        }, false);
+
+        static Texture2D LeafSprite() => WriteTex("Tex_Leaf", 64, 64, (x, y) =>
+        {
+            float u = (x + 0.5f) / 64f * 2f - 1f, v = (y + 0.5f) / 64f * 2f - 1f;
+            float w = 0.42f * (1f - v * v);
+            float a = Mathf.Clamp01((w - Mathf.Abs(u)) * 40f) * Mathf.Clamp01((1f - Mathf.Abs(v)) * 20f);
+            float vein = Mathf.Abs(u) < 0.03f ? 0.7f : 1f;
+            return new Color(0.42f * vein, 0.32f * vein, 0.16f * vein, a);
+        }, false);
+
+        static Texture2D BeamCookie() => WriteTex("Tex_BeamCookie", 128, 128, (x, y) =>
+        {
+            float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(64f, 64f)) / 64f;
+            float core = Mathf.Clamp01(1f - Mathf.SmoothStep(0.55f, 1f, d));
+            float ring = 1f - 0.25f * Mathf.Sin(d * 26f) * Mathf.SmoothStep(0.2f, 0.8f, d);
+            float n = 0.8f + 0.2f * TileFbm(x / 128f, y / 128f, 3, 5f);
+            float c = core * ring * n;
+            return new Color(c, c, c, c);
+        }, false, false, true);
+
+        // ------------------------------------------------------------------ Materiales con viento
+
+        internal static Material WindMaterial(string name, Texture albedo, Texture normal, Color color, float smoothness, float strength, float heightScale, float flutter, bool cullOff, float translucency)
+        {
+            string path = DataDir + "/" + name + ".mat";
+            var shader = Shader.Find("ProjectRidge/FoliageWind");
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { m = new Material(shader); AssetDatabase.CreateAsset(m, path); }
+            m.shader = shader;
+            m.SetTexture("_BaseMap", albedo);
+            m.SetColor("_BaseColor", color);
+            m.SetFloat("_Smoothness", smoothness);
+            if (normal != null) { m.SetTexture("_BumpMap", normal); m.SetFloat("_UseNormal", 1f); m.EnableKeyword("_NORMALMAP"); }
+            else { m.SetFloat("_UseNormal", 0f); m.DisableKeyword("_NORMALMAP"); }
+            m.SetFloat("_WindStrength", strength);
+            m.SetFloat("_HeightScale", heightScale);
+            m.SetFloat("_WindFlutter", flutter);
+            m.SetFloat("_Cull", cullOff ? 0f : 2f);
+            m.SetFloat("_Translucency", translucency);
+            m.enableInstancing = true;
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        static Material FxMaterial(string name, string shader, Texture tex, Color color, bool additive)
+        {
+            string path = FxDir + "/" + name + ".mat";
+            PolyHavenMaterialBuilder.EnsureFolder(FxDir);
+            var sh = Shader.Find(shader);
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { m = new Material(sh); AssetDatabase.CreateAsset(m, path); }
+            m.shader = sh;
+            if (shader == "Universal Render Pipeline/Particles/Unlit")
+            {
+                m.SetTexture("_BaseMap", tex);
+                m.SetColor("_BaseColor", color);
+                m.SetFloat("_Surface", 1f);
+                m.SetFloat("_Blend", additive ? 2f : 0f);
+                m.SetFloat("_SrcBlend", (float)(additive ? BlendMode.SrcAlpha : BlendMode.SrcAlpha));
+                m.SetFloat("_DstBlend", (float)(additive ? BlendMode.One : BlendMode.OneMinusSrcAlpha));
+                m.SetFloat("_ZWrite", 0f);
+                m.SetFloat("_SoftParticlesEnabled", 1f);
+                m.EnableKeyword("_SOFTPARTICLES_ON");
+                m.SetVector("_SoftParticleFadeParams", new Vector4(0f, 1f / 0.6f, 0f, 0f));
+                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                m.SetOverrideTag("RenderType", "Transparent");
+                m.renderQueue = (int)RenderQueue.Transparent;
+            }
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
+        // ------------------------------------------------------------------ Entrada
+
+        static string BuildAtmosphere(Terrain t, GameObject player)
+        {
+            var log = new System.Text.StringBuilder();
+            var noise = NoiseTex();
+            var dot = SoftDot();
+            var old = GameObject.Find("Atmosphere");
+            if (old != null) Object.DestroyImmediate(old);
+            var root = new GameObject("Atmosphere").transform;
+
+            SetupRenderPipeline(log);
+            SetupMoon(log);
+            SetupGrading();
+            SetupFlashlight(player);
+
+            // Niebla de escena: densa, claustrofóbica, fría.
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogColor = new Color(0.055f, 0.07f, 0.085f);
+            RenderSettings.fogDensity = 0.034f;
+            Camera.main.backgroundColor = RenderSettings.fogColor;
+
+            int cards = FogCards(root, t, noise);
+            log.AppendLine("fog cards=" + cards);
+            int puddles = Puddles(root, t);
+            log.AppendLine("puddles=" + puddles);
+            Particles(root, player, dot);
+            log.AppendLine("particles ok");
+            UpgradeUfo(noise, dot);
+            log.AppendLine("ufo beam ok");
+            return log.ToString();
+        }
+
+        static void SetupRenderPipeline(System.Text.StringBuilder log)
+        {
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset"))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                asset.supportsCameraDepthTexture = true;
+                asset.supportsHDR = true;
+                asset.shadowDistance = 32f;
+                asset.shadowCascadeCount = 2;
+                var so = new SerializedObject(asset);
+                var cookies = so.FindProperty("m_SupportsLightCookies");
+                if (cookies != null) cookies.boolValue = true;
+                var soft = so.FindProperty("m_SoftShadowsSupported");
+                if (soft != null) soft.boolValue = true;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(asset);
+            }
+            // SSAO en cada renderer (A18+: lo soporta de sobra).
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRendererData"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets/")) continue; // nunca tocar los renderers de los paquetes
+                var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
+                if (data.rendererFeatures.Any(f => f != null && f.GetType().Name == "ScreenSpaceAmbientOcclusion")) { log.AppendLine("SSAO already in " + data.name); continue; }
+                var feature = (ScriptableRendererFeature)ScriptableObject.CreateInstance("ScreenSpaceAmbientOcclusion");
+                if (feature == null) { log.AppendLine("SSAO type not found"); continue; }
+                feature.name = "SSAO";
+                AssetDatabase.AddObjectToAsset(feature, data);
+                data.rendererFeatures.Add(feature);
+                var so = new SerializedObject(data);
+                var map = so.FindProperty("m_RendererFeatureMap");
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature, out string _, out long localId);
+                map.arraySize++;
+                map.GetArrayElementAtIndex(map.arraySize - 1).longValue = localId;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(data);
+                log.AppendLine("SSAO added to " + data.name);
+            }
+            var cam = Camera.main.GetComponent<UniversalAdditionalCameraData>();
+            cam.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            cam.antialiasingQuality = AntialiasingQuality.Medium;
+            cam.renderPostProcessing = true;
+            cam.requiresDepthTexture = true;
+            AssetDatabase.SaveAssets();
+        }
+
+        static void SetupMoon(System.Text.StringBuilder log)
+        {
+            var moon = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
+            if (moon == null) { log.AppendLine("no moon"); return; }
+            moon.color = new Color(0.6f, 0.71f, 0.92f);
+            moon.intensity = 1.35f;
+            moon.shadows = LightShadows.Soft;
+            moon.shadowStrength = 0.9f;
+            moon.transform.rotation = Quaternion.Euler(38f, -128f, 0f);
+            moon.cookie = CloudCookie();
+            if (!moon.TryGetComponent(out UniversalAdditionalLightData _)) moon.gameObject.AddComponent<UniversalAdditionalLightData>();
+            if (!moon.TryGetComponent(out CloudShadows _)) moon.gameObject.AddComponent<CloudShadows>();
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.2f, 0.25f, 0.34f);
+            RenderSettings.ambientEquatorColor = new Color(0.11f, 0.13f, 0.16f);
+            RenderSettings.ambientGroundColor = new Color(0.035f, 0.04f, 0.045f);
+        }
+
+        static void SetupGrading()
+        {
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/_Project/Art/LookDev/LookDev_PostFX.asset");
+            if (profile == null) return;
+            T Get<T>() where T : VolumeComponent
+            {
+                if (!profile.TryGet(out T c)) { c = profile.Add<T>(true); AssetDatabase.AddObjectToAsset(c, profile); }
+                c.active = true;
+                return c;
+            }
+            Get<Tonemapping>().mode.Override(TonemappingMode.ACES);
+            var ca = Get<ColorAdjustments>();
+            ca.postExposure.Override(1.5f); ca.contrast.Override(22f); ca.saturation.Override(-14f);
+            var smh = Get<ShadowsMidtonesHighlights>();
+            smh.shadows.Override(new Vector4(0.86f, 0.99f, 1.06f, -0.03f));     // sombras verde-azuladas
+            smh.midtones.Override(new Vector4(0.97f, 1f, 1f, 0f));
+            smh.highlights.Override(new Vector4(1.07f, 1.0f, 0.9f, 0.02f));     // luces prácticas cálidas
+            var lgg = Get<LiftGammaGain>();
+            lgg.lift.Override(new Vector4(0.98f, 1f, 1.03f, -0.015f));
+            var grain = Get<FilmGrain>();
+            grain.type.Override(FilmGrainLookup.Medium2); grain.intensity.Override(0.32f); grain.response.Override(0.75f);
+            Get<ChromaticAberration>().intensity.Override(0.12f);
+            var vig = Get<Vignette>();
+            vig.intensity.Override(0.4f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
+            var bloom = Get<Bloom>();
+            bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f));
+            var dof = Get<DepthOfField>();
+            dof.mode.Override(DepthOfFieldMode.Gaussian);
+            dof.gaussianStart.Override(17f); dof.gaussianEnd.Override(34f); dof.gaussianMaxRadius.Override(1.2f);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+        }
+
+        static void SetupFlashlight(GameObject player)
+        {
+            var t = player.transform.Find("Flashlight");
+            if (t == null) return;
+            var l = t.GetComponent<Light>();
+            // Linterna de mano: haz con anillo (cookie), alcance medio, sombras suaves (una de las dos luces con sombra).
+            l.intensity = 3.2f;
+            l.range = 15f;
+            l.spotAngle = 52f;
+            l.innerSpotAngle = 22f;
+            l.color = new Color(1f, 0.93f, 0.82f);
+            l.cookie = BeamCookie();
+            l.shadows = LightShadows.Soft;
+        }
+
+        // ------------------------------------------------------------------ Niebla baja
+
+        static int FogCards(Transform root, Terrain t, Texture2D noise)
+        {
+            var mat = new Material(Shader.Find("ProjectRidge/FogCard"));
+            string path = FxDir + "/FX_FogCard.mat";
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (existing != null) { existing.shader = mat.shader; Object.DestroyImmediate(mat); mat = existing; } else AssetDatabase.CreateAsset(mat, path);
+            mat.SetTexture("_NoiseTex", noise);
+            mat.SetColor("_Color", new Color(0.5f, 0.58f, 0.66f, 0.42f));
+            mat.SetFloat("_NoiseScale", 0.07f);
+            mat.SetVector("_Speed", new Vector4(0.04f, 0.015f, 0f, 0f));
+            mat.SetFloat("_SoftDistance", 1.2f);
+            mat.SetFloat("_CameraFade", 5f);
+            EditorUtility.SetDirty(mat);
+            var quad = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            var parent = new GameObject("FogCards").transform;
+            parent.SetParent(root, false);
+            int n = 0;
+            void Card(Vector3 pos, float size, float yaw)
+            {
+                var go = new GameObject("FogCard");
+                go.transform.SetParent(parent, false);
+                go.transform.SetPositionAndRotation(pos, Quaternion.Euler(90f, yaw, 0f));
+                go.transform.localScale = new Vector3(size, size, 1f);
+                go.AddComponent<MeshFilter>().sharedMesh = quad;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = mat;
+                mr.shadowCastingMode = ShadowCastingMode.Off;
+                mr.receiveShadows = false;
+                n++;
+            }
+            // El arroyo exhala niebla.
+            for (float z = -20f; z <= 20f; z += 4.5f) Card(new Vector3(RavineX(z), -1.4f, z), 7f, z * 13f);
+            // El prado del reflector y el sendero.
+            Card(OnGround(t, Meadow.x, Meadow.z, 0.55f), 14f, 20f);
+            Card(OnGround(t, Meadow.x - 4f, Meadow.z + 3f, 0.9f), 9f, 70f);
+            foreach (var p in MainTrail.Concat(NorthTrail))
+                if (Random.value < 0.55f) Card(OnGround(t, p.x + Random.Range(-2f, 2f), p.z + Random.Range(-2f, 2f), Random.Range(0.35f, 0.9f)), Random.Range(6f, 10f), Random.Range(0f, 360f));
+            // Bordes del valle: un muro de niebla que cierra el cuadro.
+            for (float x = -32f; x <= 30f; x += 7f)
+            {
+                Card(OnGround(t, x, -18.5f, 1.2f), 11f, 0f);
+                Card(OnGround(t, x, 18.5f, 1.2f), 11f, 0f);
+            }
+            return n;
+        }
+
+        // ------------------------------------------------------------------ Charcos
+
+        static Mesh PuddleMesh(int seed)
+        {
+            var rng = new System.Random(seed);
+            const int seg = 20;
+            var v = new Vector3[seg + 1];
+            var uv = new Vector2[seg + 1];
+            var tris = new int[seg * 3];
+            v[0] = Vector3.zero; uv[0] = new Vector2(0.5f, 0.5f);
+            for (int i = 0; i < seg; i++)
+            {
+                float a = i / (float)seg * Mathf.PI * 2f;
+                float r = 1f + 0.22f * Mathf.Sin(a * 3f + (float)rng.NextDouble() * 6f) + 0.1f * (float)rng.NextDouble();
+                v[i + 1] = new Vector3(Mathf.Cos(a) * r, 0f, Mathf.Sin(a) * r * 0.7f);
+                uv[i + 1] = new Vector2(0.5f + Mathf.Cos(a) * 0.5f, 0.5f + Mathf.Sin(a) * 0.5f);
+                tris[i * 3] = 0; tris[i * 3 + 1] = (i + 1) % seg + 1; tris[i * 3 + 2] = i + 1;
+            }
+            var m = new Mesh { name = "Puddle_" + seed, vertices = v, uv = uv, triangles = tris };
+            m.RecalculateNormals();
+            m.RecalculateBounds();
+            return ChunkyMeshGenerator.Save(m);
+        }
+
+        static int Puddles(Transform root, Terrain t)
+        {
+            var mat = Simple("Hollow_Puddle", null, null, new Color(0.03f, 0.035f, 0.04f), 0.97f);
+            var parent = new GameObject("Puddles").transform;
+            parent.SetParent(root, false);
+            var meshes = new[] { PuddleMesh(1), PuddleMesh(2), PuddleMesh(3) };
+            var rng = new System.Random(9);
+            int n = 0;
+            var pts = MainTrail.Concat(NorthTrail).ToArray();
+            for (int i = 1; i < pts.Length; i++)
+            {
+                if (rng.NextDouble() < 0.35) continue;
+                Vector3 p = Vector3.Lerp(pts[i - 1], pts[i], (float)rng.NextDouble());
+                if (Mathf.Abs(p.x - RavineX(p.z)) < 5f) continue;
+                var go = new GameObject("Puddle");
+                go.transform.SetParent(parent, false);
+                Vector3 pos = OnGround(t, p.x + (float)(rng.NextDouble() - 0.5), p.z + (float)(rng.NextDouble() - 0.5), 0.025f);
+                Vector3 nrm = t.terrainData.GetInterpolatedNormal((pos.x - t.transform.position.x) / SizeX, (pos.z - t.transform.position.z) / SizeZ);
+                go.transform.SetPositionAndRotation(pos, Quaternion.FromToRotation(Vector3.up, nrm) * Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f));
+                go.transform.localScale = Vector3.one * (0.5f + (float)rng.NextDouble() * 0.9f);
+                go.AddComponent<MeshFilter>().sharedMesh = meshes[rng.Next(meshes.Length)];
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = mat;
+                mr.shadowCastingMode = ShadowCastingMode.Off;
+                n++;
+            }
+            return n;
+        }
+
+        // ------------------------------------------------------------------ Partículas
+
+        static ParticleSystem Emitter(Transform parent, string name, Material mat, System.Action<ParticleSystem> setup)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.playOnAwake = true;
+            main.loop = true;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            setup(ps);
+            return ps;
+        }
+
+        static void FollowPlayer(GameObject go, Transform player, Vector3 offset)
+        {
+            var f = go.AddComponent<FollowTarget>();
+            var so = new SerializedObject(f);
+            so.FindProperty("target").objectReferenceValue = player;
+            so.FindProperty("offset").vector3Value = offset;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static void Particles(Transform root, GameObject player, Texture2D dot)
+        {
+            var parent = new GameObject("Particles").transform;
+            parent.SetParent(root, false);
+            var p = player.transform;
+
+            // Llovizna alrededor del jugador (bosque recién llovido).
+            var rainMat = FxMaterial("FX_Rain", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.7f, 0.8f, 0.9f, 0.32f), true);
+            var rain = Emitter(parent, "Drizzle", rainMat, ps =>
+            {
+                var m = ps.main; m.startLifetime = 1.3f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.04f); m.maxParticles = 1200;
+                var e = ps.emission; e.rateOverTime = 520f;
+                var s = ps.shape; s.shapeType = ParticleSystemShapeType.Box; s.scale = new Vector3(26f, 1f, 26f);
+                var v = ps.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
+                v.x = new ParticleSystem.MinMaxCurve(0.8f, 1.2f); v.y = new ParticleSystem.MinMaxCurve(-11f, -9f); v.z = new ParticleSystem.MinMaxCurve(0.2f, 0.4f);
+                var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.05f; r.lengthScale = 1f;
+            });
+            FollowPlayer(rain.gameObject, p, new Vector3(0f, 11f, 0f));
+
+            // Esporas y polvo flotando a la altura del pecho.
+            var sporeMat = FxMaterial("FX_Spores", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.85f, 0.8f, 0.7f, 0.4f), true);
+            var spores = Emitter(parent, "Spores", sporeMat, ps =>
+            {
+                var m = ps.main; m.startLifetime = new ParticleSystem.MinMaxCurve(6f, 10f); m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.02f, 0.05f); m.maxParticles = 300;
+                m.startColor = new ParticleSystem.MinMaxGradient(new Color(1, 1, 1, 0.5f), new Color(1, 1, 1, 0.15f));
+                var e = ps.emission; e.rateOverTime = 30f;
+                var s = ps.shape; s.shapeType = ParticleSystemShapeType.Box; s.scale = new Vector3(22f, 3f, 22f);
+                var n = ps.noise; n.enabled = true; n.strength = 0.25f; n.frequency = 0.3f; n.scrollSpeed = 0.1f;
+                var c = ps.colorOverLifetime; c.enabled = true;
+                var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) });
+                c.color = g;
+            });
+            FollowPlayer(spores.gameObject, p, new Vector3(0f, 1.6f, 0f));
+
+            // Hojas y agujas que caen girando.
+            var leafMat = FxMaterial("FX_Leaves", "Universal Render Pipeline/Particles/Unlit", LeafSprite(), new Color(0.75f, 0.75f, 0.7f, 1f), false);
+            var leaves = Emitter(parent, "FallingLeaves", leafMat, ps =>
+            {
+                var m = ps.main; m.startLifetime = new ParticleSystem.MinMaxCurve(7f, 10f); m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.07f, 0.13f); m.maxParticles = 120;
+                m.gravityModifier = 0.025f; m.startRotation = new ParticleSystem.MinMaxCurve(0f, 6.28f);
+                var e = ps.emission; e.rateOverTime = 7f;
+                var s = ps.shape; s.shapeType = ParticleSystemShapeType.Box; s.scale = new Vector3(24f, 1f, 24f);
+                var n = ps.noise; n.enabled = true; n.strength = 0.6f; n.frequency = 0.5f;
+                var rol = ps.rotationOverLifetime; rol.enabled = true; rol.z = new ParticleSystem.MinMaxCurve(-2f, 2f);
+            });
+            FollowPlayer(leaves.gameObject, p, new Vector3(0f, 7f, 0f));
+
+            // Luciérnagas junto al refugio y en los bordes del prado (vida pese a todo).
+            var flyMat = FxMaterial("FX_Fireflies", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.85f, 1f, 0.45f, 1f), true);
+            foreach (var c in new[] { CabinCenter + new Vector3(4f, 1.2f, -3f), new Vector3(Meadow.x - 6f, 1f, Meadow.z + 4f), new Vector3(Camp.x - 3f, 1f, Camp.z - 4f) })
+            {
+                Emitter(parent, "Fireflies", flyMat, ps =>
+                {
+                    var m = ps.main; m.startLifetime = new ParticleSystem.MinMaxCurve(4f, 7f); m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.04f, 0.07f); m.maxParticles = 40;
+                    var e = ps.emission; e.rateOverTime = 4f;
+                    var s = ps.shape; s.shapeType = ParticleSystemShapeType.Sphere; s.radius = 3.5f;
+                    var n = ps.noise; n.enabled = true; n.strength = 0.5f; n.frequency = 0.4f;
+                    var col = ps.colorOverLifetime; col.enabled = true;
+                    var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(0.2f, 0.6f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) });
+                    col.color = g;
+                }).transform.position = new Vector3(c.x, GroundY(Terrain.activeTerrain, c) + c.y, c.z);
+            }
+
+            // Polillas alrededor del farol del refugio.
+            var lantern = GameObject.Find("LanternLight");
+            if (lantern != null)
+            {
+                var mothMat = FxMaterial("FX_Moths", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.9f, 0.85f, 0.75f, 0.7f), false);
+                var moths = Emitter(parent, "Moths", mothMat, ps =>
+                {
+                    var m = ps.main; m.startLifetime = 5f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.05f); m.maxParticles = 12;
+                    m.simulationSpace = ParticleSystemSimulationSpace.Local;
+                    var e = ps.emission; e.rateOverTime = 2f;
+                    var s = ps.shape; s.shapeType = ParticleSystemShapeType.Sphere; s.radius = 0.5f;
+                    var v = ps.velocityOverLifetime; v.enabled = true; v.orbitalY = new ParticleSystem.MinMaxCurve(2f, 4f); v.radial = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+                    var n = ps.noise; n.enabled = true; n.strength = 0.8f; n.frequency = 2f;
+                });
+                moths.transform.SetParent(lantern.transform, false);
+            }
+
+            // Vaho del papá: noche fría, una bocanada cada ~3 s.
+            var breathMat = FxMaterial("FX_Breath", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.85f, 0.88f, 0.92f, 0.22f), false);
+            var head = player.GetComponentsInChildren<Transform>().FirstOrDefault(x => x.name == "Head");
+            if (head != null)
+            {
+                var breath = Emitter(parent, "Breath", breathMat, ps =>
+                {
+                    var m = ps.main; m.startLifetime = 1.3f; m.startSpeed = 0.35f; m.startSize = 0.1f; m.maxParticles = 30;
+                    var e = ps.emission; e.rateOverTime = 0f;
+                    e.SetBursts(new[] { new ParticleSystem.Burst(0.2f, 6, 6, 0, 3.2f) { cycleCount = 0 } });
+                    var s = ps.shape; s.shapeType = ParticleSystemShapeType.Cone; s.angle = 12f; s.radius = 0.01f;
+                    var sz = ps.sizeOverLifetime; sz.enabled = true; sz.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 3.2f));
+                    var col = ps.colorOverLifetime; col.enabled = true;
+                    var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) });
+                    col.color = g;
+                });
+                breath.transform.SetParent(head, false);
+                breath.transform.localPosition = new Vector3(0f, 0.05f, 0.12f);
+                breath.transform.localRotation = Quaternion.identity;
+            }
+        }
+
+        // ------------------------------------------------------------------ OVNI
+
+        static void UpgradeUfo(Texture2D noise, Texture2D dot)
+        {
+            var ufo = Object.FindFirstObjectByType<ProjectRidge.AI.UFOController>();
+            if (ufo == null) return;
+            var beam = ufo.transform.Find("Beam");
+            var light = beam.GetComponent<Light>();
+            light.cookie = BeamCookie();
+            light.color = new Color(0.78f, 0.93f, 1f);
+            var visual = beam.Find("BeamVisual");
+            var mat = new Material(Shader.Find("ProjectRidge/VolumetricBeam"));
+            string path = FxDir + "/FX_UfoBeam.mat";
+            var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (existing != null) { existing.shader = mat.shader; Object.DestroyImmediate(mat); mat = existing; } else AssetDatabase.CreateAsset(mat, path);
+            mat.SetTexture("_NoiseTex", noise);
+            mat.SetColor("_Color", new Color(0.6f, 0.85f, 1f));
+            mat.SetFloat("_Intensity", 0.55f);
+            mat.SetFloat("_NoiseScale", 0.16f);
+            mat.SetFloat("_NoiseSpeed", 0.3f);
+            mat.SetFloat("_SoftDistance", 3f);
+            mat.SetFloat("_EdgePower", 2.6f);
+            EditorUtility.SetDirty(mat);
+            visual.GetComponent<MeshRenderer>().sharedMaterial = mat;
+
+            // Polvo y gotas suspendidos dentro del haz.
+            var old = beam.Find("BeamDust");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            var dustMat = FxMaterial("FX_BeamDust", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.75f, 0.92f, 1f, 0.55f), true);
+            var dust = Emitter(beam, "BeamDust", dustMat, ps =>
+            {
+                var m = ps.main; m.startLifetime = new ParticleSystem.MinMaxCurve(2f, 4f); m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.07f); m.maxParticles = 400;
+                var e = ps.emission; e.rateOverTime = 110f;
+                var s = ps.shape; s.shapeType = ParticleSystemShapeType.Cone; s.angle = 12f; s.radius = 0.05f; s.length = 22f; s.shapeType = ParticleSystemShapeType.ConeVolume;
+                var n = ps.noise; n.enabled = true; n.strength = 0.3f; n.frequency = 0.5f;
+                var col = ps.colorOverLifetime; col.enabled = true;
+                var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(1f, 0.7f), new GradientAlphaKey(0f, 1f) });
+                col.color = g;
+            });
+            dust.transform.localRotation = Quaternion.identity; // el cono de la forma apunta a +Z como el haz
+
+            // Resplandor difuso en el cielo: la nave se intuye detrás de las nubes.
+            var glowOld = ufo.transform.Find("SkyGlow");
+            if (glowOld != null) Object.DestroyImmediate(glowOld.gameObject);
+            var glowMat = FxMaterial("FX_SkyGlow", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.55f, 0.8f, 1f, 0.16f), true);
+            var glow = Emitter(ufo.transform, "SkyGlow", glowMat, ps =>
+            {
+                var m = ps.main; m.startLifetime = 1000f; m.startSpeed = 0f; m.startSize = 22f; m.maxParticles = 1; m.simulationSpace = ParticleSystemSimulationSpace.Local;
+                var e = ps.emission; e.rateOverTime = 0f; e.SetBursts(new[] { new ParticleSystem.Burst(0f, 1) });
+                var s = ps.shape; s.enabled = false;
+            });
+            glow.transform.localPosition = new Vector3(0f, 2f, 0f);
+        }
+    }
+}
