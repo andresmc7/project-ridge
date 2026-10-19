@@ -18,6 +18,8 @@ namespace ProjectRidge.Player
 
         /// <summary>Mensaje breve para el HUD ("+1 Medkit").</summary>
         public event Action<string> Notified;
+        /// <summary>Se usó un interactuable (la animación elige recoger, registrar o inspeccionar).</summary>
+        public event Action<Interactable> Interacted;
 
         public void Notify(string message) => Notified?.Invoke(message);
 
@@ -48,7 +50,10 @@ namespace ProjectRidge.Player
             if (controller == null) controller = GetComponent<PlayerController>();
             if (controller != null && controller.InputLocked) return;
             Current = FindNearest();
-            if (Current != null) Current.Interact(this);
+            if (Current == null) return;
+            var used = Current;
+            used.Interact(this);
+            Interacted?.Invoke(used);
         }
     }
 }

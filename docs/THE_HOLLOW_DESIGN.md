@@ -139,5 +139,5 @@ objetivo solo al cambiar, pistas en una tarjeta con la foto/objeto. Táctil: joy
 
 - Se juega de principio a fin sin ayuda del desarrollador, en las dos rutas.
 - Ningún objeto flotando, atravesando o sin colisión en la ruta jugable.
-- 30 fps estables en iPhone 13 (verificado con Profiler en dispositivo).
+- 30 fps estables en iPhone 16 (A18), verificado con Profiler en dispositivo.
 - Cada evento con sonido; cada acción con animación; cada recurso con su "por qué está aquí".

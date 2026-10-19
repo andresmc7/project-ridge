@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,25 +9,34 @@ using UnityEngine.Rendering;
 namespace ProjectRidge.EditorTools
 {
     /// <summary>
-    /// Personajes del PoC hechos en el proyecto (sin modelos de terceros): el papá y el Lurker como rigs de
-    /// articulaciones con piezas redondeadas (torno, elipsoides) y texturas fotográficas (Poly Haven CC0) o
-    /// procedurales. Los animan FatherAnimator y LurkerAnimator. Reemplaza el "Visual" de cada uno en la escena activa.
+    /// Personajes con el cuerpo base de Quaternius (CC0) y clips de la Universal Animation Library:
+    /// - El papá: ropa generada desde la malla del cuerpo (camisa de franela, chaleco acolchado, jeans, botas) por
+    ///   regiones de huesos, inflada y suavizada; pelo, barba, cejas; garrote, linterna, pistola de bengalas, mochila.
+    /// - El Lurker: el mismo esqueleto con extremidades, cuello y dedos alargados, cuerpo adelgazado y cráneo
+    ///   estirado (malla re-horneada en la nueva pose + avatar humanoide propio), piel oscura y húmeda, ojos rojos.
+    /// Los Animator Controllers se generan aquí. Reemplaza el "Visual" del jugador y de cada Lurker en la escena activa.
     /// </summary>
     public static class CharacterBuilder
     {
-        const string MatDir = "Assets/_Project/Art/Characters";
+        const string OutDir = "Assets/_Project/Art/Characters";
+        const string HairDir = QuaterniusImport.Root + "/BaseCharacters/Hair";
+        const string TexDir = QuaterniusImport.Root + "/BaseCharacters/Textures";
 
         [MenuItem("Project Ridge/Characters/Rebuild Characters in Active Scene")]
         public static string Build()
         {
-            PolyHavenMaterialBuilder.EnsureFolder(MatDir);
+            PolyHavenMaterialBuilder.EnsureFolder(OutDir);
             var log = new System.Text.StringBuilder();
+            var fatherCtrl = FatherController();
+            var lurkerCtrl = LurkerController();
+
             var player = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerController>();
-            BuildFather(player.gameObject);
+            BuildFather(player.gameObject, fatherCtrl);
             log.AppendLine("father ok");
+            var lurkerAsset = LurkerAssets();
             foreach (var enemy in Object.FindObjectsByType<ProjectRidge.AI.EnemyController>(FindObjectsSortMode.None))
             {
-                BuildLurker(enemy.gameObject);
+                BuildLurker(enemy.gameObject, lurkerCtrl, lurkerAsset);
                 log.AppendLine("lurker ok: " + enemy.name);
             }
             var scene = EditorSceneManager.GetActiveScene();
@@ -35,306 +46,625 @@ namespace ProjectRidge.EditorTools
             return log.ToString();
         }
 
+        // ------------------------------------------------------------------ Utilidades de malla
+
+        static GameObject InstantiateBody(Transform parent, int layer, string name)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuaterniusImport.Body);
+            var go = (GameObject)Object.Instantiate(prefab, parent, false);
+            go.name = name;
+            foreach (var t in go.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = layer;
+            return go;
+        }
+
+        static SkinnedMeshRenderer BodyRenderer(GameObject go) =>
+            go.GetComponentsInChildren<SkinnedMeshRenderer>().First(s => s.name == "SuperHero_Male");
+
+        static Mesh SaveMesh(Mesh m, string name)
+        {
+            m.name = name;
+            string path = OutDir + "/" + name + ".asset";
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing != null) { EditorUtility.CopySerialized(m, existing); Object.DestroyImmediate(m); return existing; }
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
+        enum Region { Skin, Shirt, Pants, Boots, Hands }
+
+        static Region RegionOf(string bone)
+        {
+            if (bone.StartsWith("foot") || bone.StartsWith("ball")) return Region.Boots;
+            if (bone.StartsWith("thigh") || bone.StartsWith("calf") || bone == "pelvis") return Region.Pants;
+            if (bone.StartsWith("spine") || bone.StartsWith("clavicle") || bone.StartsWith("upperarm") || bone.StartsWith("lowerarm")) return Region.Shirt;
+            if (bone.StartsWith("hand") || bone.Contains("thumb") || bone.Contains("index") || bone.Contains("middle") || bone.Contains("ring") || bone.Contains("pinky")) return Region.Hands;
+            return Region.Skin;
+        }
+
+        static int Dominant(BoneWeight w)
+        {
+            int b = w.boneIndex0; float best = w.weight0;
+            if (w.weight1 > best) { best = w.weight1; b = w.boneIndex1; }
+            if (w.weight2 > best) { best = w.weight2; b = w.boneIndex2; }
+            if (w.weight3 > best) { b = w.boneIndex3; }
+            return b;
+        }
+
+        /// <summary>Vecinos por posición (soldando costuras de UV) para suavizar sin abrir grietas.</summary>
+        static (int[] weld, List<int>[] neighbors) Adjacency(Vector3[] v, int[] tris)
+        {
+            var map = new Dictionary<Vector3Int, int>();
+            var weld = new int[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                var key = Vector3Int.RoundToInt(v[i] * 10000f);
+                if (!map.TryGetValue(key, out int id)) { id = map.Count; map[key] = id; }
+                weld[i] = id;
+            }
+            var nb = new List<int>[map.Count];
+            for (int i = 0; i < nb.Length; i++) nb[i] = new List<int>();
+            for (int t = 0; t < tris.Length; t += 3)
+                for (int k = 0; k < 3; k++)
+                {
+                    int a = weld[tris[t + k]], b = weld[tris[t + (k + 1) % 3]];
+                    if (!nb[a].Contains(b)) nb[a].Add(b);
+                    if (!nb[b].Contains(a)) nb[b].Add(a);
+                }
+            return (weld, nb);
+        }
+
+        /// <summary>Suaviza (Laplaciano) solo los vértices marcados, por posición soldada.</summary>
+        static void Smooth(Vector3[] v, int[] tris, bool[] mask, int iterations, float lambda)
+        {
+            var (weld, nb) = Adjacency(v, tris);
+            var pos = new Vector3[nb.Length];
+            var m = new bool[nb.Length];
+            for (int i = 0; i < v.Length; i++) { pos[weld[i]] = v[i]; m[weld[i]] |= mask[i]; }
+            for (int it = 0; it < iterations; it++)
+            {
+                var next = (Vector3[])pos.Clone();
+                for (int i = 0; i < pos.Length; i++)
+                {
+                    if (!m[i] || nb[i].Count == 0) continue;
+                    Vector3 avg = Vector3.zero;
+                    foreach (int j in nb[i]) avg += pos[j];
+                    avg /= nb[i].Count;
+                    next[i] = Vector3.Lerp(pos[i], avg, lambda);
+                }
+                pos = next;
+            }
+            for (int i = 0; i < v.Length; i++) v[i] = pos[weld[i]];
+        }
+
         // ------------------------------------------------------------------ Materiales
 
-        static Material Mat(string name, Color color, float smoothness, Material from = null, float tiling = 1f)
+        static Material Mat(string name, Texture2D albedo, Texture2D normal, Color color, float smoothness, float tiling = 1f)
         {
-            string path = MatDir + "/" + name + ".mat";
+            string path = OutDir + "/" + name + ".mat";
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (m == null)
-            {
-                m = from != null ? new Material(from) : new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                AssetDatabase.CreateAsset(m, path);
-            }
-            else if (from != null) m.CopyPropertiesFromMaterial(from);
+            if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, path); }
+            m.SetTexture("_BaseMap", albedo);
             m.SetColor("_BaseColor", color);
-            if (from == null) m.SetFloat("_Smoothness", smoothness);
             m.SetTextureScale("_BaseMap", new Vector2(tiling, tiling));
+            if (normal != null) { m.SetTexture("_BumpMap", normal); m.EnableKeyword("_NORMALMAP"); } else { m.SetTexture("_BumpMap", null); m.DisableKeyword("_NORMALMAP"); }
+            m.SetFloat("_Smoothness", smoothness);
             EditorUtility.SetDirty(m);
             return m;
         }
 
-        static Material PolyHaven(string id, float smooth)
-        {
-            var set = PolyHavenMaterialBuilder.BuildTextureSet(PolyHavenMaterialBuilder.TexturesRoot + "/" + id, id);
-            return PolyHavenMaterialBuilder.BuildLitMaterial(id, set, smooth);
-        }
-
-        // ------------------------------------------------------------------ Piezas
-
-        static Transform Joint(Transform parent, string name, Vector3 localPos)
-        {
-            var t = new GameObject(name).transform;
-            t.SetParent(parent, false);
-            t.localPosition = localPos;
-            t.gameObject.layer = parent.gameObject.layer;
-            return t;
-        }
-
-        static GameObject Part(Transform joint, string name, Mesh mesh, Material mat, Vector3 localPos, Vector3 localEuler = default)
-        {
-            var go = new GameObject(name);
-            go.layer = joint.gameObject.layer;
-            go.transform.SetParent(joint, false);
-            go.transform.localPosition = localPos;
-            go.transform.localRotation = Quaternion.Euler(localEuler);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = mat;
-            mr.shadowCastingMode = ShadowCastingMode.On;
-            mr.receiveGI = ReceiveGI.LightProbes;
-            return go;
-        }
-
-        static Mesh S(Mesh m) => ChunkyMeshGenerator.Save(m);
-        static Mesh Limb(string n, float len, float r0, float r1, float cz = 1f) => S(ChunkyMeshGenerator.Limb(n, len, r0, r1, 10, new Vector2(1f, cz)));
-        static Mesh Ell(string n, Vector3 size) => S(ChunkyMeshGenerator.Ellipsoid(n, size));
-
-        static Transform ReplaceVisual(GameObject owner, int layer)
-        {
-            var old = owner.transform.Find("Visual");
-            if (old != null) Object.DestroyImmediate(old.gameObject);
-            var root = new GameObject("Visual").transform;
-            root.gameObject.layer = layer;
-            root.SetParent(owner.transform, false);
-            return root;
-        }
+        static Texture2D Tex(string file) => AssetDatabase.LoadAssetAtPath<Texture2D>(TexDir + "/" + file);
+        static Texture2D PH(string id, string map) => AssetDatabase.LoadAssetAtPath<Texture2D>(PolyHavenMaterialBuilder.Find(PolyHavenMaterialBuilder.TexturesRoot + "/" + id, id + "_" + map));
 
         // ------------------------------------------------------------------ El papá
 
-        static void BuildFather(GameObject player)
+        static void BuildFather(GameObject player, AnimatorController ctrl)
         {
-            var skin = Mat("Father_Skin", new Color(0.72f, 0.53f, 0.42f), 0.32f);
-            var hair = Mat("Father_Hair", new Color(0.13f, 0.09f, 0.07f), 0.12f);
-            var jacket = Mat("Father_Jacket", new Color(0.46f, 0.47f, 0.32f), 0f, PolyHaven("denim_fabric", 0.4f), 2.5f);
-            var flannel = Mat("Father_Flannel", new Color(0.85f, 0.75f, 0.72f), 0f, PolyHaven("fabric_pattern_07", 0.5f), 3.5f);
-            var jeans = Mat("Father_Jeans", new Color(0.62f, 0.66f, 0.78f), 0f, PolyHaven("denim_fabric", 0.4f), 2.5f);
-            var boots = Mat("Father_Boots", new Color(0.33f, 0.22f, 0.16f), 0f, PolyHaven("leather_red_02", 0.5f), 3f);
-            var beanie = Mat("Father_Beanie", new Color(0.24f, 0.25f, 0.28f), 0f, PolyHaven("denim_fabric", 0.4f), 5f);
-            var pack = Mat("Father_Backpack", new Color(0.42f, 0.33f, 0.24f), 0f, PolyHaven("denim_fabric", 0.4f), 2f);
-            var bark = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_pine_bark.mat");
-            var gunMat = Mat("Father_FlareGun", new Color(0.85f, 0.32f, 0.07f), 0.45f);
-
             var pc = player.GetComponent<ProjectRidge.Player.PlayerController>();
-            var so = new SerializedObject(pc);
-            so.FindProperty("visualRoot").objectReferenceValue = null; // el rig se agacha solo, sin escalar
+            var pcso = new SerializedObject(pc);
+            pcso.FindProperty("visualRoot").objectReferenceValue = null;
+            pcso.ApplyModifiedPropertiesWithoutUndo();
+            var old = player.transform.Find("Visual");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+
+            var body = InstantiateBody(player.transform, 9, "Visual");
+            var smr = BodyRenderer(body);
+            var src = smr.sharedMesh;
+            var bones = smr.bones;
+            var v = src.vertices;
+            var n = src.normals;
+            var bw = src.boneWeights;
+            var tris = src.triangles;
+
+            // Región por vértice según el hueso dominante; la región de cada triángulo, por mayoría.
+            var region = new Region[v.Length];
+            for (int i = 0; i < v.Length; i++) region[i] = RegionOf(bones[Dominant(bw[i])].name);
+            var lists = new Dictionary<Region, List<int>>();
+            foreach (Region r in System.Enum.GetValues(typeof(Region))) lists[r] = new List<int>();
+            for (int t = 0; t < tris.Length; t += 3)
+            {
+                Region a = region[tris[t]], b = region[tris[t + 1]], c = region[tris[t + 2]];
+                Region r = a == b || a == c ? a : b == c ? b : a;
+                lists[r == Region.Hands ? Region.Skin : r].AddRange(new[] { tris[t], tris[t + 1], tris[t + 2] });
+            }
+
+            // Inflar la ropa y suavizar la musculatura bajo la tela.
+            var nv = (Vector3[])v.Clone();
+            var clothMask = new bool[v.Length];
+            for (int i = 0; i < v.Length; i++)
+            {
+                float push = region[i] == Region.Shirt ? 0.009f : region[i] == Region.Pants ? 0.007f : region[i] == Region.Boots ? 0.022f : 0f;
+                nv[i] += n[i] * push;
+                clothMask[i] = region[i] == Region.Shirt || region[i] == Region.Pants;
+            }
+            Smooth(nv, tris, clothMask, 6, 0.55f);
+
+            var mesh = Object.Instantiate(src);
+            mesh.vertices = nv;
+            mesh.subMeshCount = 4;
+            mesh.SetTriangles(lists[Region.Skin], 0);
+            mesh.SetTriangles(lists[Region.Shirt], 1);
+            mesh.SetTriangles(lists[Region.Pants], 2);
+            mesh.SetTriangles(lists[Region.Boots], 3);
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh = SaveMesh(mesh, "Father_Body");
+
+            // Chaleco: cáscara del torso (sin brazos), más separada y lisa.
+            var vestTris = new List<int>();
+            for (int t = 0; t < tris.Length; t += 3)
+            {
+                bool torso = true;
+                for (int k = 0; k < 3; k++)
+                {
+                    string bn = bones[Dominant(bw[tris[t + k]])].name;
+                    torso &= bn.StartsWith("spine") || bn.StartsWith("clavicle");
+                }
+                if (torso) vestTris.AddRange(new[] { tris[t], tris[t + 1], tris[t + 2] });
+            }
+            var vv = (Vector3[])nv.Clone();
+            var vestMask = new bool[v.Length];
+            foreach (int i in vestTris) vestMask[i] = true;
+            for (int i = 0; i < vv.Length; i++) if (vestMask[i]) vv[i] += n[i] * 0.022f;
+            Smooth(vv, tris, vestMask, 10, 0.6f);
+            var vest = Object.Instantiate(src);
+            vest.vertices = vv;
+            vest.subMeshCount = 1;
+            vest.SetTriangles(vestTris, 0);
+            vest.RecalculateNormals();
+            vest.RecalculateTangents();
+            vest = SaveMesh(vest, "Father_Vest");
+
+            var skin = Mat("Father_Skin", Tex("T_Superhero_Male_Ligh.png"), Tex("T_Superhero_Male_Normal.png"), new Color(0.92f, 0.86f, 0.82f), 0.32f);
+            var flannel = Mat("Father_Flannel", PH("fabric_pattern_07", "diff"), PH("fabric_pattern_07", "nor_gl"), new Color(0.8f, 0.7f, 0.66f), 0.15f, 9f);
+            var jeans = Mat("Father_Jeans", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.55f, 0.6f, 0.72f), 0.15f, 5f);
+            var boots = Mat("Father_Boots", PH("leather_red_02", "diff"), PH("leather_red_02", "nor_gl"), new Color(0.45f, 0.31f, 0.21f), 0.4f, 6f);
+            var vestMat = Mat("Father_Vest", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.42f, 0.44f, 0.3f), 0.1f, 4f);
+            vestMat.SetFloat("_Cull", 0f);
+            smr.sharedMesh = mesh;
+            smr.sharedMaterials = new[] { skin, flannel, jeans, boots };
+            smr.updateWhenOffscreen = false;
+            smr.shadowCastingMode = ShadowCastingMode.On;
+
+            var vestGo = Object.Instantiate(smr.gameObject, smr.transform.parent);
+            vestGo.name = "Vest";
+            var vsmr = vestGo.GetComponent<SkinnedMeshRenderer>();
+            vsmr.sharedMesh = vest;
+            vsmr.sharedMaterials = new[] { vestMat };
+
+            // Ojos y cejas del propio modelo; pelo y barba colgados del hueso de la cabeza.
+            var hair = Mat("Father_Hair", Tex("T_Hair_1_BaseColor.png"), Tex("T_Hair_1_Normal.png"), new Color(0.42f, 0.32f, 0.26f), 0.25f);
+            foreach (var r in body.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                if (r.name == "Eyes") r.sharedMaterial = Mat("Father_Eyes", Tex("T_Eye_Brown.png"), Tex("T_Eye_Normal.png"), Color.white, 0.8f);
+                if (r.name == "Eyebrows") r.sharedMaterial = hair;
+            }
+            if (!body.TryGetComponent(out Animator anim)) anim = body.AddComponent<Animator>();
+            anim.avatar = AssetDatabase.LoadAllAssetsAtPath(QuaterniusImport.Body).OfType<Avatar>().First();
+            anim.runtimeAnimatorController = ctrl;
+            anim.applyRootMotion = false;
+            anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            var headBone = anim.GetBoneTransform(HumanBodyBones.Head);
+            AttachHair(headBone, "Hair_SimpleParted", hair);
+            AttachHair(headBone, "Hair_Beard", hair);
+
+            // Props.
+            var bark = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_pine_bark.mat");
+            var handR = anim.GetBoneTransform(HumanBodyBones.RightHand);
+            var handL = anim.GetBoneTransform(HumanBodyBones.LeftHand);
+            var spine3 = anim.GetBoneTransform(HumanBodyBones.UpperChest);
+            var club = Prop(handR, "Club", ChunkyMeshGenerator.Limb("P_Club", 0.72f, 0.028f, 0.052f, 8), bark);
+            Orient(club.transform, handR, anim, new Vector3(0f, -0.02f, 0.03f));
+            var gunMat = Mat("Father_FlareGun", null, null, new Color(0.85f, 0.3f, 0.06f), 0.45f);
+            var gun = Prop(handR, "FlareGun", ChunkyMeshGenerator.Box("P_FlareGun", new Vector3(0.05f, 0.07f, 0.22f)), gunMat);
+            Orient(gun.transform, handR, anim, new Vector3(0f, 0.02f, 0.06f), forwardAlongFingers: true);
+            gun.SetActive(false);
+            var torchMat = Mat("Father_Torch", null, null, new Color(0.12f, 0.12f, 0.13f), 0.6f);
+            var torch = Prop(handL, "Torch", ChunkyMeshGenerator.Log("P_Torch", 0.22f, 0.025f, 10), torchMat);
+            Orient(torch.transform, handL, anim, new Vector3(0f, 0.01f, 0.05f), forwardAlongFingers: true);
+            var pack = Mat("Father_Backpack", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.4f, 0.32f, 0.24f), 0.1f, 3f);
+            var backpack = Prop(spine3, "Backpack", ChunkyMeshGenerator.Rock("P_Backpack", 3, new Vector3(0.34f, 0.44f, 0.18f), 0.85f, 0.02f), pack);
+            // En la pose de enlace el modelo mira hacia -Z del Visual: la espalda queda hacia +Z.
+            backpack.transform.position = spine3.position + body.transform.forward * 0.19f - Vector3.up * 0.2f;
+            backpack.transform.rotation = body.transform.rotation;
+
+            // Linterna: la luz existente pasa a seguir la mano.
+            var flash = player.transform.Find("Flashlight");
+            var fa = player.GetComponent<ProjectRidge.Player.FatherAnimator>();
+            if (fa != null) Object.DestroyImmediate(fa);
+            fa = body.AddComponent<ProjectRidge.Player.FatherAnimator>();
+            var so = new SerializedObject(fa);
+            so.FindProperty("controller").objectReferenceValue = pc;
+            so.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
+            so.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
+            so.FindProperty("interactor").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInteractor>();
+            so.FindProperty("healing").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealing>();
+            so.FindProperty("flashlight").objectReferenceValue = player.GetComponent<ProjectRidge.Player.FlashlightController>();
+            so.FindProperty("flashlightLight").objectReferenceValue = flash;
+            so.FindProperty("club").objectReferenceValue = club;
+            so.FindProperty("flareGun").objectReferenceValue = gun;
+            so.FindProperty("torchProp").objectReferenceValue = torch;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            var root = ReplaceVisual(player, 9);
-            var hips = Joint(root, "Hips", new Vector3(0f, 0.95f, 0f));
-            Part(hips, "Pelvis", Ell("F_Pelvis", new Vector3(0.36f, 0.24f, 0.25f)), jeans, new Vector3(0f, 0.02f, 0f));
-            Part(hips, "Belt", S(ChunkyMeshGenerator.Lathe("F_Belt", new[] { new Vector2(0.172f, 0.04f), new Vector2(0.178f, 0.0f), new Vector2(0.172f, -0.03f) }, 14, new Vector2(1f, 0.72f))), boots, new Vector3(0f, 0.11f, 0f));
-            var spine = Joint(hips, "Spine", new Vector3(0f, 0.1f, 0f));
-            var chest = Joint(spine, "Chest", new Vector3(0f, 0.22f, 0f));
-            var torso = new[] { new Vector2(0f, 0.27f), new Vector2(0.11f, 0.265f), new Vector2(0.19f, 0.225f), new Vector2(0.215f, 0.15f), new Vector2(0.21f, 0.02f), new Vector2(0.195f, -0.12f), new Vector2(0.185f, -0.22f), new Vector2(0.178f, -0.3f), new Vector2(0f, -0.31f) };
-            Part(chest, "Torso", S(ChunkyMeshGenerator.Lathe("F_Torso", torso, 16, new Vector2(1f, 0.62f), y => y > -0.05f && y < 0.2f ? 0.015f : 0f)), jacket, Vector3.zero);
-            Part(chest, "Collar", S(ChunkyMeshGenerator.Lathe("F_Collar", new[] { new Vector2(0.075f, 0.05f), new Vector2(0.09f, 0.02f), new Vector2(0.1f, -0.01f) }, 12, new Vector2(1f, 0.9f))), flannel, new Vector3(0f, 0.25f, 0f));
-            // Mochila con saco de dormir enrollado.
-            Part(chest, "Backpack", S(ChunkyMeshGenerator.Rock("F_Backpack", 3, new Vector3(0.34f, 0.42f, 0.17f), 0.85f, 0.02f)), pack, new Vector3(0f, -0.16f, -0.2f));
-            Part(chest, "Bedroll", S(ChunkyMeshGenerator.Log("F_Bedroll", 0.38f, 0.065f, 10)), Mat("Father_Bedroll", new Color(0.3f, 0.38f, 0.48f), 0.2f), new Vector3(0f, 0.17f, -0.2f), new Vector3(0f, 90f, 0f));
-            Part(chest, "StrapL", Limb("F_Strap", 0.42f, 0.022f, 0.022f, 0.4f), pack, new Vector3(-0.1f, 0.23f, 0.11f), new Vector3(8f, 0f, 0f));
-            Part(chest, "StrapR", Limb("F_Strap", 0.42f, 0.022f, 0.022f, 0.4f), pack, new Vector3(0.1f, 0.23f, 0.11f), new Vector3(8f, 0f, 0f));
-
-            var neck = Joint(chest, "Neck", new Vector3(0f, 0.24f, 0f));
-            Part(neck, "NeckMesh", Ell("F_Neck", new Vector3(0.11f, 0.14f, 0.11f)), skin, new Vector3(0f, 0.04f, 0f));
-            var head = Joint(neck, "Head", new Vector3(0f, 0.13f, 0f));
-            Part(head, "Skull", Ell("F_Head", new Vector3(0.2f, 0.25f, 0.22f)), skin, new Vector3(0f, 0.04f, 0.01f));
-            Part(head, "Nose", Ell("F_Nose", new Vector3(0.035f, 0.055f, 0.05f)), skin, new Vector3(0f, 0.03f, 0.115f));
-            Part(head, "EarL", Ell("F_Ear", new Vector3(0.025f, 0.06f, 0.04f)), skin, new Vector3(-0.1f, 0.03f, 0f));
-            Part(head, "EarR", Ell("F_Ear", new Vector3(0.025f, 0.06f, 0.04f)), skin, new Vector3(0.1f, 0.03f, 0f));
-            Part(head, "Beard", Ell("F_Beard", new Vector3(0.18f, 0.13f, 0.15f)), hair, new Vector3(0f, -0.045f, 0.05f));
-            var cap = new[] { new Vector2(0f, 0.115f), new Vector2(0.06f, 0.105f), new Vector2(0.095f, 0.075f), new Vector2(0.11f, 0.03f), new Vector2(0.113f, -0.01f), new Vector2(0.118f, -0.015f), new Vector2(0.118f, -0.045f), new Vector2(0.108f, -0.05f) };
-            Part(head, "Beanie", S(ChunkyMeshGenerator.Lathe("F_Beanie", cap, 14, new Vector2(1f, 1.06f))), beanie, new Vector3(0f, 0.11f, 0f));
-
-            Transform Arm(string side, float x, out Transform elbow, out Transform hand)
-            {
-                var shoulder = Joint(chest, "Shoulder" + side, new Vector3(x, 0.18f, 0f));
-                Part(shoulder, "Deltoid", Ell("F_Deltoid", new Vector3(0.13f, 0.12f, 0.13f)), jacket, new Vector3(0f, -0.02f, 0f));
-                Part(shoulder, "UpperArm", Limb("F_UpperArm", 0.28f, 0.06f, 0.05f), flannel, Vector3.zero);
-                elbow = Joint(shoulder, "Elbow" + side, new Vector3(0f, -0.29f, 0f));
-                Part(elbow, "Forearm", Limb("F_Forearm", 0.25f, 0.05f, 0.04f), flannel, Vector3.zero);
-                hand = Joint(elbow, "Hand" + side, new Vector3(0f, -0.27f, 0f));
-                Part(hand, "Palm", Ell("F_Hand", new Vector3(0.08f, 0.1f, 0.05f)), skin, new Vector3(0f, -0.04f, 0f));
-                return shoulder;
-            }
-            var shoulderL = Arm("L", -0.215f, out var elbowL, out var handL);
-            var shoulderR = Arm("R", 0.215f, out var elbowR, out var handR);
-
-            // Garrote en la mano derecha (apunta hacia adelante y abajo desde el puño).
-            var club = new GameObject("Club");
-            club.layer = 9;
-            club.transform.SetParent(handR, false);
-            club.transform.localPosition = new Vector3(0f, -0.06f, 0.02f);
-            club.transform.localRotation = Quaternion.Euler(105f, 0f, 0f);
-            Part(club.transform, "Stick", S(ChunkyMeshGenerator.Limb("F_Club", 0.72f, 0.03f, 0.05f, 8)), bark, new Vector3(0f, -0.1f, 0f), new Vector3(180f, 0f, 0f));
-            // Pistola de bengalas en la izquierda (solo visible al disparar).
-            var gun = new GameObject("FlareGun");
-            gun.layer = 9;
-            gun.transform.SetParent(handL, false);
-            gun.transform.localPosition = new Vector3(0f, -0.08f, 0.04f);
-            Part(gun.transform, "Body", ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Box("F_GunBody", new Vector3(0.05f, 0.06f, 0.2f))), gunMat, new Vector3(0f, 0f, 0.07f));
-            Part(gun.transform, "Barrel", S(ChunkyMeshGenerator.Log("F_GunBarrel", 0.14f, 0.025f, 10)), gunMat, new Vector3(0f, 0.015f, 0.2f));
-            Part(gun.transform, "Grip", ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Box("F_GunGrip", new Vector3(0.04f, 0.1f, 0.05f))), gunMat, new Vector3(0f, -0.05f, -0.01f), new Vector3(-15f, 0f, 0f));
-            gun.SetActive(false);
-
-            Transform Leg(string side, float x, out Transform knee, out Transform ankle)
-            {
-                var hip = Joint(hips, "Hip" + side, new Vector3(x, 0f, 0f));
-                Part(hip, "Thigh", Limb("F_Thigh", 0.43f, 0.085f, 0.064f), jeans, Vector3.zero);
-                knee = Joint(hip, "Knee" + side, new Vector3(0f, -0.44f, 0f));
-                Part(knee, "Shin", Limb("F_Shin", 0.4f, 0.064f, 0.054f), jeans, Vector3.zero);
-                ankle = Joint(knee, "Ankle" + side, new Vector3(0f, -0.42f, 0f));
-                Part(ankle, "Boot", S(ChunkyMeshGenerator.Rock("F_Boot", 5, new Vector3(0.12f, 0.12f, 0.28f), 0.7f, 0.02f)), boots, new Vector3(0f, -0.11f, 0.05f));
-                Part(ankle, "BootCuff", Limb("F_BootCuff", 0.08f, 0.062f, 0.06f), boots, new Vector3(0f, 0.02f, 0f));
-                return hip;
-            }
-            var hipL = Leg("L", -0.1f, out var kneeL, out var ankleL);
-            var hipR = Leg("R", 0.1f, out var kneeR, out var ankleR);
-
-            if (!player.TryGetComponent(out ProjectRidge.Player.FatherAnimator anim)) anim = player.AddComponent<ProjectRidge.Player.FatherAnimator>();
-            var aso = new SerializedObject(anim);
-            aso.FindProperty("controller").objectReferenceValue = pc;
-            aso.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
-            aso.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
-            aso.FindProperty("club").objectReferenceValue = club;
-            aso.FindProperty("flareGun").objectReferenceValue = gun;
-            var jp = aso.FindProperty("j");
-            void Set(string n, Object o) => jp.FindPropertyRelative(n).objectReferenceValue = o;
-            Set("root", root); Set("hips", hips); Set("spine", spine); Set("chest", chest); Set("neck", neck); Set("head", head);
-            Set("shoulderL", shoulderL); Set("elbowL", elbowL); Set("handL", handL);
-            Set("shoulderR", shoulderR); Set("elbowR", elbowR); Set("handR", handR);
-            Set("hipL", hipL); Set("kneeL", kneeL); Set("ankleL", ankleL);
-            Set("hipR", hipR); Set("kneeR", kneeR); Set("ankleR", ankleR);
-            aso.FindProperty("thighLength").floatValue = 0.44f;
-            aso.FindProperty("shinLength").floatValue = 0.42f;
-            aso.FindProperty("footHeight").floatValue = 0.12f;
-            aso.ApplyModifiedPropertiesWithoutUndo();
-
-            // La bengala sale de la mano izquierda.
-            var combat = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
-            var cso = new SerializedObject(combat);
+            // La bengala sale de la pistola.
+            var cso = new SerializedObject(player.GetComponent<ProjectRidge.Player.PlayerCombat>());
             cso.FindProperty("muzzle").objectReferenceValue = gun.transform;
             cso.ApplyModifiedPropertiesWithoutUndo();
+
+            // El audio escucha los pasos del nuevo animador.
+            var audio = Object.FindFirstObjectByType<ProjectRidge.Core.AudioDirector>();
+            if (audio != null)
+            {
+                var aso = new SerializedObject(audio);
+                aso.FindProperty("fatherAnimator").objectReferenceValue = fa;
+                aso.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        static void AttachHair(Transform head, string file, Material mat)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HairDir + "/" + file + ".fbx");
+            var tmp = (GameObject)Object.Instantiate(prefab);
+            var fbxHead = tmp.GetComponentsInChildren<Transform>().First(t => t.name == "Head");
+            var renderer = tmp.GetComponentsInChildren<Renderer>().First();
+            var mf = renderer.GetComponent<MeshFilter>();
+            Mesh mesh = mf != null ? mf.sharedMesh : (renderer as SkinnedMeshRenderer).sharedMesh;
+            // Transformación de la malla relativa al hueso de la cabeza en el FBX (misma pose de enlace que el cuerpo).
+            Matrix4x4 rel = fbxHead.worldToLocalMatrix * renderer.transform.localToWorldMatrix;
+            Object.DestroyImmediate(tmp);
+            var go = new GameObject(file);
+            go.layer = head.gameObject.layer;
+            go.transform.SetParent(head, false);
+            go.transform.localPosition = rel.GetColumn(3);
+            go.transform.localRotation = rel.rotation;
+            go.transform.localScale = rel.lossyScale;
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+        }
+
+        static GameObject Prop(Transform parent, string name, Mesh mesh, Material mat)
+        {
+            mesh = SaveMesh(mesh, "Prop_" + name);
+            var go = new GameObject(name);
+            go.layer = parent.gameObject.layer;
+            go.transform.SetParent(parent, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = mat;
+            return go;
+        }
+
+        /// <summary>
+        /// Coloca un objeto en la mano: el eje -Y de las mallas (miembros) o +Z (cajas) apunta a lo largo del puño
+        /// (perpendicular a los dedos) para un garrote, o a lo largo de los dedos para pistola/linterna.
+        /// </summary>
+        static void Orient(Transform prop, Transform hand, Animator anim, Vector3 offset, bool forwardAlongFingers = false)
+        {
+            var middle = hand.Find(hand.name.Replace("hand", "middle_01"));
+            var thumb = hand.Find(hand.name.Replace("hand", "thumb_01"));
+            Vector3 fingers = (middle != null ? middle.position - hand.position : hand.up).normalized;
+            Vector3 toThumb = (thumb != null ? thumb.position - hand.position : hand.right).normalized;
+            Vector3 palmAxis = Vector3.Cross(fingers, toThumb).normalized; // atraviesa el puño
+            prop.position = hand.position + fingers * 0.08f + hand.TransformVector(offset);
+            if (forwardAlongFingers)
+                prop.rotation = Quaternion.LookRotation(fingers, palmAxis);
+            else
+                // Garrote: la malla cuelga hacia -Y; la punta debe salir por el lado del pulgar.
+                prop.rotation = Quaternion.FromToRotation(Vector3.down, toThumb);
         }
 
         // ------------------------------------------------------------------ El Lurker
 
-        static void BuildLurker(GameObject lurker)
+        class LurkerAsset { public Mesh mesh; public Avatar avatar; public Vector3[] bonePositions; public string[] boneNames; }
+
+        static readonly Dictionary<string, float> Lengthen = new Dictionary<string, float>
         {
+            { "spine_02", 1.12f }, { "spine_03", 1.12f }, { "neck_01", 1.1f }, { "Head", 2.1f },
+            { "upperarm_l", 1.25f }, { "lowerarm_l", 1.45f }, { "hand_l", 1.55f },
+            { "upperarm_r", 1.2f }, { "lowerarm_r", 1.35f }, { "hand_r", 1.45f },
+            { "calf_l", 1.18f }, { "foot_l", 1.22f }, { "calf_r", 1.18f }, { "foot_r", 1.22f },
+        };
+
+        static readonly Dictionary<string, float> Thin = new Dictionary<string, float>
+        {
+            { "upperarm", 0.52f }, { "lowerarm", 0.55f }, { "thigh", 0.58f }, { "calf", 0.6f },
+            { "spine_01", 0.72f }, { "spine_02", 0.7f }, { "spine_03", 0.74f }, { "pelvis", 0.78f }, { "neck_01", 0.62f }, { "clavicle", 0.8f },
+        };
+
+        static float ThinFor(string bone)
+        {
+            foreach (var kv in Thin) if (bone.StartsWith(kv.Key)) return kv.Value;
+            return 1f;
+        }
+
+        static LurkerAsset LurkerAssets()
+        {
+            var tmp = InstantiateBody(null, 10, "LurkerBake");
+            var smr = BodyRenderer(tmp);
+            var bones = smr.bones;
+            Transform B(string name) => bones.FirstOrDefault(b => b.name == name);
+
+            // 1) Alargar: la posición local de cada hueso hijo se multiplica (piel interpola entre huesos).
+            foreach (var kv in Lengthen) { var b = B(kv.Key); if (b != null) b.localPosition *= kv.Value; }
+            foreach (var b in bones)
+                if (b.name.Contains("_02_") || b.name.Contains("_03_") || b.name.Contains("_04_")) b.localPosition *= b.name.EndsWith("_l") ? 2.1f : 1.8f;
+            // Cráneo estirado (solo para hornear; luego se restaura la escala).
+            var head = B("Head");
+            head.localScale = new Vector3(0.9f, 1.25f, 1.35f);
+
+            var baked = new Mesh();
+            smr.BakeMesh(baked, true);
+            head.localScale = Vector3.one;
+
+            // 2) Adelgazar: cada vértice se acerca al eje de sus huesos (ponderado por los pesos).
+            var v = baked.vertices;
+            var bw = smr.sharedMesh.boneWeights;
+            Matrix4x4 toWorld = smr.transform.localToWorldMatrix, toLocal = smr.transform.worldToLocalMatrix;
+            Vector3 Pull(Vector3 pw, int bi)
+            {
+                var b = bones[bi];
+                float f = ThinFor(b.name);
+                if (f >= 0.999f || b.childCount == 0) return pw;
+                Transform child = null;
+                foreach (Transform c in b) if (!c.name.Contains("thigh") && (child == null || c.name.StartsWith("spine") || c.name.StartsWith("lowerarm") || c.name.StartsWith("calf") || c.name.StartsWith("neck"))) child = c;
+                if (b.name == "pelvis") child = B("spine_01");
+                Vector3 a = b.position, c2 = child.position, ab = c2 - a;
+                float t = Mathf.Clamp01(Vector3.Dot(pw - a, ab) / Mathf.Max(1e-5f, ab.sqrMagnitude));
+                Vector3 axis = a + ab * t;
+                return axis + (pw - axis) * f;
+            }
+            for (int i = 0; i < v.Length; i++)
+            {
+                Vector3 pw = toWorld.MultiplyPoint3x4(v[i]);
+                var w = bw[i];
+                Vector3 acc = Pull(pw, w.boneIndex0) * w.weight0 + Pull(pw, w.boneIndex1) * w.weight1 + Pull(pw, w.boneIndex2) * w.weight2 + Pull(pw, w.boneIndex3) * w.weight3;
+                float sum = w.weight0 + w.weight1 + w.weight2 + w.weight3;
+                v[i] = toLocal.MultiplyPoint3x4(sum > 0f ? acc / sum : pw);
+            }
+
+            // 3) Nueva malla enlazada a la nueva pose.
+            var mesh = Object.Instantiate(smr.sharedMesh);
+            mesh.vertices = v;
+            var bind = new Matrix4x4[bones.Length];
+            for (int i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * toWorld;
+            mesh.bindposes = bind;
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+            mesh = SaveMesh(mesh, "Lurker_Body");
+
+            // 4) Avatar humanoide del esqueleto alargado.
+            var srcAvatar = AssetDatabase.LoadAllAssetsAtPath(QuaterniusImport.Body).OfType<Avatar>().First();
+            // Se conserva la pose de referencia (T-pose) que Unity calculó al importar; solo cambian las longitudes.
+            var hd = srcAvatar.humanDescription;
+            var byName = tmp.GetComponentsInChildren<Transform>().GroupBy(t => t.name).ToDictionary(g => g.Key, g => g.First());
+            var skel = hd.skeleton;
+            for (int i = 0; i < skel.Length; i++)
+                if (byName.TryGetValue(skel[i].name, out var t) && t != tmp.transform) skel[i].position = t.localPosition;
+            hd.skeleton = skel;
+            tmp.name = skel[0].name;
+            var avatar = AvatarBuilder.BuildHumanAvatar(tmp, hd);
+            avatar.name = "Lurker_Avatar";
+            string avPath = OutDir + "/Lurker_Avatar.asset";
+            if (AssetDatabase.LoadAssetAtPath<Avatar>(avPath) != null) AssetDatabase.DeleteAsset(avPath);
+            AssetDatabase.CreateAsset(avatar, avPath);
+
+            var asset = new LurkerAsset
+            {
+                mesh = mesh,
+                avatar = avatar,
+                boneNames = tmp.GetComponentsInChildren<Transform>().Select(t => t.name).ToArray(),
+                bonePositions = tmp.GetComponentsInChildren<Transform>().Select(t => t.localPosition).ToArray(),
+            };
+            Object.DestroyImmediate(tmp);
+            return asset;
+        }
+
+        static void BuildLurker(GameObject lurker, AnimatorController ctrl, LurkerAsset asset)
+        {
+            var old = lurker.transform.Find("Visual");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            var body = InstantiateBody(lurker.transform, 10, "Visual");
+            // Misma pose alargada que la malla horneada.
+            var all = body.GetComponentsInChildren<Transform>();
+            for (int i = 0; i < all.Length && i < asset.boneNames.Length; i++)
+                if (all[i].name == asset.boneNames[i]) all[i].localPosition = asset.bonePositions[i];
+
             var (skinA, skinN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Skin, 66);
-            var skin = Mat("Lurker_Skin", new Color(0.62f, 0.62f, 0.68f), 0.48f);
-            skin.SetTexture("_BaseMap", skinA);
-            skin.SetTexture("_BumpMap", skinN);
-            skin.EnableKeyword("_NORMALMAP");
-            skin.SetTextureScale("_BaseMap", new Vector2(2f, 2f));
-            var mouth = Mat("Lurker_Mouth", new Color(0.16f, 0.01f, 0.02f), 0.8f);
-            var teeth = Mat("Lurker_Teeth", new Color(0.62f, 0.58f, 0.48f), 0.5f);
-            var claw = Mat("Lurker_Claw", new Color(0.08f, 0.07f, 0.07f), 0.7f);
-            var eye = Mat("Lurker_Eye", new Color(0.3f, 0.02f, 0.02f), 0.9f);
+            var skin = Mat("Lurker_Skin", skinA, skinN, new Color(0.55f, 0.55f, 0.6f), 0.55f, 3f);
+            var eye = Mat("Lurker_Eye", null, null, new Color(0.3f, 0.02f, 0.02f), 0.9f);
             eye.EnableKeyword("_EMISSION");
             eye.SetColor("_EmissionColor", new Color(2f, 0.1f, 0.05f));
-            eye.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-
-            var root = ReplaceVisual(lurker, 10);
-            var hips = Joint(root, "Hips", new Vector3(0f, 1.25f, 0f));
-            Part(hips, "Pelvis", Ell("L_Pelvis", new Vector3(0.22f, 0.15f, 0.15f)), skin, Vector3.zero);
-            var spine = Joint(hips, "Spine", new Vector3(0f, 0.07f, 0f));
-            Part(spine, "Abdomen", S(ChunkyMeshGenerator.Lathe("L_Abdomen", new[] { new Vector2(0f, 0.42f), new Vector2(0.1f, 0.4f), new Vector2(0.075f, 0.25f), new Vector2(0.085f, 0.08f), new Vector2(0.1f, 0f), new Vector2(0f, -0.02f) }, 12, new Vector2(1f, 0.75f))), skin, Vector3.zero);
-            var chest = Joint(spine, "Chest", new Vector3(0f, 0.36f, 0f));
-            var ribs = new[] { new Vector2(0f, 0.56f), new Vector2(0.08f, 0.54f), new Vector2(0.135f, 0.47f), new Vector2(0.145f, 0.34f), new Vector2(0.125f, 0.18f), new Vector2(0.08f, 0.05f), new Vector2(0f, 0f) };
-            Part(chest, "Ribcage", S(ChunkyMeshGenerator.Lathe("L_Ribcage", ribs, 14, new Vector2(1f, 0.68f), y => Mathf.Sin(y * 40f) * 0.008f)), skin, Vector3.zero);
-            // Omóplatos salientes: rompen la silueta de la espalda.
-            Part(chest, "ScapulaL", Ell("L_Scapula", new Vector3(0.1f, 0.2f, 0.05f)), skin, new Vector3(-0.08f, 0.38f, -0.1f), new Vector3(-15f, 20f, 12f));
-            Part(chest, "ScapulaR", Ell("L_Scapula", new Vector3(0.1f, 0.2f, 0.05f)), skin, new Vector3(0.09f, 0.4f, -0.1f), new Vector3(-15f, -20f, -12f));
-            for (int i = 0; i < 7; i++)
-                Part(chest, "Vertebra", Ell("L_Vertebra", new Vector3(0.045f, 0.05f, 0.05f)), skin, new Vector3(0f, 0.05f + i * 0.075f, -0.115f - Mathf.Sin(i * 0.45f) * 0.015f));
-
-            var neck = Joint(chest, "Neck", new Vector3(0f, 0.52f, 0.03f));
-            Part(neck, "NeckMesh", S(ChunkyMeshGenerator.Lathe("L_Neck", new[] { new Vector2(0f, 0.42f), new Vector2(0.045f, 0.4f), new Vector2(0.042f, 0.2f), new Vector2(0.06f, 0.02f), new Vector2(0f, -0.02f) }, 10, Vector2.one)), skin, Vector3.zero);
-            var head = Joint(neck, "Head", new Vector3(0f, 0.4f, 0f));
-            Part(head, "Skull", Ell("L_Skull", new Vector3(0.17f, 0.19f, 0.4f)), skin, new Vector3(0f, 0.02f, 0.1f));
-            Part(head, "Brow", Ell("L_Brow", new Vector3(0.18f, 0.06f, 0.12f)), skin, new Vector3(0f, 0.07f, 0.2f), new Vector3(-12f, 0f, 0f));
-            Part(head, "MouthInside", Ell("L_Mouth", new Vector3(0.11f, 0.05f, 0.24f)), mouth, new Vector3(0f, -0.05f, 0.14f));
-            Part(head, "UpperTeeth", ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Box("L_TeethTop", new Vector3(0.1f, 0.025f, 0.2f), 4f)), teeth, new Vector3(0f, -0.065f, 0.17f));
-            var eyeL = Part(head, "Eye_L", Ell("L_Eye", new Vector3(0.035f, 0.022f, 0.03f)), eye, new Vector3(-0.05f, 0.045f, 0.245f), new Vector3(0f, 0f, -20f));
-            var eyeR = Part(head, "Eye_R", Ell("L_Eye", new Vector3(0.035f, 0.022f, 0.03f)), eye, new Vector3(0.05f, 0.04f, 0.24f), new Vector3(0f, 0f, 25f));
-            eyeL.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-            eyeR.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-            var jaw = Joint(head, "Jaw", new Vector3(0f, -0.05f, 0.0f));
-            Part(jaw, "JawMesh", Ell("L_Jaw", new Vector3(0.13f, 0.06f, 0.32f)), skin, new Vector3(0f, -0.035f, 0.13f));
-            Part(jaw, "LowerTeeth", ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Box("L_TeethBottom", new Vector3(0.09f, 0.025f, 0.2f), 4f)), teeth, new Vector3(0f, -0.005f, 0.15f));
-
-            Transform Arm(string side, float x, float y, float upper, float fore, out Transform elbow, out Transform hand, out Transform[] fingers)
+            Renderer eyesRenderer = null;
+            foreach (var r in body.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
-                var shoulder = Joint(chest, "Shoulder" + side, new Vector3(x, y, 0f));
-                Part(shoulder, "ShoulderKnob", Ell("L_ShoulderKnob", new Vector3(0.09f, 0.08f, 0.09f)), skin, Vector3.zero);
-                Part(shoulder, "UpperArm", Limb("L_UpperArm" + side, upper, 0.048f, 0.032f), skin, Vector3.zero);
-                elbow = Joint(shoulder, "Elbow" + side, new Vector3(0f, -upper, 0f));
-                Part(elbow, "Forearm", Limb("L_Forearm" + side, fore, 0.038f, 0.026f), skin, Vector3.zero);
-                hand = Joint(elbow, "Hand" + side, new Vector3(0f, -fore, 0f));
-                Part(hand, "Palm", Ell("L_Palm", new Vector3(0.07f, 0.11f, 0.035f)), skin, new Vector3(0f, -0.04f, 0f));
-                fingers = new Transform[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    var f = Joint(hand, "Finger" + i, new Vector3((i - 1) * 0.024f, -0.085f, 0f));
-                    Part(f, "Digit", Limb("L_Finger" + (i == 1 ? "Long" : ""), 0.22f + (i == 1 ? 0.06f : 0f), 0.012f, 0.008f), skin, Vector3.zero);
-                    Part(f, "Claw", Limb("L_Claw", 0.1f, 0.008f, 0.002f), claw, new Vector3(0f, -0.24f - (i == 1 ? 0.06f : 0f), 0f));
-                    fingers[i] = f;
-                }
-                return shoulder;
+                if (r.name == "SuperHero_Male") { r.sharedMesh = asset.mesh; r.sharedMaterial = skin; }
+                else if (r.name == "Eyes") { r.sharedMaterial = eye; r.shadowCastingMode = ShadowCastingMode.Off; eyesRenderer = r; }
+                else r.gameObject.SetActive(false); // sin cejas
             }
-            // Asimétrico: el brazo izquierdo es más largo y el hombro derecho más alto.
-            var shoulderL = Arm("L", -0.19f, 0.45f, 0.64f, 0.68f, out var elbowL, out var handL, out var fingersL);
-            var shoulderR = Arm("R", 0.2f, 0.5f, 0.55f, 0.6f, out var elbowR, out var handR, out var fingersR);
+            if (!body.TryGetComponent(out Animator anim)) anim = body.AddComponent<Animator>();
+            anim.avatar = asset.avatar;
+            anim.runtimeAnimatorController = ctrl;
+            anim.applyRootMotion = false;
+            // Siempre anima: fuera de cámara sus pasos y tics siguen sonando (clave para el terror).
+            anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            // Alto: ~2.2 m encorvado, ~2.6 m erguido.
+            body.transform.localScale = Vector3.one * 1.3f;
+            if (lurker.TryGetComponent(out CapsuleCollider capsule)) { capsule.height = 2.3f; capsule.center = Vector3.up * 1.15f; capsule.radius = 0.32f; }
+            if (lurker.TryGetComponent(out UnityEngine.AI.NavMeshAgent agent)) { agent.height = 2.3f; agent.radius = 0.35f; }
 
-            Transform Leg(string side, float x, out Transform knee, out Transform ankle)
-            {
-                var hip = Joint(hips, "Hip" + side, new Vector3(x, 0f, 0f));
-                Part(hip, "Thigh", Limb("L_Thigh", 0.56f, 0.07f, 0.042f), skin, Vector3.zero);
-                knee = Joint(hip, "Knee" + side, new Vector3(0f, -0.58f, 0f));
-                Part(knee, "Shin", Limb("L_Shin", 0.6f, 0.042f, 0.028f), skin, Vector3.zero);
-                ankle = Joint(knee, "Ankle" + side, new Vector3(0f, -0.62f, 0f));
-                Part(ankle, "Metatarsal", Limb("L_Metatarsal", 0.3f, 0.032f, 0.024f), skin, Vector3.zero);
-                for (int i = 0; i < 3; i++)
-                    Part(ankle, "Toe", Limb("L_Toe", 0.15f, 0.016f, 0.004f), claw, new Vector3((i - 1) * 0.025f, -0.31f, 0.01f), new Vector3(-80f, (i - 1) * 18f, 0f));
-                return hip;
-            }
-            var hipL = Leg("L", -0.12f, out var kneeL, out var ankleL);
-            var hipR = Leg("R", 0.12f, out var kneeR, out var ankleR);
-
-            if (!lurker.TryGetComponent(out ProjectRidge.AI.LurkerAnimator anim)) anim = lurker.AddComponent<ProjectRidge.AI.LurkerAnimator>();
+            var old2 = lurker.GetComponent<ProjectRidge.AI.LurkerAnimator>();
+            if (old2 != null) Object.DestroyImmediate(old2);
+            var la = body.AddComponent<ProjectRidge.AI.LurkerAnimator>();
             var enemy = lurker.GetComponent<ProjectRidge.AI.EnemyController>();
-            var aso = new SerializedObject(anim);
-            aso.FindProperty("enemy").objectReferenceValue = enemy;
-            aso.FindProperty("agent").objectReferenceValue = lurker.GetComponent<UnityEngine.AI.NavMeshAgent>();
-            aso.FindProperty("config").objectReferenceValue = enemy.Config;
-            var jp = aso.FindProperty("j");
-            void Set(string n, Object o) => jp.FindPropertyRelative(n).objectReferenceValue = o;
-            void SetArr(string n, Transform[] arr)
-            {
-                var p = jp.FindPropertyRelative(n);
-                p.arraySize = arr.Length;
-                for (int i = 0; i < arr.Length; i++) p.GetArrayElementAtIndex(i).objectReferenceValue = arr[i];
-            }
-            Set("root", root); Set("hips", hips); Set("spine", spine); Set("chest", chest); Set("neck", neck); Set("head", head); Set("jaw", jaw);
-            Set("shoulderL", shoulderL); Set("elbowL", elbowL); Set("handL", handL);
-            Set("shoulderR", shoulderR); Set("elbowR", elbowR); Set("handR", handR);
-            SetArr("fingersL", fingersL); SetArr("fingersR", fingersR);
-            Set("hipL", hipL); Set("kneeL", kneeL); Set("ankleL", ankleL);
-            Set("hipR", hipR); Set("kneeR", kneeR); Set("ankleR", ankleR);
-            aso.FindProperty("thighLength").floatValue = 0.58f;
-            aso.FindProperty("shinLength").floatValue = 0.62f;
-            aso.FindProperty("footLength").floatValue = 0.32f;
-            aso.ApplyModifiedPropertiesWithoutUndo();
+            var so = new SerializedObject(la);
+            so.FindProperty("enemy").objectReferenceValue = enemy;
+            so.FindProperty("agent").objectReferenceValue = lurker.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            so.FindProperty("config").objectReferenceValue = enemy.Config;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
-            // Ojos para el feedback de estado.
             var fb = lurker.GetComponent<ProjectRidge.AI.EnemyStateFeedback>();
             var fso = new SerializedObject(fb);
             var eyes = fso.FindProperty("eyes");
-            eyes.arraySize = 2;
-            eyes.GetArrayElementAtIndex(0).objectReferenceValue = eyeL.GetComponent<MeshRenderer>();
-            eyes.GetArrayElementAtIndex(1).objectReferenceValue = eyeR.GetComponent<MeshRenderer>();
+            eyes.arraySize = 1;
+            eyes.GetArrayElementAtIndex(0).objectReferenceValue = eyesRenderer;
             fso.ApplyModifiedPropertiesWithoutUndo();
+
+            // El "ojo" de la percepción sigue la cabeza real.
+            var eyePoint = lurker.transform.Find("EyePoint");
+            if (eyePoint != null) eyePoint.position = anim.GetBoneTransform(HumanBodyBones.Head).position;
+        }
+
+        // ------------------------------------------------------------------ Animator Controllers
+
+        static AnimatorController NewController(string name)
+        {
+            string path = OutDir + "/" + name + ".controller";
+            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(path) != null) AssetDatabase.DeleteAsset(path);
+            return AnimatorController.CreateAnimatorControllerAtPath(path);
+        }
+
+        static AnimatorState Tree(AnimatorController c, string name, string param, (string clip, float threshold, float timeScale)[] children, Dictionary<string, AnimationClip> clips)
+        {
+            var state = c.CreateBlendTreeInController(name, out BlendTree tree, 0);
+            tree.blendParameter = param;
+            tree.useAutomaticThresholds = false;
+            foreach (var ch in children) tree.AddChild(clips[ch.clip], ch.threshold);
+            var arr = tree.children;
+            for (int i = 0; i < arr.Length; i++) arr[i].timeScale = children[i].timeScale;
+            tree.children = arr;
+            return state;
+        }
+
+        static AnimatorState Action(AnimatorStateMachine sm, string name, AnimationClip clip, float speed)
+        {
+            var s = sm.AddState(name);
+            s.motion = clip;
+            s.speed = speed;
+            return s;
+        }
+
+        static void FromAny(AnimatorStateMachine sm, AnimatorState to, string param, AnimatorConditionMode mode = AnimatorConditionMode.If, float duration = 0.08f)
+        {
+            var t = sm.AddAnyStateTransition(to);
+            t.AddCondition(mode, 0f, param);
+            t.duration = duration;
+            t.canTransitionToSelf = false;
+            t.hasExitTime = false;
+        }
+
+        static void Back(AnimatorState from, AnimatorState to, float exitTime, float duration = 0.2f)
+        {
+            var t = from.AddTransition(to);
+            t.hasExitTime = true;
+            t.exitTime = exitTime;
+            t.duration = duration;
+        }
+
+        static AnimatorController FatherController()
+        {
+            var clips = QuaterniusImport.Clips();
+            var c = NewController("Father");
+            foreach (var p in new[] { "Speed" }) c.AddParameter(p, AnimatorControllerParameterType.Float);
+            foreach (var p in new[] { "Crouch", "Dead", "Crafting" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
+            foreach (var p in new[] { "Attack", "Fire", "Throw", "Hit", "PickUp", "Search", "Interact", "Heal", "Revive" }) c.AddParameter(p, AnimatorControllerParameterType.Trigger);
+            var layers = c.layers;
+            layers[0].iKPass = true;
+            c.layers = layers;
+            var sm = c.layers[0].stateMachine;
+
+            // Velocidades naturales medidas de los clips: caminar 0.95, trote 2.46, sprint 3.19, agachado 0.74 m/s.
+            var loco = Tree(c, "Locomotion", "Speed", new[] { ("Idle_Loop", 0f, 1f), ("Walk_Loop", 1.2f, 1.26f), ("Jog_Fwd_Loop", 2.8f, 1.14f), ("Sprint_Loop", 4.2f, 1.32f) }, clips);
+            var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", 0.95f, 1.28f) }, clips);
+            sm.defaultState = loco;
+            var toCrouch = loco.AddTransition(crouch); toCrouch.AddCondition(AnimatorConditionMode.If, 0, "Crouch"); toCrouch.duration = 0.25f; toCrouch.hasExitTime = false;
+            var toStand = crouch.AddTransition(loco); toStand.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouch"); toStand.duration = 0.25f; toStand.hasExitTime = false;
+
+            var attack = Action(sm, "Attack", clips["Sword_Regular_A"], 1.35f);
+            var attackRec = Action(sm, "AttackRecover", clips["Sword_Regular_A_Rec"], 2.2f);
+            FromAny(sm, attack, "Attack", duration: 0.05f);
+            Back(attack, attackRec, 0.95f, 0.05f);
+            Back(attackRec, loco, 0.7f, 0.2f);
+            var fire = Action(sm, "Fire", clips["Pistol_Shoot"], 1f); FromAny(sm, fire, "Fire"); Back(fire, loco, 0.9f);
+            var thr = Action(sm, "Throw", clips["OverhandThrow"], 1.3f); FromAny(sm, thr, "Throw"); Back(thr, loco, 0.85f);
+            var hit = Action(sm, "Hit", clips["Hit_Chest"], 1f); FromAny(sm, hit, "Hit", duration: 0.04f); Back(hit, loco, 0.9f, 0.15f);
+            var pick = Action(sm, "PickUp", clips["PickUp_Table"], 1.1f); FromAny(sm, pick, "PickUp", duration: 0.12f); Back(pick, loco, 0.9f);
+            var search = Action(sm, "Search", clips["Chest_Open"], 1.2f); FromAny(sm, search, "Search", duration: 0.15f); Back(search, loco, 0.9f);
+            var inter = Action(sm, "Interact", clips["Interact"], 2f); FromAny(sm, inter, "Interact", duration: 0.15f); Back(inter, loco, 0.9f);
+            var heal = Action(sm, "Heal", clips["Consume"], 1.2f); FromAny(sm, heal, "Heal", duration: 0.15f); Back(heal, loco, 0.9f);
+            var craft = Action(sm, "Craft", clips["Fixing_Kneeling"], 2f);
+            FromAny(sm, craft, "Crafting", duration: 0.2f);
+            var craftOut = craft.AddTransition(loco); craftOut.AddCondition(AnimatorConditionMode.IfNot, 0, "Crafting"); craftOut.duration = 0.25f; craftOut.hasExitTime = false;
+            var death = Action(sm, "Death", clips["Death01"], 1f); FromAny(sm, death, "Dead", duration: 0.1f);
+            var revive = Action(sm, "Revive", clips["LayToIdle"], 1f);
+            var rv = death.AddTransition(revive); rv.AddCondition(AnimatorConditionMode.If, 0, "Revive"); rv.hasExitTime = false; rv.duration = 0.1f;
+            Back(revive, loco, 0.9f);
+
+            // Capa del brazo izquierdo: sostener la linterna (peso desde el script).
+            var mask = new AvatarMask();
+            foreach (AvatarMaskBodyPart part in System.Enum.GetValues(typeof(AvatarMaskBodyPart)))
+                if (part != AvatarMaskBodyPart.LastBodyPart) mask.SetHumanoidBodyPartActive(part, part == AvatarMaskBodyPart.LeftArm || part == AvatarMaskBodyPart.LeftFingers);
+            string maskPath = OutDir + "/Mask_LeftArm.mask";
+            if (AssetDatabase.LoadAssetAtPath<AvatarMask>(maskPath) != null) AssetDatabase.DeleteAsset(maskPath);
+            AssetDatabase.CreateAsset(mask, maskPath);
+            c.AddLayer("Torch");
+            layers = c.layers;
+            layers[1].avatarMask = mask;
+            layers[1].defaultWeight = 0f;
+            layers[1].blendingMode = AnimatorLayerBlendingMode.Override;
+            c.layers = layers;
+            var torch = c.layers[1].stateMachine.AddState("Torch");
+            torch.motion = clips["Idle_Torch_Loop"];
+            EditorUtility.SetDirty(c);
+            return c;
+        }
+
+        static AnimatorController LurkerController()
+        {
+            var clips = QuaterniusImport.Clips();
+            var c = NewController("Lurker");
+            c.AddParameter("Speed", AnimatorControllerParameterType.Float);
+            foreach (var p in new[] { "Hunting", "Stunned", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
+            c.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
+            var sm = c.layers[0].stateMachine;
+            var prowl = Tree(c, "Prowl", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 0.8f), ("Zombie_Walk_Fwd_Loop", 0.95f, 1f), ("Zombie_Walk_Fwd_Loop", 1.4f, 1.47f) }, clips);
+            var hunt = Tree(c, "Hunt", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 1.6f), ("Jog_Fwd_Loop", 2.5f, 1.02f), ("Sprint_Loop", 4.4f, 1.38f) }, clips);
+            sm.defaultState = prowl;
+            var toHunt = prowl.AddTransition(hunt); toHunt.AddCondition(AnimatorConditionMode.If, 0, "Hunting"); toHunt.duration = 0.2f; toHunt.hasExitTime = false;
+            var toProwl = hunt.AddTransition(prowl); toProwl.AddCondition(AnimatorConditionMode.IfNot, 0, "Hunting"); toProwl.duration = 0.35f; toProwl.hasExitTime = false;
+            var attack = Action(sm, "Attack", clips["Zombie_Scratch"], 1.12f);
+            FromAny(sm, attack, "Attack", duration: 0.06f);
+            Back(attack, hunt, 0.92f, 0.15f);
+            var knock = Action(sm, "Knockback", clips["Hit_Knockback"], 1f);
+            FromAny(sm, knock, "Stunned", duration: 0.05f);
+            var dazed = Action(sm, "Dazed", clips["Zombie_Idle_Loop"], 0.5f);
+            Back(knock, dazed, 0.95f, 0.1f);
+            var outD = dazed.AddTransition(hunt); outD.AddCondition(AnimatorConditionMode.IfNot, 0, "Stunned"); outD.duration = 0.15f; outD.hasExitTime = false;
+            var outK = knock.AddTransition(hunt); outK.AddCondition(AnimatorConditionMode.IfNot, 0, "Stunned"); outK.duration = 0.15f; outK.hasExitTime = false;
+            var death = Action(sm, "Death", clips["Death01"], 0.85f);
+            FromAny(sm, death, "Dead", duration: 0.08f);
+            EditorUtility.SetDirty(c);
+            return c;
         }
     }
 }

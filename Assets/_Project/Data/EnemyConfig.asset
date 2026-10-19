@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e7bc9ea2e19ff84d95c87498ea471fa, type: 3}
   m_Name: EnemyConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.AI.EnemyConfig
-  patrolSpeed: 1.2
-  investigateSpeed: 2.2
-  searchSpeed: 1.8
-  chaseSpeed: 4.8
+  patrolSpeed: 0.95
+  investigateSpeed: 1.4
+  searchSpeed: 1.15
+  chaseSpeed: 4.4
   viewDistance: 14
   viewAngle: 110
   proximityRadius: 1.8

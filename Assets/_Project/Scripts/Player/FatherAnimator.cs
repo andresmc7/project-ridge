@@ -1,234 +1,175 @@
 using System;
+using ProjectRidge.Items;
 using UnityEngine;
 
 namespace ProjectRidge.Player
 {
     /// <summary>
-    /// Animación procedural del papá sobre un rig de articulaciones (sin Animator ni clips externos):
-    /// locomoción con ciclo de pasos según la distancia real (camina/trota/corre, agachado), golpe de garrote por fases,
-    /// disparo de bengala, fabricar, reacción al daño y muerte. Las piernas calculan la altura de cadera para apoyar los pies.
+    /// Conecta el juego con el Animator humanoide del papá (clips de la Universal Animation Library):
+    /// locomoción por velocidad real, agachado, linterna en la mano izquierda (capa de brazo), golpe, disparo,
+    /// lanzar, recoger, registrar, curarse, fabricar, reacción al daño, muerte y levantarse.
+    /// Además: pasos detectados por la altura de los pies, la luz de la linterna sigue la mano con suavizado,
+    /// y la cabeza mira a lo interesante cercano (IK).
     /// </summary>
+    [RequireComponent(typeof(Animator))]
     public class FatherAnimator : MonoBehaviour
     {
-        [Serializable]
-        public class Joints
-        {
-            public Transform root, hips, spine, chest, neck, head;
-            public Transform shoulderL, elbowL, handL, shoulderR, elbowR, handR;
-            public Transform hipL, kneeL, ankleL, hipR, kneeR, ankleR;
-        }
-
         [SerializeField] private PlayerController controller;
         [SerializeField] private PlayerCombat combat;
         [SerializeField] private PlayerHealth health;
-        [SerializeField] private Joints j = new Joints();
+        [SerializeField] private PlayerInteractor interactor;
+        [SerializeField] private PlayerHealing healing;
+        [SerializeField] private FlashlightController flashlight;
+        [Tooltip("Luz de la linterna: se coloca en la mano y apunta hacia adelante con suavizado.")]
+        [SerializeField] private Transform flashlightLight;
         [SerializeField] private GameObject club;
         [SerializeField] private GameObject flareGun;
+        [SerializeField] private GameObject torchProp;
 
-        [Header("Medidas del rig (m)")]
-        [SerializeField] private float thighLength = 0.44f;
-        [SerializeField] private float shinLength = 0.42f;
-        [SerializeField] private float footHeight = 0.09f;
+        [Header("Ajustes")]
+        [Tooltip("Inclinación hacia abajo de la linterna (grados).")]
+        [SerializeField] private float flashlightPitch = 16f;
+        [SerializeField] private float flashlightFollow = 10f;
+        [Tooltip("Altura del pie (m) por debajo de la cual cuenta como apoyado.")]
+        [SerializeField] private float footContact = 0.11f;
+        [SerializeField] private float lookRadius = 6f;
 
-        [Header("Paso")]
-        [SerializeField] private float walkStride = 1.25f;
-        [SerializeField] private float sprintStride = 2.3f;
-        [SerializeField] private float crouchStride = 0.85f;
-
-        /// <summary>Un pie tocó el suelo (para el audio de pasos).</summary>
         public event Action<bool> Footstep;
 
-        private float phase;
-        private float crouch;
-        private float moveBlend;
+        private Animator animator;
+        private Transform footL, footR, handL;
+        private bool footLDown, footRDown;
+        private bool wasDead;
+        private float actionUnlock;
         private float fireTimer = 99f;
-        private float hitTimer = 99f;
-        private float deathBlend;
-        private float lastYaw;
-        private float turnLean;
-        private bool lastFootLeft;
+        private Vector3 lookTarget;
+        private float lookWeight;
+        private float torchWeight;
+
+        private static readonly int SpeedId = Animator.StringToHash("Speed");
+        private static readonly int CrouchId = Animator.StringToHash("Crouch");
+        private static readonly int DeadId = Animator.StringToHash("Dead");
+        private static readonly int CraftingId = Animator.StringToHash("Crafting");
+        private static readonly int AttackId = Animator.StringToHash("Attack");
+        private static readonly int FireId = Animator.StringToHash("Fire");
+        private static readonly int ThrowId = Animator.StringToHash("Throw");
+        private static readonly int HitId = Animator.StringToHash("Hit");
+        private static readonly int PickUpId = Animator.StringToHash("PickUp");
+        private static readonly int SearchId = Animator.StringToHash("Search");
+        private static readonly int InteractId = Animator.StringToHash("Interact");
+        private static readonly int HealId = Animator.StringToHash("Heal");
+        private static readonly int ReviveId = Animator.StringToHash("Revive");
+
+        private void Awake()
+        {
+            animator = GetComponent<Animator>();
+            footL = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+            footR = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+            handL = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+        }
 
         private void OnEnable()
         {
+            combat.Swung += OnSwung;
             combat.Fired += OnFired;
             health.Damaged += OnDamaged;
-            lastYaw = transform.eulerAngles.y;
+            interactor.Interacted += OnInteracted;
+            if (healing != null) healing.Healed += OnHealed;
         }
 
         private void OnDisable()
         {
+            combat.Swung -= OnSwung;
             combat.Fired -= OnFired;
             health.Damaged -= OnDamaged;
+            interactor.Interacted -= OnInteracted;
+            if (healing != null) healing.Healed -= OnHealed;
+            controller.ActionLocked = false;
         }
 
-        private void OnFired() => fireTimer = 0f;
-        private void OnDamaged(float amount) => hitTimer = 0f;
+        /// <summary>Lanzar (piedra): lo llama el sistema de lanzamiento.</summary>
+        public void PlayThrow() => animator.SetTrigger(ThrowId);
 
-        private static Quaternion E(float x, float y, float z) => Quaternion.Euler(x, y, z);
+        private void OnSwung() => animator.SetTrigger(AttackId);
+        private void OnFired() { animator.SetTrigger(FireId); fireTimer = 0f; }
+        private void OnDamaged(float amount) { if (!health.IsDead) animator.SetTrigger(HitId); }
+        private void OnHealed() => Lock(HealId, 1.1f);
+
+        private void OnInteracted(Interactable used)
+        {
+            if (used is SearchableContainer) Lock(SearchId, 1.2f);
+            else if (used is Pickup || used is ClubPickup) Lock(PickUpId, 0.75f);
+            else Lock(InteractId, 0.9f);
+        }
+
+        private void Lock(int trigger, float seconds)
+        {
+            animator.SetTrigger(trigger);
+            controller.ActionLocked = true;
+            actionUnlock = Time.time + seconds;
+        }
+
+        private void Update()
+        {
+            float dt = Time.deltaTime;
+            animator.SetFloat(SpeedId, controller.CurrentSpeed, 0.08f, dt);
+            animator.SetBool(CrouchId, controller.IsCrouching);
+            // Capa del brazo izquierdo (sostener la linterna): solo de pie, sin acción en curso.
+            bool torch = flashlight != null && flashlight.IsOn && !controller.IsCrouching && !controller.ActionLocked
+                         && combat.Phase == PlayerCombat.SwingPhase.None && fireTimer > 0.8f && !health.IsDead;
+            torchWeight = Mathf.MoveTowards(torchWeight, torch ? 1f : 0f, dt * 4f);
+            animator.SetLayerWeight(1, torchWeight);
+            animator.SetBool(CraftingId, combat.Phase == PlayerCombat.SwingPhase.Crafting);
+            animator.SetBool(DeadId, health.IsDead);
+            if (wasDead && !health.IsDead) animator.SetTrigger(ReviveId);
+            wasDead = health.IsDead;
+            if (controller.ActionLocked && Time.time >= actionUnlock) controller.ActionLocked = false;
+
+            fireTimer += dt;
+            if (flareGun != null) flareGun.SetActive(fireTimer < 0.8f);
+            if (club != null) club.SetActive(combat.HasClub && fireTimer >= 0.8f);
+            if (torchProp != null) torchProp.SetActive(flashlight != null && flashlight.IsOn);
+        }
 
         private void LateUpdate()
         {
-            float dt = Time.deltaTime;
-            float speed = controller.CurrentSpeed;
-            var cfg = controller.Config;
-            float run01 = Mathf.Clamp01((speed - cfg.walkSpeed) / Mathf.Max(0.01f, cfg.sprintSpeed - cfg.walkSpeed));
-            crouch = Mathf.MoveTowards(crouch, controller.IsCrouching ? 1f : 0f, dt * 4f);
-            moveBlend = Mathf.MoveTowards(moveBlend, Mathf.Clamp01(speed / Mathf.Max(0.1f, cfg.walkSpeed)), dt * 6f);
-            fireTimer += dt;
-            hitTimer += dt;
-            deathBlend = Mathf.MoveTowards(deathBlend, health.IsDead ? 1f : 0f, dt * (health.IsDead ? 1.6f : 10f));
-
-            // Inclinación al girar.
-            float yaw = transform.eulerAngles.y;
-            float yawRate = Mathf.DeltaAngle(lastYaw, yaw) / Mathf.Max(dt, 0.0001f);
-            lastYaw = yaw;
-            turnLean = Mathf.Lerp(turnLean, Mathf.Clamp(-yawRate * 0.02f * moveBlend, -10f, 10f), dt * 6f);
-
-            // Ciclo de pasos por distancia recorrida.
-            float stride = Mathf.Lerp(Mathf.Lerp(walkStride, sprintStride, run01), crouchStride, crouch);
-            float prevPhase = phase;
-            phase += speed / stride * Mathf.PI * 2f * dt;
-            if (Mathf.Floor(prevPhase / Mathf.PI) != Mathf.Floor(phase / Mathf.PI) && moveBlend > 0.2f)
+            // Pasos por contacto del pie con el suelo (sincronizados con la animación real).
+            float groundY = transform.position.y;
+            bool l = footL.position.y - groundY < footContact, r = footR.position.y - groundY < footContact;
+            if (controller.CurrentSpeed > 0.3f)
             {
-                lastFootLeft = !lastFootLeft;
-                Footstep?.Invoke(lastFootLeft);
+                if (l && !footLDown) Footstep?.Invoke(true);
+                if (r && !footRDown) Footstep?.Invoke(false);
             }
-            if (phase > 1000f) phase -= Mathf.PI * 200f;
+            footLDown = l;
+            footRDown = r;
 
-            // ---------- Piernas
-            float amp = moveBlend * Mathf.Lerp(Mathf.Lerp(24f, 40f, run01), 18f, crouch);
-            float kneeAmp = moveBlend * Mathf.Lerp(Mathf.Lerp(30f, 75f, run01), 25f, crouch);
-            float thighBase = Mathf.Lerp(0f, -72f, crouch);
-            float kneeBase = Mathf.Lerp(4f, 118f, crouch);
-            float ankleBase = Mathf.Lerp(0f, -46f, crouch);
-            LegPose(phase, thighBase, kneeBase, ankleBase, amp, kneeAmp, out float tL, out float kL, out float aL);
-            LegPose(phase + Mathf.PI, thighBase, kneeBase, ankleBase, amp, kneeAmp, out float tR, out float kR, out float aR);
-            j.hipL.localRotation = E(tL, 0f, -2f);
-            j.kneeL.localRotation = E(kL, 0f, 0f);
-            j.ankleL.localRotation = E(aL, 0f, 0f);
-            j.hipR.localRotation = E(tR, 0f, 2f);
-            j.kneeR.localRotation = E(kR, 0f, 0f);
-            j.ankleR.localRotation = E(aR, 0f, 0f);
-
-            // Altura de cadera: la pierna más extendida apoya el pie en el suelo.
-            float hL = LegHeight(tL, kL), hR = LegHeight(tR, kR);
-            float hipY = Mathf.Max(hL, hR) + footHeight;
-            float bob = Mathf.Abs(Mathf.Sin(phase)) * 0.025f * moveBlend * (1f - crouch);
-            j.hips.localPosition = new Vector3(0f, hipY + bob, 0f);
-            j.hips.localRotation = E(0f, Mathf.Sin(phase) * 5f * moveBlend, Mathf.Cos(phase) * 2f * moveBlend);
-
-            // ---------- Torso
-            float lean = run01 * 14f + crouch * 22f + moveBlend * 3f;
-            float breathe = Mathf.Sin(Time.time * 1.6f) * 1.2f;
-            float hitJolt = hitTimer < 0.4f ? Mathf.Sin(hitTimer / 0.4f * Mathf.PI) * -18f : 0f;
-            j.spine.localRotation = E(lean * 0.5f + hitJolt * 0.5f, -Mathf.Sin(phase) * 6f * moveBlend, turnLean);
-            j.chest.localRotation = E(lean * 0.5f + breathe + hitJolt, -Mathf.Sin(phase) * 4f * moveBlend, 0f);
-            j.neck.localRotation = E(-lean * 0.4f, 0f, 0f);
-            j.head.localRotation = E(-lean * 0.3f - hitJolt * 0.5f + Mathf.Sin(Time.time * 0.37f) * 4f * (1f - moveBlend), Mathf.Sin(Time.time * 0.23f) * 12f * (1f - moveBlend), 0f);
-
-            // ---------- Brazos (balanceo opuesto a las piernas)
-            float armAmp = moveBlend * Mathf.Lerp(Mathf.Lerp(22f, 50f, run01), 12f, crouch);
-            float elbow = Mathf.Lerp(Mathf.Lerp(12f, 75f, run01), 60f, crouch);
-            Quaternion sL = E(Mathf.Sin(phase) * armAmp + crouch * -20f, 0f, -6f - run01 * 4f);
-            Quaternion eL = E(-elbow, 0f, 0f);
-            Quaternion sR = E(-Mathf.Sin(phase) * armAmp + crouch * -20f, 0f, 6f + run01 * 4f);
-            Quaternion eR = E(-elbow - 10f, 0f, 0f);
-
-            // Garrote: arranque (atrás y arriba) → golpe (adelante y abajo) → recuperación.
-            float twist = 0f;
-            switch (combat.Phase)
+            // Linterna: en la mano, apuntando hacia adelante con suavizado (no tiembla con la animación).
+            if (flashlightLight != null)
             {
-                case PlayerCombat.SwingPhase.Windup:
-                {
-                    float t = Smooth(combat.PhaseT);
-                    sR = Quaternion.Slerp(sR, E(-195f, -15f, 25f), t);
-                    eR = Quaternion.Slerp(eR, E(-60f, 0f, 0f), t);
-                    twist = 30f * t;
-                    break;
-                }
-                case PlayerCombat.SwingPhase.Active:
-                {
-                    float t = Smooth(combat.PhaseT);
-                    sR = Quaternion.Slerp(E(-195f, -15f, 25f), E(-35f, 40f, -10f), t);
-                    eR = Quaternion.Slerp(E(-60f, 0f, 0f), E(-5f, 0f, 0f), t);
-                    twist = Mathf.Lerp(30f, -35f, t);
-                    break;
-                }
-                case PlayerCombat.SwingPhase.Recovery:
-                {
-                    float t = Smooth(combat.PhaseT);
-                    sR = Quaternion.Slerp(E(-35f, 40f, -10f), sR, t);
-                    eR = Quaternion.Slerp(E(-5f, 0f, 0f), eR, t);
-                    twist = Mathf.Lerp(-35f, 0f, t);
-                    break;
-                }
-                case PlayerCombat.SwingPhase.Crafting:
-                {
-                    float hammer = Mathf.Abs(Mathf.Sin(Time.time * 9f));
-                    sR = E(-70f - hammer * 30f, 10f, 10f);
-                    eR = E(-80f + hammer * 30f, 0f, 0f);
-                    sL = E(-60f, -10f, -10f);
-                    eL = E(-70f, 0f, 0f);
-                    break;
-                }
-            }
-            j.chest.localRotation *= E(0f, twist, 0f);
-
-            // Bengala: brazo izquierdo al frente con retroceso.
-            bool firing = fireTimer < 0.7f;
-            if (firing)
-            {
-                float recoil = fireTimer < 0.12f ? (1f - fireTimer / 0.12f) * 25f : 0f;
-                float up = Mathf.Clamp01(fireTimer / 0.08f) * Mathf.Clamp01((0.7f - fireTimer) / 0.2f);
-                sL = Quaternion.Slerp(sL, E(-88f - recoil, -15f, 0f), up);
-                eL = Quaternion.Slerp(eL, E(-5f - recoil * 0.5f, 0f, 0f), up);
-            }
-            if (flareGun != null && flareGun.activeSelf != firing) flareGun.SetActive(firing);
-            if (club != null && club.activeSelf != combat.HasClub) club.SetActive(combat.HasClub);
-
-            j.shoulderL.localRotation = sL;
-            j.elbowL.localRotation = eL;
-            j.shoulderR.localRotation = sR;
-            j.elbowR.localRotation = eR;
-            j.handL.localRotation = Quaternion.identity;
-            j.handR.localRotation = E(-20f, 0f, 0f);
-
-            // ---------- Muerte: cae hacia atrás y queda tendido.
-            if (deathBlend > 0.001f)
-            {
-                float d = Smooth(deathBlend);
-                j.root.localRotation = E(-84f * d, 0f, 6f * d);
-                j.root.localPosition = new Vector3(0f, 0.12f * d, -0.5f * d);
-                j.shoulderL.localRotation = Quaternion.Slerp(j.shoulderL.localRotation, E(-20f, 0f, -70f), d);
-                j.shoulderR.localRotation = Quaternion.Slerp(j.shoulderR.localRotation, E(-10f, 0f, 75f), d);
-                j.head.localRotation = Quaternion.Slerp(j.head.localRotation, E(10f, 35f, 0f), d);
-            }
-            else
-            {
-                j.root.localRotation = Quaternion.identity;
-                j.root.localPosition = Vector3.zero;
+                flashlightLight.position = handL.position + transform.forward * 0.12f;
+                Quaternion target = Quaternion.LookRotation(Quaternion.AngleAxis(flashlightPitch, transform.right) * transform.forward);
+                flashlightLight.rotation = Quaternion.Slerp(flashlightLight.rotation, target, 1f - Mathf.Exp(-flashlightFollow * Time.deltaTime));
             }
         }
 
-        private static void LegPose(float p, float thighBase, float kneeBase, float ankleBase, float amp, float kneeAmp,
-                                    out float thigh, out float knee, out float ankle)
+        private void OnAnimatorIK(int layerIndex)
         {
-            float swing = Mathf.Sin(p);
-            // Rodilla doblada mientras la pierna avanza en el aire (mitad del ciclo).
-            float lift = Mathf.Max(0f, Mathf.Sin(p - Mathf.PI * 0.5f));
-            thigh = thighBase - swing * amp;
-            knee = kneeBase + lift * kneeAmp;
-            // Pie casi paralelo al suelo, con algo de punta al despegar.
-            ankle = -(thigh + knee) + lift * 12f;
+            if (layerIndex != 0) return;
+            // Mira al interactuable cercano o al Lurker más cercano que lo está cazando.
+            Vector3? target = null;
+            if (interactor.Current != null) target = interactor.Current.FocusPosition + Vector3.up * 0.3f;
+            float best = lookRadius * lookRadius * 4f;
+            foreach (var e in ProjectRidge.AI.EnemyController.Active)
+            {
+                float d = (e.transform.position - transform.position).sqrMagnitude;
+                if (d < best) { best = d; target = e.transform.position + Vector3.up * 1.8f; }
+            }
+            float want = target.HasValue && !health.IsDead ? 0.7f : 0f;
+            if (target.HasValue) lookTarget = Vector3.Lerp(lookTarget == Vector3.zero ? target.Value : lookTarget, target.Value, 0.1f);
+            lookWeight = Mathf.MoveTowards(lookWeight, want, Time.deltaTime * 2f);
+            animator.SetLookAtWeight(lookWeight, 0.15f, 0.8f, 0f, 0.6f);
+            animator.SetLookAtPosition(lookTarget);
         }
-
-        private float LegHeight(float thighDeg, float kneeDeg)
-        {
-            float a1 = thighDeg * Mathf.Deg2Rad;
-            float a2 = (thighDeg + kneeDeg) * Mathf.Deg2Rad;
-            return thighLength * Mathf.Cos(a1) + shinLength * Mathf.Cos(a2);
-        }
-
-        private static float Smooth(float t) => t * t * (3f - 2f * t);
     }
 }

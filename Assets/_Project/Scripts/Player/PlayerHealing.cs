@@ -13,6 +13,8 @@ namespace ProjectRidge.Player
         [SerializeField] private PlayerInteractor interactor;
         [SerializeField] private ItemDefinition medkit;
 
+        public event System.Action Healed;
+
         private void OnEnable() => input.HealPressed += OnHeal;
         private void OnDisable() => input.HealPressed -= OnHeal;
 
@@ -22,6 +24,7 @@ namespace ProjectRidge.Player
             if (health.Current >= health.Max) { interactor.Notify("Health is full"); return; }
             if (!inventory.TryRemove(medkit)) { interactor.Notify("No medkits"); return; }
             health.Heal(config.medkitHeal);
+            Healed?.Invoke();
             interactor.Notify("Used Medkit");
         }
     }

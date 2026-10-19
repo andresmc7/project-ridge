@@ -28,7 +28,7 @@ En paralelo hay un carril de look dev (una esquina del bosque con arte final) qu
 
 ## Entorno
 - Desarrollo en Windows (RTX 4070). Builds de iOS en Mac o en la nube; nunca asumir que hay Mac disponible.
-- Targets: iPhone y iPad con A15 o superior (iPhone 13 / iPad equivalente). Base: 30 fps estables. 60 fps opcional en modelos Pro y chips M. Solo horizontal. El iPad entra en el PoC: UI, safe areas y aspect ratios deben funcionar en ambos.
+- Targets (decisión del usuario, 2026-10-19): las últimas 3 generaciones de iPhone — iPhone 16, 17 y 18 (A18 o superior) — y iPad con chip M. No se sacrifica calidad por equipos más viejos. Base: 30 fps estables; 60 fps en Pro y chips M. Solo horizontal. El iPad entra en el PoC: UI, safe areas y aspect ratios deben funcionar en ambos.
 - Unity MCP disponible: úsalo para crear/editar escenas, leer la consola y correr play mode.
 
 ## Setup en máquina nueva

@@ -31,7 +31,17 @@ Fuente: Poly Haven (https://polyhaven.com). Licencia: **CC0** para todo el sitio
 | `dry_branches_medium_01` | Modelo | Rico Cilliers | https://polyhaven.com/a/dry_branches_medium_01 |
 | `fir_tree_01` (solo texturas `twig`: diff, alpha, nor_gl, rough) | Textura | Rob Tuytel, Rico Cilliers | https://polyhaven.com/a/fir_tree_01 |
 
-Agregados 2026-10-19 (mismo origen, licencia CC0, 1k, MD5 verificado). Uso: nivel The Hollow (cabaña, puente, rocas, camioneta) y ropa del papá.
+## Quaternius (personajes y animaciones)
+
+Fuente: Quaternius (https://quaternius.com), descargados por el usuario desde itch.io (versiones [Standard], gratuitas) el 2026-10-19. Licencia: **CC0 1.0** (dominio público), según `License.txt` / `License_Standard.txt` incluidos en cada paquete y copiados junto a los archivos. Sin modificar, en `Assets/ThirdParty/Quaternius/` (solo los archivos usados; los zips originales quedan fuera del repo en `_incoming/`). Uso: el papá (cuerpo, pelo, barba, cejas; la ropa se genera en el proyecto) y el Lurker (mismo esqueleto deformado) con animaciones reales.
+
+| Asset | Contenido usado | Link |
+|---|---|---|
+| Universal Base Characters [Standard] | `Superhero_Male_FullBody.fbx`, texturas de piel/ojos/pelo, `Hair_Beard`, `Hair_SimpleParted`, `Eyebrows_Regular` (rigged to head bone) | https://quaternius.itch.io/universal-base-characters |
+| Universal Animation Library [Standard] | `UAL1_Standard.fbx` (sin root motion) | https://quaternius.itch.io/universal-animation-library |
+| Universal Animation Library 2 [Standard] | `UAL2_Standard.fbx` (sin root motion; incluye locomoción de zombi) | https://quaternius.itch.io/universal-animation-library-2 |
+
+**Poly Haven — agregados 2026-10-19** (licencia CC0, 1k, MD5 verificado). Uso: nivel The Hollow (cabaña, puente, rocas, camioneta) y ropa del papá.
 
 | Asset | Tipo | Autor(es) | Link |
 |---|---|---|---|

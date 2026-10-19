@@ -35,6 +35,8 @@ namespace ProjectRidge.Player
         public float SpeedMultiplier { get; set; } = 1f;
         /// <summary>Sin control (muerto, fabricando, menús). La gravedad sigue.</summary>
         public bool InputLocked { get; set; }
+        /// <summary>Bloqueo breve de una acción animada (registrar, curarse, recoger). Independiente del flujo de juego.</summary>
+        public bool ActionLocked { get; set; }
         /// <summary>Dirección de movimiento pedida este frame (plana, normalizada; cero si no hay input).</summary>
         public Vector3 DesiredDirection { get; private set; }
 
@@ -64,7 +66,7 @@ namespace ProjectRidge.Player
         private void Update()
         {
             float dt = Time.deltaTime;
-            Vector2 stick = InputLocked ? Vector2.zero : Vector2.ClampMagnitude(input.Move, 1f);
+            Vector2 stick = InputLocked || ActionLocked ? Vector2.zero : Vector2.ClampMagnitude(input.Move, 1f);
             float tilt = stick.magnitude;
             bool hasInput = tilt >= config.stickDeadzone;
 
