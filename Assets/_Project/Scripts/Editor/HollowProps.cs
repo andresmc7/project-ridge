@@ -97,6 +97,16 @@ namespace ProjectRidge.EditorTools
             label.GetComponent<MeshRenderer>().sharedMaterial = tm.font.material;
         }
 
+        /// <summary>El objeto se vuelve semitransparente cuando tapa al papá (paredes del refugio, camioneta).</summary>
+        static void MakeFadeable(GameObject go)
+        {
+            var rs = go.GetComponentsInChildren<MeshRenderer>();
+            if (rs.Length == 0) return;
+            var mats = new System.Collections.Generic.List<Material>();
+            foreach (var r in rs) foreach (var m in r.sharedMaterials) if (m != null && !mats.Contains(m)) mats.Add(m);
+            LookDevForestCornerBuilder.AddFadeable(go, rs, mats.ToArray());
+        }
+
         // ------------------------------------------------------------------ Hitos
 
         static int BuildLandmarks(Transform root, Terrain t, Mats m, List<Vector3> blockers)
@@ -135,6 +145,8 @@ namespace ProjectRidge.EditorTools
             Wall("Wall_S", new Vector3(0f, 0f, -D * 0.5f), 180f, W, new[] { new Panel(0f, 1.7f, 2.2f), new Panel(1.7f, 1.2f, 0.85f), new Panel(2.9f, 1.3f, 1.9f), new Panel(4.2f, 2.0f, 2.4f) });
             Wall("Wall_W", new Vector3(-W * 0.5f, 0f, 0f), -90f, D, new[] { new Panel(0f, 1.8f, 2.5f), new Panel(1.8f, 1.5f, 1.4f), new Panel(3.3f, 1.9f, 2.0f) });
             Wall("Wall_E", new Vector3(W * 0.5f, 0f, 0f), 90f, D, new[] { new Panel(0f, 1.7f, 2.2f), new Panel(3.0f, 2.2f, 1.6f) }); // puerta de 1.3 m
+            // Las paredes se desvanecen cuando tapan al papá (dentro del refugio o detrás).
+            foreach (var wn in new[] { "Wall_N", "Wall_S", "Wall_W", "Wall_E" }) MakeFadeable(c.Find(wn).gameObject);
             // Dintel sobre la ventana sur y un tablón suelto colgando.
             Board(c, "Sill_S", new Vector3(1.2f, 0.12f, 0.22f), m.planks, new Vector3(-0.75f, 0.95f, -D * 0.5f), Vector3.zero, false);
             Board(c, "HangingBoard", new Vector3(1.4f, 0.25f, 0.08f), m.planks, new Vector3(0.3f, 1.25f, -D * 0.5f - 0.25f), new Vector3(0f, 10f, 35f), false);
@@ -262,6 +274,15 @@ namespace ProjectRidge.EditorTools
                 var w = Board(g, "Water", new Vector3(4.6f, 0.05f, 3.3f), m.water, new Vector3(x, -2.35f, zc), new Vector3(0f, -slope, 0f), false);
                 w.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             }
+            // Puntos de sonido del agua a lo largo del cauce (el AudioDirector les pone el bucle del arroyo).
+            var creekAudio = new GameObject("CreekAudio").transform;
+            creekAudio.SetParent(g, false);
+            for (float z = -18f; z <= 18f; z += 6f)
+            {
+                var a = new GameObject("Water").transform;
+                a.SetParent(creekAudio, false);
+                a.position = new Vector3(RavineX(z), -1.6f, z);
+            }
             var rng = new System.Random(77);
             // Orillas: bloques redondeados semienterrados a lo largo del borde (lectura chunky del barranco).
             for (float z = -40f; z < 40f; z += 2.6f)
@@ -349,7 +370,19 @@ namespace ProjectRidge.EditorTools
             var radio = new GameObject("Radio");
             radio.transform.SetParent(truck, false);
             radio.transform.localPosition = new Vector3(-1.5f, 1.2f, 0.4f);
-            radio.AddComponent<RadioEnding>();
+            // El dial encendido se ve por la puerta abierta: un punto ámbar que guía hacia la meta sin gastar una luz.
+            var dial = Tinted(m.darkMetal, "Hollow_RadioDial", new Color(0.2f, 0.12f, 0.05f));
+            dial.EnableKeyword("_EMISSION");
+            dial.SetColor("_EmissionColor", new Color(1f, 0.55f, 0.18f) * 3.2f);
+            Board(truck, "RadioDial", new Vector3(0.03f, 0.1f, 0.34f), dial, new Vector3(-0.965f, 1.5f, 0.55f), Vector3.zero, false);
+            var cabGlow = Tinted(dial, "Hollow_CabGlow", new Color(0.15f, 0.1f, 0.06f));
+            cabGlow.SetColor("_EmissionColor", new Color(1f, 0.6f, 0.25f) * 0.45f);
+            Board(truck, "DomeGlow", new Vector3(0.03f, 0.5f, 0.9f), cabGlow, new Vector3(-0.962f, 1.55f, 0.2f), Vector3.zero, false);
+            var climax = radio.AddComponent<RadioClimax>();
+            var cso = new SerializedObject(climax);
+            cso.FindProperty("playerHealth").objectReferenceValue = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerHealth>();
+            cso.ApplyModifiedPropertiesWithoutUndo();
+            MakeFadeable(truck.gameObject);
 
             // Barrera de "camino cerrado" al sur y postes con reflectores.
             var barrier = Group(parent, "RoadClosed", OnGround(t, RoadX, -9f), 0f);
@@ -457,6 +490,16 @@ namespace ProjectRidge.EditorTools
                 p.position = OnGround(t, pts[i].x, pts[i].y, 0.02f);
                 list[i] = p;
             }
+            // En cada parada el Lurker mira hacia afuera de su zona (vigila la oscuridad): patrón legible.
+            Vector3 c = Vector3.zero;
+            foreach (var p in list) c += p.position;
+            c /= list.Length;
+            foreach (var p in list)
+            {
+                Vector3 o = p.position - c;
+                o.y = 0f;
+                if (o.sqrMagnitude > 0.01f) p.rotation = Quaternion.LookRotation(o);
+            }
             return list;
         }
 
@@ -504,6 +547,11 @@ namespace ProjectRidge.EditorTools
             ItemsSetupBuilder.Crate(root, "Crate_Camp", OnGround(t, Camp.x - 2.6f, Camp.z - 2.2f), 70f, config, wood,
                 new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
             ItemsSetupBuilder.PickupObject(root, "Medkit", OnGround(t, Camp.x + 3.6f, Camp.z + 2.8f, 0.02f), 15f);
+
+            // Piedras para distraer, donde el jugador las necesita (antes de cada encuentro).
+            ItemsSetupBuilder.EnsureItem("Stone", "Stone", "STONE", 4);
+            foreach (var s in new[] { new Vector2(-23.5f, -3.4f), new Vector2(-17.5f, -2.2f), new Vector2(-12.5f, 6.5f), new Vector2(1.5f, -8.5f), new Vector2(3f, 10.5f), new Vector2(14.5f, -4.5f), new Vector2(17.5f, 7.5f), new Vector2(24.5f, -1f) })
+                ItemsSetupBuilder.PickupObject(root, "Stone", OnGround(t, s.x, s.y, 0.04f), Random.Range(0f, 360f));
 
             // Garrote de repuesto junto al puente.
             var club = new GameObject("Pickup_Club");
@@ -587,6 +635,7 @@ namespace ProjectRidge.EditorTools
             Cp("CP_Bridge", 0f, -3.5f, new Vector3(4f, 3f, 3f), "Find where they went.");
             Cp("CP_Log", 0f, 9f, new Vector3(4f, 3f, 3f), "Find where they went.");
             Cp("CP_Camp", 16f, 2f, new Vector3(8f, 3f, 3f), "");
+            Cp("CP_Radio", 25.5f, 1f, new Vector3(4f, 3f, 6f), "Use the truck's radio.");
         }
 
         static void PlaceUfoScanPoints(Terrain t)

@@ -10,5 +10,7 @@ namespace ProjectRidge.Player
         [Min(0f)] public float respawnDelay = 2f;
         [Tooltip("Al reaparecer, los enemigos a menos de esta distancia del punto de inicio vuelven a su ruta.")]
         [Min(0f)] public float respawnEnemyClearRadius = 20f;
+        [Tooltip("Segundos tras reaparecer en que los Lurker no ven ni oyen al papá (para que no muera en bucle).")]
+        [Min(0f)] public float respawnGraceSeconds = 6f;
     }
 }

@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddc4ac6bd3b74ca4996fb516dbaa4878, type: 3}
   m_Name: UFOConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.AI.UFOConfig
-  altitude: 13
-  horizontalOffset: 17
+  altitude: 20
+  horizontalOffset: 15
   offsetBearing: 35
   beamAngle: 26
   beamRange: 45
-  lightIntensity: 120
+  lightIntensity: 75
+  beamVisualOvershoot: 1.3
   lightColor: {r: 0.78, g: 0.95, b: 1, a: 1}
   scanSpeed: 3
   pauseAtPoint: 1.5

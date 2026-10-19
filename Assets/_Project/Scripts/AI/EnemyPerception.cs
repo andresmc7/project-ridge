@@ -33,8 +33,16 @@ namespace ProjectRidge.AI
         private void OnEnable() => NoiseSystem.NoiseEmitted += OnNoise;
         private void OnDisable() => NoiseSystem.NoiseEmitted -= OnNoise;
 
+        private float suppressedUntil;
+
+        /// <summary>No ve ni oye nada durante unos segundos (gracia tras el respawn del jugador).</summary>
+        public void Suppress(float seconds) => suppressedUntil = Time.time + seconds;
+
+        private bool Suppressed => Time.time < suppressedUntil;
+
         private void Update()
         {
+            if (Suppressed) { CanSeeTarget = false; return; }
             if (Time.time < nextCheck) return;
             float dt = config.perceptionInterval + (Time.time - nextCheck);
             nextCheck = Time.time + config.perceptionInterval;
@@ -105,7 +113,7 @@ namespace ProjectRidge.AI
 
         private void OnNoise(NoiseEvent noise)
         {
-            if (noise.Source == gameObject) return;
+            if (noise.Source == gameObject || Suppressed) return;
 
             Vector3 ear = eye.position;
             float distance = Vector3.Distance(ear, noise.Position);

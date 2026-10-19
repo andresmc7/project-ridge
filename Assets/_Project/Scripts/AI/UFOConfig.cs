@@ -7,16 +7,18 @@ namespace ProjectRidge.AI
     {
         [Header("Posición del OVNI respecto al punto iluminado")]
         [Tooltip("Altura sobre el punto iluminado (m).")]
-        [Min(1f)] public float altitude = 13f;
-        [Tooltip("Desplazamiento horizontal: la luz cae inclinada (~37°) y los obstáculos proyectan sombra donde esconderse.")]
-        [Min(0f)] public float horizontalOffset = 17f;
+        [Min(1f)] public float altitude = 20f;
+        [Tooltip("Desplazamiento horizontal: la luz cae inclinada (~53°) y los obstáculos proyectan sombra donde esconderse. La nave queda siempre por encima y detrás del encuadre: el haz nunca cruza la cámara.")]
+        [Min(0f)] public float horizontalOffset = 15f;
         [Tooltip("Dirección (en grados, eje Y) desde la que llega la luz.")]
         public float offsetBearing = 35f;
 
         [Header("Haz")]
         [Range(5f, 80f)] public float beamAngle = 26f;
         [Min(1f)] public float beamRange = 45f;
-        [Min(0f)] public float lightIntensity = 120f;
+        [Min(0f)] public float lightIntensity = 75f;
+        [Tooltip("El cono visible sigue más allá del suelo; el shader lo recorta con la profundidad (sin borde duro).")]
+        [Min(1f)] public float beamVisualOvershoot = 1.3f;
         public Color lightColor = new Color(0.78f, 0.95f, 1f);
 
         [Header("Escaneo")]

@@ -46,7 +46,9 @@ namespace ProjectRidge.AI
         private static readonly int DeadId = Animator.StringToHash("Dead");
         private static readonly int AttackId = Animator.StringToHash("Attack");
 
-        private float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+        // Perezoso: sobrevive a una recarga de dominio en play mode (rng no se serializa).
+        private System.Random Rng => rng ??= new System.Random(GetInstanceID());
+        private float R(float a, float b) => a + (float)Rng.NextDouble() * (b - a);
 
         private void Awake()
         {
@@ -204,7 +206,7 @@ namespace ProjectRidge.AI
 
         private void ForceTic(float strength)
         {
-            ticTarget = (TicTarget)rng.Next(6);
+            ticTarget = (TicTarget)Rng.Next(6);
             ticOffset = new Vector3(R(-40f, 40f), R(-55f, 55f), R(-50f, 50f)) * strength;
             ticHold = R(0.15f, 1f);
             Twitched?.Invoke();

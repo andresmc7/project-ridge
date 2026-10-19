@@ -29,9 +29,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CameraFade: 3
-    - _EdgePower: 2.6
-    - _Intensity: 0.55
+    - _CameraFade: 6
+    - _Density: 0.08
+    - _EdgePower: 1.6
+    - _Intensity: 0.75
     - _LengthFalloff: 0.8
     - _NoiseScale: 0.16
     - _NoiseSpeed: 0.3

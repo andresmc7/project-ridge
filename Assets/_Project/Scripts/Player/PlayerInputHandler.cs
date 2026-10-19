@@ -20,6 +20,7 @@ namespace ProjectRidge.Player
         [SerializeField] private InputActionReference pause;
         [SerializeField] private InputActionReference heal;
         [SerializeField] private InputActionReference fire;
+        [SerializeField] private InputActionReference throwStone;
 
         // Teclado: Shift se mantiene. Control y táctil: el botón alterna (mantener L3 mientras se mueve el stick es incómodo).
         private bool keyboardSprintHeld;
@@ -35,6 +36,7 @@ namespace ProjectRidge.Player
         public event Action AttackPressed;
         public event Action HealPressed;
         public event Action FirePressed;
+        public event Action ThrowPressed;
         public event Action PausePressed;
         /// <summary>Todas las acciones de botón (para el debug overlay).</summary>
         public event Action<InputAction> ActionPerformed;
@@ -77,6 +79,7 @@ namespace ProjectRidge.Player
             var list = new System.Collections.Generic.List<InputActionReference> { interact, attack, aim, flashlight, pause };
             if (heal != null) list.Add(heal);
             if (fire != null) list.Add(fire);
+            if (throwStone != null) list.Add(throwStone);
             return otherActions = list.ToArray();
         }
 
@@ -106,6 +109,7 @@ namespace ProjectRidge.Player
             else if (action == pause.action) PausePressed?.Invoke();
             else if (heal != null && action == heal.action) HealPressed?.Invoke();
             else if (fire != null && action == fire.action) FirePressed?.Invoke();
+            else if (throwStone != null && action == throwStone.action) ThrowPressed?.Invoke();
             ActionPerformed?.Invoke(action);
         }
     }

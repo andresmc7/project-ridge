@@ -682,6 +682,89 @@ namespace ProjectRidge.EditorTools
             return b;
         }
 
+        static float[] RainLoop()
+        {
+            // Llovizna sobre hojas: siseo filtrado + gotas sueltas (golpes cortos de altura variable).
+            var b = Buf(10f);
+            var lp = new LP();
+            var lp2 = new LP();
+            for (int i = 0; i < b.Length; i++)
+            {
+                float n = Noise();
+                float hiss = lp.Process(n, 5200f) - lp2.Process(n, 900f);
+                b[i] = hiss * 0.35f;
+            }
+            for (int d = 0; d < 260; d++)
+            {
+                int at = (int)(Rand(0f, 9.8f) * SR);
+                float f = Rand(1800f, 4200f);
+                int len = (int)(0.025f * SR);
+                for (int i = 0; i < len && at + i < b.Length; i++)
+                {
+                    float t = i / (float)SR;
+                    b[at + i] += Mathf.Sin(TAU * f * t * (1f - t * 8f)) * Env(t, 0.0005f, 0.006f) * Rand(0.15f, 0.45f);
+                }
+            }
+            Normalize(b, 0.6f);
+            return MakeLoop(b, 1f);
+        }
+
+        static float[] CreekLoop()
+        {
+            // Agua corriendo sobre piedras: ruido de banda media modulado y burbujas.
+            var b = Buf(9f);
+            var bp = new BP();
+            var bp2 = new BP();
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR;
+                float mod = 0.6f + 0.4f * Mathf.PerlinNoise(t * 3f, 1.7f);
+                b[i] = bp.Process(Noise(), 700f + 500f * Mathf.PerlinNoise(t * 1.3f, 4f), 0.9f) * mod + bp2.Process(Noise(), 2600f, 2f) * 0.25f;
+            }
+            for (int k = 0; k < 120; k++)
+            {
+                int at = (int)(Rand(0f, 8.8f) * SR);
+                float f0 = Rand(500f, 1400f);
+                int len = (int)(0.05f * SR);
+                for (int i = 0; i < len && at + i < b.Length; i++)
+                {
+                    float t = i / (float)SR;
+                    b[at + i] += Mathf.Sin(TAU * f0 * (1f + t * 12f) * t) * Env(t, 0.002f, 0.015f) * 0.3f;
+                }
+            }
+            Normalize(b, 0.6f);
+            return MakeLoop(b, 1f);
+        }
+
+        static float[] RadioLoop()
+        {
+            // Transmisión inestable: estática con barridos de sintonía y fragmentos de voz.
+            var b = RadioStatic();
+            var v = RadioVoice();
+            var outB = Buf(7f);
+            Mix(outB, b, 0, 0.6f);
+            Mix(outB, b, (int)(3.5f * SR), 0.6f);
+            Mix(outB, v, (int)(0.3f * SR), 0.7f);
+            float ph = 0f;
+            for (int i = 0; i < outB.Length; i++)
+            {
+                float t = i / (float)SR;
+                float sweep = Mathf.PerlinNoise(t * 0.8f, 2f);
+                ph += TAU * (900f + 1500f * sweep) / SR;
+                outB[i] += Mathf.Sin(ph) * 0.05f * Mathf.Max(0f, Mathf.Sin(t * 1.7f));
+            }
+            Normalize(outB, 0.7f);
+            return MakeLoop(outB, 0.5f);
+        }
+
+        static float[] StoneImpact()
+        {
+            var b = Clicks(0.3f, 3, 2200f, 5f, 0.08f);
+            Mix(b, Thump(0.15f, 180f, 120f, 0.03f, 0.6f, 4000f), 0, 0.7f);
+            Normalize(b, 0.85f);
+            return Reverb(b, 0.2f, 0.9f, 0.35f);
+        }
+
         // ------------------------------------------------------------------ Escritura y banco
 
         static AudioClip Write(string name, float[] samples)
@@ -770,6 +853,10 @@ namespace ProjectRidge.EditorTools
             bank.uiClick = Write("ui_click", UiClick());
             bank.radioStatic = Write("radio_static", RadioStatic());
             bank.radioVoice = Write("radio_voice", RadioVoice());
+            bank.rainLoop = Write("amb_rain_loop", RainLoop());
+            bank.creekLoop = Write("amb_creek_loop", CreekLoop());
+            bank.radioLoop = Write("radio_loop", RadioLoop());
+            bank.stoneImpact = Write("stone_impact", StoneImpact());
             EditorUtility.SetDirty(bank);
             AssetDatabase.SaveAssets();
             return "audio bank: " + AssetDatabase.FindAssets("t:AudioClip", new[] { OutDir }).Length + " clips";
@@ -788,7 +875,7 @@ namespace ProjectRidge.EditorTools
             var so = new SerializedObject(dir);
             so.FindProperty("bank").objectReferenceValue = bank;
             so.FindProperty("player").objectReferenceValue = player;
-            so.FindProperty("fatherAnimator").objectReferenceValue = player.GetComponent<ProjectRidge.Player.FatherAnimator>();
+            so.FindProperty("fatherAnimator").objectReferenceValue = player.GetComponentInChildren<ProjectRidge.Player.FatherAnimator>();
             so.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
             so.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
             so.FindProperty("inventory").objectReferenceValue = player.GetComponent<ProjectRidge.Items.PlayerInventory>();

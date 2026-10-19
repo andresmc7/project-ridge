@@ -27,7 +27,7 @@ namespace ProjectRidge.Player
             body.enabled = true;
             health.Restore();
             foreach (var enemy in ProjectRidge.AI.EnemyController.Active)
-                enemy.ResetAfterPlayerRespawn(spawnPoint.position, config.respawnEnemyClearRadius);
+                enemy.ResetAfterPlayerRespawn(spawnPoint.position, config.respawnEnemyClearRadius, config.respawnGraceSeconds);
         }
     }
 }

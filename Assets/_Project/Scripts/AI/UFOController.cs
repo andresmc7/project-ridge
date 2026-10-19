@@ -87,9 +87,11 @@ namespace ProjectRidge.AI
 
         private void Apply()
         {
-            // Proyectar el foco sobre el suelo.
+            // Proyectar el foco sobre el terreno (no sobre copas ni techos: la nave no debe saltar de altura).
             Vector3 ground = focus;
-            if (Physics.Raycast(focus + Vector3.up * 50f, Vector3.down, out RaycastHit hit, 100f, groundMask, QueryTriggerInteraction.Ignore))
+            var terrain = Terrain.activeTerrain;
+            if (terrain != null) ground.y = terrain.SampleHeight(focus) + terrain.transform.position.y;
+            else if (Physics.Raycast(focus + Vector3.up * 50f, Vector3.down, out RaycastHit hit, 100f, groundMask, QueryTriggerInteraction.Ignore))
                 ground = hit.point;
 
             Vector3 offsetDir = Quaternion.Euler(0f, config.offsetBearing, 0f) * Vector3.forward;
@@ -99,7 +101,7 @@ namespace ProjectRidge.AI
 
             if (beamVisual != null)
             {
-                float length = toGround.magnitude;
+                float length = toGround.magnitude * config.beamVisualOvershoot;
                 float radius = Mathf.Tan(config.beamAngle * 0.5f * Mathf.Deg2Rad) * length;
                 beamVisual.rotation = beam.transform.rotation;
                 beamVisual.localScale = new Vector3(radius, radius, length);

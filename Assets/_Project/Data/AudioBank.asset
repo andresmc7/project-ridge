@@ -20,6 +20,8 @@ MonoBehaviour:
   ui: 0.7
   windLoop: {fileID: 8300000, guid: 0fbf879a411eba34d82c1dbbd449ba51, type: 3}
   forestLoop: {fileID: 8300000, guid: 866a1852e4cf8144883cff00e21e9d8f, type: 3}
+  rainLoop: {fileID: 8300000, guid: 690228bd71c2f49409cbd8657c4ab307, type: 3}
+  creekLoop: {fileID: 8300000, guid: 2289b4de55511d345811166f480f7c84, type: 3}
   musicAmbientLoop: {fileID: 8300000, guid: dce05a93d20d7a1438d82ee8f3b8cbfc, type: 3}
   musicChaseLoop: {fileID: 8300000, guid: 5f26aade2b8669647bec8ae41cd77d8b, type: 3}
   alertSting: {fileID: 8300000, guid: 00d8d9daa5836864d9abb1ec03994991, type: 3}
@@ -65,3 +67,5 @@ MonoBehaviour:
   uiClick: {fileID: 8300000, guid: a68c6dbd9d716434292b3b47f0ec08af, type: 3}
   radioStatic: {fileID: 8300000, guid: 88e3b45c93918244997e098dcc70d716, type: 3}
   radioVoice: {fileID: 8300000, guid: 9e8fafa5e8f2c65498c3f231eb657671, type: 3}
+  radioLoop: {fileID: 8300000, guid: 5ff2d3412545c574dab7de9d6ede253d, type: 3}
+  stoneImpact: {fileID: 8300000, guid: 325610d3e1da52d4eaafec5b82fc27ab, type: 3}

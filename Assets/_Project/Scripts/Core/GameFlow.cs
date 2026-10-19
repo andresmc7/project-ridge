@@ -293,7 +293,7 @@ namespace ProjectRidge.Core
             body.enabled = true;
             health.Restore();
             foreach (var enemy in EnemyController.Active.ToArray())
-                enemy.ResetAfterPlayerRespawn(checkpointPos, healthConfig.respawnEnemyClearRadius);
+                enemy.ResetAfterPlayerRespawn(checkpointPos, healthConfig.respawnEnemyClearRadius, healthConfig.respawnGraceSeconds);
             if (ufoExposure != null) { ufoExposure.ResetExposure(); ufoExposure.enabled = true; }
 
             bigMessage.text = "";

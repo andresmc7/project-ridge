@@ -162,6 +162,7 @@ namespace ProjectRidge.EditorTools
             SetupMoon(log);
             SetupGrading();
             SetupFlashlight(player);
+            SetupHeroFill(player, log);
 
             // Niebla de escena: densa, claustrofóbica, fría.
             RenderSettings.fog = true;
@@ -243,6 +244,53 @@ namespace ProjectRidge.EditorTools
             RenderSettings.ambientSkyColor = new Color(0.2f, 0.25f, 0.34f);
             RenderSettings.ambientEquatorColor = new Color(0.11f, 0.13f, 0.16f);
             RenderSettings.ambientGroundColor = new Color(0.035f, 0.04f, 0.045f);
+            // Sin skybox, los reflejos usaban un cubemap viejo y brillante: charcos y superficies mojadas
+            // reflejan ahora un cielo nocturno tenue con el halo de la luna.
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = NightReflection(-moon.transform.forward);
+            RenderSettings.reflectionIntensity = 1f;
+        }
+
+        /// <summary>Cubemap HDR del cielo nocturno: degradado horizonte-cenit, suelo oscuro y halo de luna.</summary>
+        static Cubemap NightReflection(Vector3 moonDir)
+        {
+            const string path = "Assets/_Project/Art/Hollow/Hollow_NightReflection.cubemap";
+            const int n = 64;
+            var cube = new Cubemap(n, TextureFormat.RGBAHalf, true);
+            var horizon = new Color(0.07f, 0.085f, 0.11f);
+            var zenith = new Color(0.02f, 0.028f, 0.045f);
+            var ground = new Color(0.01f, 0.012f, 0.014f);
+            var moonTint = new Color(0.6f, 0.71f, 0.92f);
+            var px = new Color[n * n];
+            foreach (CubemapFace face in new[] { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ })
+            {
+                for (int j = 0; j < n; j++)
+                for (int i = 0; i < n; i++)
+                {
+                    float u = (i + 0.5f) / n * 2f - 1f, v = (j + 0.5f) / n * 2f - 1f;
+                    Vector3 d = face switch
+                    {
+                        CubemapFace.PositiveX => new Vector3(1f, -v, -u),
+                        CubemapFace.NegativeX => new Vector3(-1f, -v, u),
+                        CubemapFace.PositiveY => new Vector3(u, 1f, v),
+                        CubemapFace.NegativeY => new Vector3(u, -1f, -v),
+                        CubemapFace.PositiveZ => new Vector3(u, -v, 1f),
+                        _ => new Vector3(-u, -v, -1f),
+                    };
+                    d.Normalize();
+                    Color c = d.y >= 0f ? Color.Lerp(horizon, zenith, Mathf.Pow(d.y, 0.6f)) : Color.Lerp(horizon, ground, Mathf.Clamp01(-d.y * 6f));
+                    float m = Mathf.Max(0f, Vector3.Dot(d, moonDir));
+                    c += moonTint * (Mathf.Pow(m, 24f) * 0.18f + Mathf.Pow(m, 900f) * 1.6f);
+                    c.a = 1f;
+                    px[j * n + i] = c;
+                }
+                cube.SetPixels(px, face);
+            }
+            cube.Apply(true);
+            var existing = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
+            if (existing != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(cube, path);
+            return cube;
         }
 
         static void SetupGrading()
@@ -257,18 +305,19 @@ namespace ProjectRidge.EditorTools
             }
             Get<Tonemapping>().mode.Override(TonemappingMode.ACES);
             var ca = Get<ColorAdjustments>();
-            ca.postExposure.Override(1.5f); ca.contrast.Override(22f); ca.saturation.Override(-14f);
+            // Oscuridad legible: medios tonos visibles (media de luminancia ~0.2 medida en captura), negros solo en los bordes.
+            ca.postExposure.Override(2.15f); ca.contrast.Override(12f); ca.saturation.Override(-14f);
             var smh = Get<ShadowsMidtonesHighlights>();
-            smh.shadows.Override(new Vector4(0.86f, 0.99f, 1.06f, -0.03f));     // sombras verde-azuladas
+            smh.shadows.Override(new Vector4(0.86f, 0.99f, 1.06f, 0f));     // sombras verde-azuladas
             smh.midtones.Override(new Vector4(0.97f, 1f, 1f, 0f));
             smh.highlights.Override(new Vector4(1.07f, 1.0f, 0.9f, 0.02f));     // luces prácticas cálidas
             var lgg = Get<LiftGammaGain>();
-            lgg.lift.Override(new Vector4(0.98f, 1f, 1.03f, -0.015f));
+            lgg.lift.Override(new Vector4(0.98f, 1f, 1.03f, 0.01f));
             var grain = Get<FilmGrain>();
             grain.type.Override(FilmGrainLookup.Medium2); grain.intensity.Override(0.32f); grain.response.Override(0.75f);
             Get<ChromaticAberration>().intensity.Override(0.12f);
             var vig = Get<Vignette>();
-            vig.intensity.Override(0.4f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
+            vig.intensity.Override(0.36f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
             var bloom = Get<Bloom>();
             bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f));
             var dof = Get<DepthOfField>();
@@ -278,14 +327,42 @@ namespace ProjectRidge.EditorTools
             AssetDatabase.SaveAssets();
         }
 
+        /// <summary>
+        /// Luz de relleno fría y suave, solo para la capa de render del papá: lo mantiene legible en la oscuridad sin
+        /// iluminar el escenario (no cuenta como luz visible del presupuesto: no toca el entorno).
+        /// </summary>
+        static void SetupHeroFill(GameObject player, System.Text.StringBuilder log)
+        {
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset"))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                var so = new SerializedObject(asset);
+                var p = so.FindProperty("m_SupportsLightLayers");
+                if (p != null) { p.boolValue = true; so.ApplyModifiedPropertiesWithoutUndo(); EditorUtility.SetDirty(asset); }
+                log.AppendLine("rendering layers on " + asset.name + ": " + (p != null));
+            }
+            var old = GameObject.Find("HeroFill");
+            if (old != null) Object.DestroyImmediate(old);
+            var go = new GameObject("HeroFill");
+            var l = go.AddComponent<Light>();
+            l.type = LightType.Point;
+            l.range = 3.8f;
+            l.intensity = 1.6f;
+            l.color = new Color(0.55f, 0.66f, 0.88f);
+            l.shadows = LightShadows.None;
+            var data = go.AddComponent<UniversalAdditionalLightData>();
+            data.renderingLayers = 2u;
+            FollowPlayer(go, player.transform, new Vector3(-1.4f, 2.6f, -1.4f));
+        }
+
         static void SetupFlashlight(GameObject player)
         {
             var t = player.transform.Find("Flashlight");
             if (t == null) return;
             var l = t.GetComponent<Light>();
             // Linterna de mano: haz con anillo (cookie), alcance medio, sombras suaves (una de las dos luces con sombra).
-            l.intensity = 3.2f;
-            l.range = 15f;
+            l.intensity = 16f;
+            l.range = 18f;
             l.spotAngle = 52f;
             l.innerSpotAngle = 22f;
             l.color = new Color(1f, 0.93f, 0.82f);
@@ -368,6 +445,9 @@ namespace ProjectRidge.EditorTools
         static int Puddles(Transform root, Terrain t)
         {
             var mat = Simple("Hollow_Puddle", null, null, new Color(0.03f, 0.035f, 0.04f), 0.97f);
+            // Solo reflejo del entorno (cielo nocturno); el brillo especular directo de la luna se quemaba con el bloom.
+            mat.SetFloat("_SpecularHighlights", 0f);
+            mat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
             var parent = new GameObject("Puddles").transform;
             parent.SetParent(root, false);
             var meshes = new[] { PuddleMesh(1), PuddleMesh(2), PuddleMesh(3) };
@@ -433,14 +513,15 @@ namespace ProjectRidge.EditorTools
             var rainMat = FxMaterial("FX_Rain", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.7f, 0.8f, 0.9f, 0.32f), true);
             var rain = Emitter(parent, "Drizzle", rainMat, ps =>
             {
-                var m = ps.main; m.startLifetime = 1.3f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.04f); m.maxParticles = 1200;
+                var m = ps.main; m.startLifetime = 0.85f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.02f, 0.035f); m.maxParticles = 900;
                 var e = ps.emission; e.rateOverTime = 520f;
                 var s = ps.shape; s.shapeType = ParticleSystemShapeType.Box; s.scale = new Vector3(26f, 1f, 26f);
                 var v = ps.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
                 v.x = new ParticleSystem.MinMaxCurve(0.8f, 1.2f); v.y = new ParticleSystem.MinMaxCurve(-11f, -9f); v.z = new ParticleSystem.MinMaxCurve(0.2f, 0.4f);
-                var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.05f; r.lengthScale = 1f;
+                var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.035f; r.lengthScale = 1f;
             });
-            FollowPlayer(rain.gameObject, p, new Vector3(0f, 11f, 0f));
+            // Nace por debajo de la cámara (~11 m): ninguna gota pasa pegada al lente como un rayón.
+            FollowPlayer(rain.gameObject, p, new Vector3(0f, 7.5f, 0f));
 
             // Esporas y polvo flotando a la altura del pecho.
             var sporeMat = FxMaterial("FX_Spores", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.85f, 0.8f, 0.7f, 0.4f), true);
@@ -497,7 +578,7 @@ namespace ProjectRidge.EditorTools
                     m.simulationSpace = ParticleSystemSimulationSpace.Local;
                     var e = ps.emission; e.rateOverTime = 2f;
                     var s = ps.shape; s.shapeType = ParticleSystemShapeType.Sphere; s.radius = 0.5f;
-                    var v = ps.velocityOverLifetime; v.enabled = true; v.orbitalY = new ParticleSystem.MinMaxCurve(2f, 4f); v.radial = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
+                    var v = ps.velocityOverLifetime; v.enabled = true; v.orbitalX = new ParticleSystem.MinMaxCurve(0f, 0f); v.orbitalY = new ParticleSystem.MinMaxCurve(2f, 4f); v.orbitalZ = new ParticleSystem.MinMaxCurve(0f, 0f); v.radial = new ParticleSystem.MinMaxCurve(-0.1f, 0.1f);
                     var n = ps.noise; n.enabled = true; n.strength = 0.8f; n.frequency = 2f;
                 });
                 moths.transform.SetParent(lantern.transform, false);
@@ -542,11 +623,12 @@ namespace ProjectRidge.EditorTools
             if (existing != null) { existing.shader = mat.shader; Object.DestroyImmediate(mat); mat = existing; } else AssetDatabase.CreateAsset(mat, path);
             mat.SetTexture("_NoiseTex", noise);
             mat.SetColor("_Color", new Color(0.6f, 0.85f, 1f));
-            mat.SetFloat("_Intensity", 0.55f);
+            mat.SetFloat("_Intensity", 0.75f);
+            mat.SetFloat("_Density", 0.08f);
             mat.SetFloat("_NoiseScale", 0.16f);
             mat.SetFloat("_NoiseSpeed", 0.3f);
-            mat.SetFloat("_SoftDistance", 3f);
-            mat.SetFloat("_EdgePower", 2.6f);
+            mat.SetFloat("_CameraFade", 6f);
+            mat.SetFloat("_EdgePower", 1.6f);
             EditorUtility.SetDirty(mat);
             visual.GetComponent<MeshRenderer>().sharedMaterial = mat;
 

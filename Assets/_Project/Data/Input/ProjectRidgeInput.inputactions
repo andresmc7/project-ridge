@@ -15,7 +15,8 @@
                 { "name": "Flashlight", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1107", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Pause", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1108", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Heal", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1109", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Fire", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
+                { "name": "Fire", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Throw", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110b", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
             ],
             "bindings": [
                 { "name": "WASD", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2001", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Move", "isComposite": true, "isPartOfComposite": false },
@@ -55,7 +56,10 @@
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2802", "path": "<Gamepad>/dpad/up", "interactions": "", "processors": "", "groups": "", "action": "Heal", "isComposite": false, "isPartOfComposite": false },
 
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2901", "path": "<Keyboard>/q", "interactions": "", "processors": "", "groups": "", "action": "Fire", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2902", "path": "<Gamepad>/rightShoulder", "interactions": "", "processors": "", "groups": "", "action": "Fire", "isComposite": false, "isPartOfComposite": false }
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2902", "path": "<Gamepad>/rightShoulder", "interactions": "", "processors": "", "groups": "", "action": "Fire", "isComposite": false, "isPartOfComposite": false },
+
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a01", "path": "<Keyboard>/g", "interactions": "", "processors": "", "groups": "", "action": "Throw", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a02", "path": "<Gamepad>/leftShoulder", "interactions": "", "processors": "", "groups": "", "action": "Throw", "isComposite": false, "isPartOfComposite": false }
             ]
         }
     ],

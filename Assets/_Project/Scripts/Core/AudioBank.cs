@@ -17,6 +17,8 @@ namespace ProjectRidge.Core
         [Header("Ambiente y música")]
         public AudioClip windLoop;
         public AudioClip forestLoop;
+        public AudioClip rainLoop;
+        public AudioClip creekLoop;
         public AudioClip musicAmbientLoop;
         public AudioClip musicChaseLoop;
         public AudioClip alertSting;
@@ -56,5 +58,7 @@ namespace ProjectRidge.Core
         public AudioClip uiClick;
         public AudioClip radioStatic;
         public AudioClip radioVoice;
+        public AudioClip radioLoop;
+        public AudioClip stoneImpact;
     }
 }

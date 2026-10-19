@@ -26,7 +26,7 @@ namespace ProjectRidge.EditorTools
 
             var canvas = GameObject.Find("HUD");
             var safe = canvas.transform.Find("SafeArea");
-            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash", "Fire" })
+            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw" })
             {
                 var old = safe.Find(n);
                 if (old != null) Object.DestroyImmediate(old.gameObject);
@@ -64,6 +64,7 @@ namespace ProjectRidge.EditorTools
             Button("Sprint", touch, br, new Vector2(-300f, 272f), 98f, "SPRINT", "<Gamepad>/leftStickPress", disc, ring);
             Button("Heal", touch, br, new Vector2(-430f, 110f), 80f, "HEAL", "<Gamepad>/dpad/up", disc, ring);
             Button("Fire", touch, br, new Vector2(-150f, 460f), 86f, "FLARE", "<Gamepad>/rightShoulder", disc, ring);
+            Button("Throw", touch, br, new Vector2(-300f, 420f), 86f, "THROW", "<Gamepad>/leftShoulder", disc, ring);
             Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-64f, -60f), 64f, "II", "<Gamepad>/start", disc, ring);
 
             // --- Vida y recursos (arriba a la izquierda), aviso de interacción y mensajes (abajo al centro)
@@ -197,7 +198,7 @@ namespace ProjectRidge.EditorTools
             Label("VolumeLabel", pause, new Vector2(0f, -125f), new Vector2(300f, 26f), "VOLUME", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.6f);
             var slider = VolumeSlider(pause, new Vector2(0f, -160f), white, disc);
             Label("Controls", pause, new Vector2(0f, -245f), new Vector2(1100f, 60f),
-                "WASD move  ·  Shift sprint  ·  C crouch  ·  E use  ·  LMB club  ·  Q flare  ·  H medkit  ·  F flashlight", 15, FontStyle.Normal).color = new Color(1f, 1f, 1f, 0.45f);
+                "WASD move  ·  Shift sprint  ·  C crouch  ·  E use  ·  LMB club  ·  G throw stone  ·  Q flare  ·  H medkit  ·  F flashlight", 15, FontStyle.Normal).color = new Color(1f, 1f, 1f, 0.45f);
 
             // Final
             var end = Stretch("EndPanel", flow);
@@ -369,7 +370,7 @@ namespace ProjectRidge.EditorTools
             return rt;
         }
 
-        static readonly string[] ShownItems = { "Medkit", "Flare", "Scrap" };
+        static readonly string[] ShownItems = { "Medkit", "Flare", "Stone", "Scrap" };
 
         static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pos)
         {

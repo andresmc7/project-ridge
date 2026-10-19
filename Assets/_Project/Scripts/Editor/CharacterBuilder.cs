@@ -310,6 +310,27 @@ namespace ProjectRidge.EditorTools
             cso.FindProperty("muzzle").objectReferenceValue = gun.transform;
             cso.ApplyModifiedPropertiesWithoutUndo();
 
+            // Lanzar piedras (distracción).
+            if (!player.TryGetComponent(out ProjectRidge.Player.PlayerThrow thrower)) thrower = player.AddComponent<ProjectRidge.Player.PlayerThrow>();
+            var tso = new SerializedObject(thrower);
+            tso.FindProperty("input").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInputHandler>();
+            tso.FindProperty("controller").objectReferenceValue = pc;
+            tso.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
+            tso.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
+            tso.FindProperty("inventory").objectReferenceValue = player.GetComponent<ProjectRidge.Items.PlayerInventory>();
+            tso.FindProperty("interactor").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInteractor>();
+            tso.FindProperty("animator").objectReferenceValue = fa;
+            tso.FindProperty("stoneItem").objectReferenceValue = ItemsSetupBuilder.EnsureItem("Stone", "Stone", "STONE", 4);
+            tso.FindProperty("stonePrefab").objectReferenceValue = ItemsSetupBuilder.StonePrefab();
+            tso.FindProperty("hand").objectReferenceValue = handR;
+            tso.ApplyModifiedPropertiesWithoutUndo();
+            var iso = new SerializedObject(player.GetComponent<ProjectRidge.Player.PlayerInputHandler>());
+            iso.FindProperty("throwStone").objectReferenceValue = ItemsSetupBuilder.ActionRef("Throw");
+            iso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Capa de render 2: solo el papá recibe la luz de relleno que lo mantiene legible en la oscuridad.
+            foreach (var r in body.GetComponentsInChildren<Renderer>(true)) r.renderingLayerMask = 1u | 2u;
+
             // El audio escucha los pasos del nuevo animador.
             var audio = Object.FindFirstObjectByType<ProjectRidge.Core.AudioDirector>();
             if (audio != null)
@@ -533,6 +554,48 @@ namespace ProjectRidge.EditorTools
             // El "ojo" de la percepción sigue la cabeza real.
             var eyePoint = lurker.transform.Find("EyePoint");
             if (eyePoint != null) eyePoint.position = anim.GetBoneTransform(HumanBodyBones.Head).position;
+        }
+
+        // ------------------------------------------------------------------ Avistamiento con guion
+
+        /// <summary>
+        /// Un Lurker sin IA que cruza la otra orilla del arroyo cuando el papá pisa el sendero (copia del visual de
+        /// un Lurker de la escena, con su Animator). Trigger en el sendero y ruta por puntos.
+        /// </summary>
+        public static string BuildApparition(Vector3 triggerPos, Vector3[] path)
+        {
+            var old = GameObject.Find("Apparition");
+            if (old != null) Object.DestroyImmediate(old);
+            var source = Object.FindObjectsByType<ProjectRidge.AI.EnemyController>(FindObjectsSortMode.None).FirstOrDefault();
+            if (source == null) return "no lurker to copy";
+            var root = new GameObject("Apparition");
+            root.transform.position = triggerPos;
+            var box = root.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = new Vector3(4f, 3f, 7f);
+            box.center = Vector3.up * 1.2f;
+            var body = Object.Instantiate(source.transform.Find("Visual").gameObject, root.transform);
+            body.name = "ApparitionBody";
+            var la = body.GetComponent<ProjectRidge.AI.LurkerAnimator>();
+            if (la != null) Object.DestroyImmediate(la);
+            var points = new Transform[path.Length];
+            for (int i = 0; i < path.Length; i++)
+            {
+                var p = new GameObject("P" + i).transform;
+                p.SetParent(root.transform, false);
+                p.position = path[i];
+                points[i] = p;
+            }
+            var ap = root.AddComponent<ProjectRidge.AI.ScriptedApparition>();
+            var so = new SerializedObject(ap);
+            so.FindProperty("body").objectReferenceValue = body;
+            so.FindProperty("animator").objectReferenceValue = body.GetComponent<Animator>();
+            var arr = so.FindProperty("path");
+            arr.arraySize = points.Length;
+            for (int i = 0; i < points.Length; i++) arr.GetArrayElementAtIndex(i).objectReferenceValue = points[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+            body.SetActive(false);
+            return "apparition ok";
         }
 
         // ------------------------------------------------------------------ Animator Controllers

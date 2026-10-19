@@ -27,7 +27,7 @@ MonoBehaviour:
   chaseThreshold: 1
   hearingSensitivity: 1
   hearingPositionError: 0.15
-  patrolPause: 1.5
+  patrolPause: 2.8
   alertFreeze: 0.9
   arriveDistance: 0.6
   investigateTimeout: 12

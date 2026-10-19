@@ -22,7 +22,8 @@ namespace ProjectRidge.Core
         [Min(0f)] [SerializeField] private float alertStingCooldown = 8f;
         [Min(0.1f)] [SerializeField] private float musicFade = 1.5f;
 
-        private AudioSource musicCalm, musicChase, wind, forest, heartbeat, ui, playerSfx;
+        private AudioSource musicCalm, musicChase, wind, forest, rain, heartbeat, ui, playerSfx;
+        private AudioSource radio;
         private readonly List<AudioSource> pool = new List<AudioSource>();
         private int poolIndex;
         private float lastSting = -99f;
@@ -36,6 +37,7 @@ namespace ProjectRidge.Core
             musicChase = Loop("MusicChase", bank.musicChaseLoop, 0f);
             wind = Loop("Wind", bank.windLoop, bank.ambient * 0.8f);
             forest = Loop("Forest", bank.forestLoop, bank.ambient * 0.6f);
+            rain = Loop("Rain", bank.rainLoop, bank.ambient * 0.55f);
             heartbeat = Loop("Heartbeat", bank.heartbeatLoop, 0f);
             ui = Source2D("UI");
             ui.ignoreListenerPause = true;
@@ -62,12 +64,72 @@ namespace ProjectRidge.Core
 
             foreach (var enemy in EnemyController.Active.ToArray()) HookEnemy(enemy);
 
+            StoneProjectile.Impacted += OnStoneImpact;
+            ScriptedApparition.Appeared += OnApparition;
+            RadioClimax.Started += OnRadioStarted;
+            RadioClimax.Squealed += OnRadioSquealed;
+            CreateCreekSources();
+
             var flow = GameFlow.Instance;
             if (flow != null)
             {
                 flow.StateChanged += OnFlowState;
                 flow.CheckpointReached += () => UI(bank.checkpoint, 0.8f);
                 flow.Captured += () => UI(bank.ufoCapture, 1f);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Eventos estáticos: sin esto, reiniciar la escena duplicaría (y rompería) las suscripciones.
+            StoneProjectile.Impacted -= OnStoneImpact;
+            ScriptedApparition.Appeared -= OnApparition;
+            RadioClimax.Started -= OnRadioStarted;
+            RadioClimax.Squealed -= OnRadioSquealed;
+            AudioListener.pause = false;
+        }
+
+        private void OnStoneImpact(Vector3 pos) => At(bank.stoneImpact, pos, bank.weapons, 0.1f);
+
+        private void OnApparition(Vector3 pos)
+        {
+            Sting(true);
+            At(bank.lurkerScreech, pos, bank.enemy * 0.7f, 0.05f);
+        }
+
+        private void OnRadioSquealed()
+        {
+            if (radio != null) radio.PlayOneShot(bank.radioStatic, 0.9f);
+        }
+
+        private void OnRadioStarted()
+        {
+            var r = FindFirstObjectByType<RadioClimax>();
+            if (r == null) return;
+            radio = r.gameObject.GetComponent<AudioSource>();
+            if (radio == null) radio = r.gameObject.AddComponent<AudioSource>();
+            Configure3D(radio, 3f, 40f);
+            radio.clip = bank.radioLoop;
+            radio.loop = true;
+            radio.volume = bank.ui;
+            radio.Play();
+            Sting(true);
+        }
+
+        /// <summary>El arroyo suena a lo largo de su cauce (fuentes 3D cada pocos metros).</summary>
+        private void CreateCreekSources()
+        {
+            var marks = GameObject.Find("CreekAudio");
+            if (marks == null) return;
+            foreach (Transform t in marks.transform)
+            {
+                var s = t.gameObject.AddComponent<AudioSource>();
+                Configure3D(s, 2f, 14f);
+                s.clip = bank.creekLoop;
+                s.loop = true;
+                s.volume = bank.ambient * 0.6f;
+                s.time = Random.Range(0f, 8f);
+                s.Play();
             }
         }
 
@@ -111,6 +173,12 @@ namespace ProjectRidge.Core
                 if (kv.Value != null)
                     kv.Value.volume = Mathf.MoveTowards(kv.Value.volume, hunting ? bank.enemy * 0.8f : 0f, Time.unscaledDeltaTime * 1.5f);
             }
+
+            // Los grillos se callan cuando algo grande anda cerca.
+            float nearest = float.MaxValue;
+            foreach (var e in EnemyController.Active) nearest = Mathf.Min(nearest, Vector3.Distance(e.transform.position, player.transform.position));
+            float crickets = Mathf.InverseLerp(6f, 16f, nearest);
+            forest.volume = Mathf.MoveTowards(forest.volume, bank.ambient * 0.6f * crickets, Time.unscaledDeltaTime * 0.6f);
 
             bool ending = GameFlow.Instance != null && GameFlow.Instance.Current == GameFlow.State.Ending;
             float fade = Time.unscaledDeltaTime / musicFade;
@@ -156,9 +224,12 @@ namespace ProjectRidge.Core
             if (count > before) PlayerSfx(bank.pickup, bank.player * 0.8f, 0.1f); // solo al ganar, no al gastar
         }
 
-        private void Sting()
+        /// <summary>Golpe musical de alerta (respeta el enfriamiento salvo que se fuerce).</summary>
+        public void PlaySting() => Sting(true);
+
+        private void Sting(bool force = false)
         {
-            if (Time.time - lastSting < alertStingCooldown) return;
+            if (!force && Time.time - lastSting < alertStingCooldown) return;
             lastSting = Time.time;
             UI(bank.alertSting, bank.music * 1.3f);
         }

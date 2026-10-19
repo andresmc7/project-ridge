@@ -129,6 +129,14 @@ namespace ProjectRidge.EditorTools
                     var c2 = Part(go.transform, PrimitiveType.Cylinder, new Vector3(0.05f, 0.04f, 0.09f), new Vector3(0.07f, 0.16f, 0.07f), matFlare);
                     c2.localRotation = Quaternion.Euler(0f, 30f, 90f);
                 }
+                else if (s.item == "Stone")
+                {
+                    // Dos piedras de río, una sobre otra: se leen como "algo para lanzar".
+                    var rock = StoneMesh();
+                    var rm = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_mossy_rock.mat");
+                    MeshPart(go.transform, rock, rm, new Vector3(0f, 0.04f, 0f), Vector3.one * 0.9f);
+                    MeshPart(go.transform, rock, rm, new Vector3(0.08f, 0.03f, 0.05f), Vector3.one * 0.65f);
+                }
                 else
                 {
                     Part(go.transform, PrimitiveType.Cube, new Vector3(0f, 0.04f, 0f), new Vector3(0.34f, 0.04f, 0.16f), matScrap).localRotation = Quaternion.Euler(0f, 20f, 8f);
@@ -371,7 +379,34 @@ namespace ProjectRidge.EditorTools
         static T Ensure<T>(GameObject go) where T : Component =>
             go.TryGetComponent<T>(out var c) ? c : go.AddComponent<T>();
 
-        static InputActionReference ActionRef(string name)
+        internal static ItemDefinition EnsureItem(string file, string displayName, string label, int maxCarry) => Item(file, displayName, label, maxCarry);
+
+        static Mesh StoneMesh() => ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Rock("Stone_Throwable", 42, new Vector3(0.12f, 0.08f, 0.1f), 0.1f, 0.25f));
+
+        static void MeshPart(Transform parent, Mesh mesh, Material mat, Vector3 localPos, Vector3 scale)
+        {
+            var go = new GameObject("Stone");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Random.rotation;
+            go.transform.localScale = scale;
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+        }
+
+        /// <summary>Prefab de la piedra lanzada.</summary>
+        internal static StoneProjectile StonePrefab()
+        {
+            PolyHavenMaterialBuilder.EnsureFolder(PrefabDir);
+            var root = new GameObject("StoneProjectile");
+            MeshPart(root.transform, StoneMesh(), AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_mossy_rock.mat"), Vector3.zero, Vector3.one);
+            root.AddComponent<StoneProjectile>();
+            var saved = PrefabUtility.SaveAsPrefabAsset(root, PrefabDir + "/StoneProjectile.prefab");
+            Object.DestroyImmediate(root);
+            return saved.GetComponent<StoneProjectile>();
+        }
+
+        internal static InputActionReference ActionRef(string name)
         {
             foreach (var o in AssetDatabase.LoadAllAssetsAtPath("Assets/_Project/Data/Input/ProjectRidgeInput.inputactions"))
                 if (o is InputActionReference r && r.action != null && r.action.name == name) return r;

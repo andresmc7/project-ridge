@@ -47,11 +47,18 @@ namespace ProjectRidge.AI
         /// Vuelve a patrullar sin recuerdo del jugador. Si está cerca del punto de reaparición, salta a su ruta
         /// para no acampar ahí (respawn mínimo del playable; M4 lo reemplaza por checkpoints).
         /// </summary>
-        public void ResetAfterPlayerRespawn(Vector3 spawn, float clearRadius)
+        public void ResetAfterPlayerRespawn(Vector3 spawn, float clearRadius, float graceSeconds = 0f)
         {
             perception.ResetAwareness();
+            perception.Suppress(graceSeconds);
             if (patrolPoints.Length > 0 && Vector3.Distance(transform.position, spawn) < clearRadius)
-                agent.Warp(patrolPoints[0].position);
+            {
+                // El punto de su ruta más lejano al checkpoint.
+                int far = 0;
+                for (int i = 1; i < patrolPoints.Length; i++)
+                    if ((patrolPoints[i].position - spawn).sqrMagnitude > (patrolPoints[far].position - spawn).sqrMagnitude) far = i;
+                agent.Warp(patrolPoints[far].position);
+            }
             agent.isStopped = false;
             EnterPatrol();
         }
@@ -179,6 +186,9 @@ namespace ProjectRidge.AI
         {
             if (patrolPoints.Length == 0 || !Arrived()) return;
 
+            // Patrón legible: en cada parada mira siempre hacia la misma dirección (la del punto de patrulla).
+            var point = patrolPoints[patrolIndex];
+            FaceTowards(point.position + point.forward * 5f);
             waitTimer += Time.deltaTime;
             if (waitTimer < config.patrolPause) return;
             waitTimer = 0f;
