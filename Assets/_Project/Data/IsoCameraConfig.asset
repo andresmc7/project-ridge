@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.IsoCameraConfig
   pitch: 58
   yaw: 45
-  distance: 18
+  distance: 16
   targetHeight: 1
   fieldOfView: 45
   positionDamping: 0.3

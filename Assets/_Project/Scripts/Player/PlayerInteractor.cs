@@ -14,6 +14,8 @@ namespace ProjectRidge.Player
         public PlayerInventory Inventory => inventory;
         public Interactable Current { get; private set; }
 
+        private PlayerController controller;
+
         /// <summary>Mensaje breve para el HUD ("+1 Medkit").</summary>
         public event Action<string> Notified;
 
@@ -43,6 +45,8 @@ namespace ProjectRidge.Player
         // Se recalcula al pulsar: el input se procesa antes del Update de este frame.
         private void OnInteract()
         {
+            if (controller == null) controller = GetComponent<PlayerController>();
+            if (controller != null && controller.InputLocked) return;
             Current = FindNearest();
             if (Current != null) Current.Interact(this);
         }

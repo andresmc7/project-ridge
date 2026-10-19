@@ -51,6 +51,10 @@ namespace ProjectRidge.AI
         [Min(1f)] public float humTrackingVolumeBoost = 1.5f;
         [Min(0.5f)] public float humTrackingPitch = 1.12f;
 
+        [Header("Captura")]
+        [Tooltip("Segundos seguidos bajo la luz con la exposición llena antes de que el OVNI te atrape (vuelves al checkpoint).")]
+        [Min(0.5f)] public float captureTime = 3f;
+
         [Header("Escalada")]
         [Tooltip("Radio en el que los Lurker reciben la alerta del OVNI.")]
         [Min(0f)] public float alertRadius = 35f;

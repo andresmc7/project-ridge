@@ -31,4 +31,15 @@ Fuente: Poly Haven (https://polyhaven.com). Licencia: **CC0** para todo el sitio
 | `dry_branches_medium_01` | Modelo | Rico Cilliers | https://polyhaven.com/a/dry_branches_medium_01 |
 | `fir_tree_01` (solo texturas `twig`: diff, alpha, nor_gl, rough) | Textura | Rob Tuytel, Rico Cilliers | https://polyhaven.com/a/fir_tree_01 |
 
+Agregados 2026-10-19 (mismo origen, licencia CC0, 1k, MD5 verificado). Uso: nivel The Hollow (cabaña, puente, rocas, camioneta) y ropa del papá.
+
+| Asset | Tipo | Autor(es) | Link |
+|---|---|---|---|
+| `weathered_brown_planks` | Textura | Dimitrios Savva, Rico Cilliers | https://polyhaven.com/a/weathered_brown_planks |
+| `mossy_rock` | Textura | Rob Tuytel | https://polyhaven.com/a/mossy_rock |
+| `rusty_metal_02` | Textura | Rob Tuytel | https://polyhaven.com/a/rusty_metal_02 |
+| `denim_fabric` | Textura | Rob Tuytel | https://polyhaven.com/a/denim_fabric |
+| `leather_red_02` (variante de color `coll1`, guardada como `_diff_1k.jpg`) | Textura | Rob Tuytel | https://polyhaven.com/a/leather_red_02 |
+| `fabric_pattern_07` (variante de color `col_1`, guardada como `_diff_1k.jpg`) | Textura | Rob Tuytel | https://polyhaven.com/a/fabric_pattern_07 |
+
 Los pinos/abetos son mallas procedurales propias (generador en `Assets/_Project/Scripts/Editor/`); sus ramas usan el atlas `twig` de `fir_tree_01`. El modelo de `fir_tree_01` (7.8M polígonos) no se descargó.

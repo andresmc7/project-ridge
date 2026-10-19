@@ -18,7 +18,7 @@ namespace ProjectRidge.Player
 
         private void OnHeal()
         {
-            if (health.IsDead) return;
+            if (health.IsDead || GetComponent<PlayerController>().InputLocked) return;
             if (health.Current >= health.Max) { interactor.Notify("Health is full"); return; }
             if (!inventory.TryRemove(medkit)) { interactor.Notify("No medkits"); return; }
             health.Heal(config.medkitHeal);

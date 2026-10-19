@@ -143,6 +143,182 @@ namespace ProjectRidge.EditorTools
             return "HUD rebuilt in " + scene.path;
         }
 
+        // ------------------------------------------------------------------ Flujo de juego (título, pausa, pista, final)
+
+        [MenuItem("Project Ridge/HUD/Rebuild Game Flow UI in Active Scene")]
+        public static string BuildFlow()
+        {
+            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var white = SpriteAsset("UI_White", (u, v) => 1f);
+            var disc = SpriteAsset("UI_Disc", (u, v) => Disc(u, v, 1f));
+            var canvas = GameObject.Find("HUD").transform;
+            var safe = canvas.Find("SafeArea");
+            foreach (var n in new[] { "Flow", "Objective" })
+            {
+                var old = canvas.Find(n) ?? safe.Find(n);
+                if (old != null) Object.DestroyImmediate(old.gameObject);
+            }
+            var oldFlow = GameObject.Find("GameFlow");
+            if (oldFlow != null) Object.DestroyImmediate(oldFlow);
+
+            if (!safe.TryGetComponent(out CanvasGroup hudGroup)) hudGroup = safe.gameObject.AddComponent<CanvasGroup>();
+
+            var objective = Label("Objective", (RectTransform)safe, Vector2.zero, new Vector2(520f, 26f), "", 16, FontStyle.Italic);
+            Anchor(objective.rectTransform, new Vector2(0f, 1f), new Vector2(310f, -126f));
+            objective.alignment = TextAnchor.MiddleLeft;
+
+            var flow = Stretch("Flow", canvas);
+
+            // Mensaje grande (CHECKPOINT, YOU DIED, TAKEN).
+            var big = Label("BigMessage", flow, new Vector2(0f, 60f), new Vector2(900f, 90f), "", 54, FontStyle.Bold);
+
+            // Pista
+            var clue = Stretch("CluePanel", flow);
+            var clueBg = Img(clue, white, new Color(0.02f, 0.025f, 0.03f, 0.86f), true);
+            var clueBtn = clue.gameObject.AddComponent<Button>();
+            clueBtn.transition = Selectable.Transition.None;
+            var clueGroup = clue.gameObject.AddComponent<CanvasGroup>();
+            var clueTitle = Label("Title", clue, new Vector2(0f, 150f), new Vector2(900f, 50f), "", 30, FontStyle.Bold);
+            clueTitle.color = new Color(0.95f, 0.85f, 0.6f, 1f);
+            var clueBody = Label("Body", clue, new Vector2(0f, -10f), new Vector2(860f, 260f), "", 22, FontStyle.Normal);
+            clueBody.color = new Color(0.9f, 0.9f, 0.86f, 0.95f);
+            clueBody.lineSpacing = 1.15f;
+            var clueHint = Label("Hint", clue, new Vector2(0f, -190f), new Vector2(600f, 30f), "[E]  /  tap to continue", 16, FontStyle.Normal);
+            clueHint.color = new Color(1f, 1f, 1f, 0.5f);
+
+            // Pausa
+            var pause = Stretch("PausePanel", flow);
+            Img(pause, white, new Color(0f, 0f, 0f, 0.72f), true);
+            var pauseGroup = pause.gameObject.AddComponent<CanvasGroup>();
+            Label("Title", pause, new Vector2(0f, 190f), new Vector2(600f, 60f), "PAUSED", 40, FontStyle.Bold);
+            var resume = MenuButton(pause, "Resume", new Vector2(0f, 90f), white);
+            var restart = MenuButton(pause, "Restart", new Vector2(0f, 20f), white);
+            var quit = MenuButton(pause, "Quit", new Vector2(0f, -50f), white);
+            Label("VolumeLabel", pause, new Vector2(0f, -125f), new Vector2(300f, 26f), "VOLUME", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.6f);
+            var slider = VolumeSlider(pause, new Vector2(0f, -160f), white, disc);
+            Label("Controls", pause, new Vector2(0f, -245f), new Vector2(1100f, 60f),
+                "WASD move  ·  Shift sprint  ·  C crouch  ·  E use  ·  LMB club  ·  Q flare  ·  H medkit  ·  F flashlight", 15, FontStyle.Normal).color = new Color(1f, 1f, 1f, 0.45f);
+
+            // Final
+            var end = Stretch("EndPanel", flow);
+            var endGroup = end.gameObject.AddComponent<CanvasGroup>();
+            var endBody = Label("Body", end, new Vector2(0f, 60f), new Vector2(980f, 520f), "", 24, FontStyle.Normal);
+            endBody.supportRichText = true;
+            endBody.color = new Color(0.9f, 0.88f, 0.82f, 1f);
+            var endButtonsRt = Rect("Buttons", end, new Vector2(0.5f, 0f), new Vector2(0f, 120f), 0f);
+            endButtonsRt.sizeDelta = new Vector2(600f, 80f);
+            var endButtons = endButtonsRt.gameObject.AddComponent<CanvasGroup>();
+            var playAgain = MenuButton(endButtonsRt, "Play again", new Vector2(-150f, 0f), white);
+            var endQuit = MenuButton(endButtonsRt, "Quit", new Vector2(150f, 0f), white);
+
+            // Fundido (encima de todo menos el título)
+            var fadeRt = Stretch("Fade", flow);
+            var fadeImg = Img(fadeRt, white, Color.black, false);
+            var fade = fadeRt.gameObject.AddComponent<CanvasGroup>();
+            fade.blocksRaycasts = false;
+            fade.interactable = false;
+            endGroupToFront(end);
+            big.transform.SetAsLastSibling(); // "YOU DIED" se lee sobre el negro
+
+            // Título
+            var title = Stretch("TitlePanel", flow);
+            var titleGroup = title.gameObject.AddComponent<CanvasGroup>();
+            Label("Studio", title, new Vector2(0f, 120f), new Vector2(600f, 30f), "P R O J E C T   R I D G E", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.45f);
+            var titleText = Label("Title", title, new Vector2(0f, 50f), new Vector2(1000f, 120f), "THE HOLLOW", 88, FontStyle.Bold);
+            titleText.color = new Color(0.92f, 0.9f, 0.84f, 1f);
+            Label("Tagline", title, new Vector2(0f, -25f), new Vector2(900f, 34f), "They were here. Find them.", 22, FontStyle.Italic).color = new Color(0.85f, 0.8f, 0.7f, 0.8f);
+            Label("Prompt", title, new Vector2(0f, -170f), new Vector2(700f, 30f), "press any button  ·  tap to begin", 18, FontStyle.Normal).color = new Color(1f, 1f, 1f, 0.55f);
+            Label("Hint", title, new Vector2(0f, -205f), new Vector2(900f, 26f), "headphones recommended", 14, FontStyle.Italic).color = new Color(1f, 1f, 1f, 0.35f);
+
+            // GameFlow
+            var player = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerHealth>();
+            var go = new GameObject("GameFlow");
+            var gf = go.AddComponent<ProjectRidge.Core.GameFlow>();
+            var so = new SerializedObject(gf);
+            so.FindProperty("player").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerController>();
+            so.FindProperty("health").objectReferenceValue = player;
+            so.FindProperty("input").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInputHandler>();
+            so.FindProperty("body").objectReferenceValue = player.GetComponent<CharacterController>();
+            so.FindProperty("healthConfig").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.PlayerHealthConfig>("Assets/_Project/Data/PlayerHealthConfig.asset");
+            so.FindProperty("ufoExposure").objectReferenceValue = Object.FindFirstObjectByType<ProjectRidge.AI.UFOExposure>();
+            var spawn = GameObject.Find("PlayerSpawn");
+            so.FindProperty("firstCheckpoint").objectReferenceValue = spawn != null ? spawn.transform : null;
+            so.FindProperty("gameplayHud").objectReferenceValue = hudGroup;
+            so.FindProperty("fade").objectReferenceValue = fade;
+            so.FindProperty("fadeImage").objectReferenceValue = fadeImg;
+            so.FindProperty("titlePanel").objectReferenceValue = titleGroup;
+            so.FindProperty("pausePanel").objectReferenceValue = pauseGroup;
+            so.FindProperty("volumeSlider").objectReferenceValue = slider;
+            so.FindProperty("cluePanel").objectReferenceValue = clueGroup;
+            so.FindProperty("clueTitle").objectReferenceValue = clueTitle;
+            so.FindProperty("clueBody").objectReferenceValue = clueBody;
+            so.FindProperty("bigMessage").objectReferenceValue = big;
+            so.FindProperty("objectiveLabel").objectReferenceValue = objective;
+            so.FindProperty("endPanel").objectReferenceValue = endGroup;
+            so.FindProperty("endBody").objectReferenceValue = endBody;
+            so.FindProperty("endButtons").objectReferenceValue = endButtons;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(resume.onClick, gf.Resume);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(restart.onClick, gf.Restart);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(quit.onClick, gf.Quit);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(playAgain.onClick, gf.Restart);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(endQuit.onClick, gf.Quit);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(clueBtn.onClick, gf.DismissClue);
+
+            var scene = EditorSceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            return "Game flow UI built in " + scene.path;
+        }
+
+        // El panel final se dibuja sobre el fundido (el texto queda legible con la pantalla en negro).
+        static void endGroupToFront(RectTransform end) => end.SetAsLastSibling();
+
+        static Button MenuButton(RectTransform parent, string label, Vector2 pos, Sprite white)
+        {
+            var rt = Rect(label.Replace(" ", ""), parent, new Vector2(0.5f, 0.5f), pos, 0f);
+            rt.sizeDelta = new Vector2(260f, 52f);
+            var img = Img(rt, white, new Color(1f, 1f, 1f, 0.08f), true);
+            var b = rt.gameObject.AddComponent<Button>();
+            var colors = b.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 1f, 1f, 2.2f);
+            colors.pressedColor = new Color(1f, 1f, 1f, 3f);
+            colors.selectedColor = new Color(1f, 1f, 1f, 2.2f);
+            b.colors = colors;
+            b.targetGraphic = img;
+            var t = Label("Label", rt, Vector2.zero, rt.sizeDelta, label.ToUpperInvariant(), 20, FontStyle.Bold);
+            t.color = new Color(1f, 1f, 1f, 0.9f);
+            return b;
+        }
+
+        static Slider VolumeSlider(RectTransform parent, Vector2 pos, Sprite white, Sprite disc)
+        {
+            var rt = Rect("Volume", parent, new Vector2(0.5f, 0.5f), pos, 0f);
+            rt.sizeDelta = new Vector2(300f, 30f);
+            var bg = Rect("Background", rt, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
+            bg.anchorMin = new Vector2(0f, 0.4f); bg.anchorMax = new Vector2(1f, 0.6f); bg.offsetMin = bg.offsetMax = Vector2.zero;
+            Img(bg, white, new Color(1f, 1f, 1f, 0.15f), false);
+            var fillArea = Rect("FillArea", rt, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
+            fillArea.anchorMin = new Vector2(0f, 0.4f); fillArea.anchorMax = new Vector2(1f, 0.6f); fillArea.offsetMin = fillArea.offsetMax = Vector2.zero;
+            var fill = Rect("Fill", fillArea, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
+            fill.anchorMin = Vector2.zero; fill.anchorMax = new Vector2(1f, 1f); fill.offsetMin = fill.offsetMax = Vector2.zero;
+            Img(fill, white, new Color(0.95f, 0.85f, 0.6f, 0.8f), false);
+            var handleArea = Rect("HandleArea", rt, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
+            handleArea.anchorMin = Vector2.zero; handleArea.anchorMax = Vector2.one; handleArea.offsetMin = new Vector2(12f, 0f); handleArea.offsetMax = new Vector2(-12f, 0f);
+            var handle = Rect("Handle", handleArea, new Vector2(0.5f, 0.5f), Vector2.zero, 28f);
+            var handleImg = Img(handle, disc, Color.white, true);
+            var s = rt.gameObject.AddComponent<Slider>();
+            s.fillRect = fill;
+            s.handleRect = handle;
+            s.targetGraphic = handleImg;
+            s.minValue = 0f;
+            s.maxValue = 1f;
+            s.value = 1f;
+            return s;
+        }
+
         static float Disc(float u, float v, float radius)
         {
             float d = Mathf.Sqrt((u - 0.5f) * (u - 0.5f) + (v - 0.5f) * (v - 0.5f)) * 2f; // 0 centro, 1 borde

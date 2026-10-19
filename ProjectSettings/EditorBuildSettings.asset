@@ -6,12 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/_Project/Scenes/TheHollow.unity
+    guid: f1d0cbc0b7ebc0644b53a446e286d694
+  - enabled: 0
     path: Assets/_Project/Scenes/Sandbox_Greybox.unity
     guid: a524fe7501d9f7a429865aa6a16ca60e
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
+  - enabled: 0
     path: Assets/_Project/Scenes/LookDev_ForestCorner.unity
     guid: 9cf981139ef1f0a49be32428b295059d
   m_configObjects:

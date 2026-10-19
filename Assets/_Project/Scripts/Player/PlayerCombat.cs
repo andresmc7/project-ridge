@@ -33,9 +33,12 @@ namespace ProjectRidge.Player
         private readonly HashSet<EnemyController> hitThisSwing = new HashSet<EnemyController>();
         private readonly Collider[] overlap = new Collider[16];
         private float phaseEnd;
+        private float phaseDuration;
         private float nextFire;
 
         public SwingPhase Phase { get; private set; }
+        /// <summary>Avance 0–1 dentro de la fase actual (para la animación).</summary>
+        public float PhaseT => phaseDuration > 0f ? Mathf.Clamp01(1f - (phaseEnd - Time.time) / phaseDuration) : 0f;
         public int ClubDurability { get; private set; }
         public int ClubMaxDurability => config.clubDurability;
         public bool HasClub => ClubDurability > 0;
@@ -67,6 +70,7 @@ namespace ProjectRidge.Player
 
         private void OnAttack()
         {
+            if (controller.InputLocked) return;
             if (input.AimHeld) { TryFire(); return; }
             if (health.IsDead || IsBusy) return;
             if (!HasClub) { TryCraft(); return; }
@@ -75,7 +79,7 @@ namespace ProjectRidge.Player
             if (target != null) controller.FaceTowards(target.transform.position);
             hitThisSwing.Clear();
             Phase = SwingPhase.Windup;
-            phaseEnd = Time.time + config.clubWindup;
+            phaseEnd = Time.time + (phaseDuration = config.clubWindup);
             controller.SpeedMultiplier = config.swingMoveFactor;
             Swung?.Invoke();
         }
@@ -85,11 +89,11 @@ namespace ProjectRidge.Player
             switch (Phase)
             {
                 case SwingPhase.Windup:
-                    if (Time.time >= phaseEnd) { Phase = SwingPhase.Active; phaseEnd = Time.time + config.clubActive; }
+                    if (Time.time >= phaseEnd) { Phase = SwingPhase.Active; phaseEnd = Time.time + (phaseDuration = config.clubActive); }
                     break;
                 case SwingPhase.Active:
                     DetectHits();
-                    if (Time.time >= phaseEnd) { Phase = SwingPhase.Recovery; phaseEnd = Time.time + config.clubRecovery; }
+                    if (Time.time >= phaseEnd) { Phase = SwingPhase.Recovery; phaseEnd = Time.time + (phaseDuration = config.clubRecovery); }
                     break;
                 case SwingPhase.Recovery:
                     if (Time.time >= phaseEnd) EndAction();
@@ -158,7 +162,7 @@ namespace ProjectRidge.Player
                 return;
             }
             Phase = SwingPhase.Crafting;
-            phaseEnd = Time.time + config.craftTime;
+            phaseEnd = Time.time + (phaseDuration = config.craftTime);
             controller.InputLocked = true;
             NoiseSystem.Emit(transform.position, config.craftNoise, NoiseType.Interaction, gameObject);
             interactor.Notify("Making a club...");
@@ -184,6 +188,7 @@ namespace ProjectRidge.Player
 
         private void TryFire()
         {
+            if (controller.InputLocked) return;
             if (health.IsDead || IsBusy || Time.time < nextFire) return;
             if (!inventory.TryRemove(flareItem))
             {

@@ -16,6 +16,8 @@ namespace ProjectRidge.Items
         [Tooltip("Lo que detiene la bengala: suelo, rocas, árboles y enemigos.")]
         [SerializeField] private LayerMask hitMask = (1 << 0) | (1 << 10);
         [Min(0.5f)] [SerializeField] private float maxFlightTime = 4f;
+        [Tooltip("Opcional: siseo en bucle mientras arde.")]
+        [SerializeField] private AudioSource burnAudio;
 
         private Vector3 velocity;
         private GameObject owner;
@@ -86,6 +88,7 @@ namespace ProjectRidge.Items
             transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
             SetGlow(1f);
             if (sparks != null) sparks.Play();
+            if (burnAudio != null) burnAudio.Play();
             Burning.Add(this);
         }
 
@@ -100,6 +103,7 @@ namespace ProjectRidge.Items
             // Parpadeo de llama y apagado en el último segundo y medio.
             float flicker = 0.85f + 0.15f * Mathf.PerlinNoise(Time.time * 9f, transform.position.x);
             SetGlow(flicker * Mathf.Clamp01(remaining / 1.5f));
+            if (burnAudio != null) burnAudio.volume = Mathf.Clamp01(remaining / 1.5f);
             if (remaining <= 0f) Destroy(gameObject);
         }
 

@@ -77,20 +77,45 @@ namespace ProjectRidge.EditorTools
             if (old != null) Object.DestroyImmediate(old);
             var root = new GameObject("Items").transform;
 
+            var matWood = Mat("Item_CrateWood", new Color(0.36f, 0.26f, 0.17f), Color.black);
+            int i = 0;
+            foreach (var s in Pickups)
+            {
+                i++;
+                PickupObject(root, s.item, Ground(s.pos) + Vector3.up * 0.02f, (i * 73f) % 360f);
+            }
+
+            Crate(root, "Crate_Start", Ground(new Vector3(-12f, 0f, -7.5f)), 25f, config, matWood,
+                new SearchableContainer.Entry { item = medkit, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
+            Crate(root, "Crate_Clearing", Ground(new Vector3(1.5f, 0f, 9.5f)), -40f, config, matWood,
+                new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
+
+            var scene = EditorSceneManager.GetActiveScene();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            return "Items set up: " + Pickups.Length + " pickups, 2 crates in " + scene.path;
+        }
+
+        internal static ItemDefinition LoadItem(string name) => AssetDatabase.LoadAssetAtPath<ItemDefinition>(ItemsDir + "/" + name + ".asset");
+        internal static InteractionConfig LoadConfig() => AssetDatabase.LoadAssetAtPath<InteractionConfig>(DataDir + "/InteractionConfig.asset");
+        internal static Material CrateWood() => Mat("Item_CrateWood", new Color(0.36f, 0.26f, 0.17f), Color.black);
+
+        /// <summary>Objeto recogible ("Medkit", "Flare", "Scrap") en una posición del mundo.</summary>
+        internal static GameObject PickupObject(Transform root, string itemName, Vector3 position, float yaw)
+        {
+            var config = LoadConfig();
+            var def = LoadItem(itemName);
             var matMed = Mat("Item_Medkit", new Color(0.75f, 0.72f, 0.66f), new Color(0.35f, 0.05f, 0.04f));
             var matCross = Mat("Item_MedkitCross", new Color(0.55f, 0.06f, 0.05f), new Color(0.4f, 0.02f, 0.02f));
             var matFlare = Mat("Item_Flare", new Color(0.8f, 0.3f, 0.06f), new Color(0.5f, 0.12f, 0.02f));
             var matScrap = Mat("Item_Scrap", new Color(0.42f, 0.4f, 0.37f), new Color(0.08f, 0.08f, 0.07f));
-            var matWood = Mat("Item_CrateWood", new Color(0.36f, 0.26f, 0.17f), Color.black);
-
-            int i = 0;
-            foreach (var s in Pickups)
             {
-                var def = s.item == "Medkit" ? medkit : s.item == "Flare" ? flare : scrap;
-                var go = new GameObject("Pickup_" + s.item + "_" + i++);
+                var s = new Spot(itemName, position.x, position.z);
+                var go = new GameObject("Pickup_" + itemName);
                 go.transform.SetParent(root, false);
-                go.transform.position = Ground(s.pos) + Vector3.up * 0.02f;
-                go.transform.rotation = Quaternion.Euler(0f, (i * 73f) % 360f, 0f);
+                go.transform.position = position;
+                go.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
                 if (s.item == "Medkit")
                 {
                     Part(go.transform, PrimitiveType.Cube, new Vector3(0f, 0.09f, 0f), new Vector3(0.36f, 0.18f, 0.26f), matMed);
@@ -114,18 +139,8 @@ namespace ProjectRidge.EditorTools
                 pso.FindProperty("config").objectReferenceValue = config;
                 pso.FindProperty("item").objectReferenceValue = def;
                 pso.ApplyModifiedPropertiesWithoutUndo();
+                return go;
             }
-
-            Crate(root, "Crate_Start", Ground(new Vector3(-12f, 0f, -7.5f)), 25f, config, matWood,
-                new SearchableContainer.Entry { item = medkit, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
-            Crate(root, "Crate_Clearing", Ground(new Vector3(1.5f, 0f, 9.5f)), -40f, config, matWood,
-                new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
-
-            var scene = EditorSceneManager.GetActiveScene();
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
-            AssetDatabase.SaveAssets();
-            return "Items set up: " + Pickups.Length + " pickups, 2 crates in " + scene.path;
         }
 
         const string PrefabDir = "Assets/_Project/Prefabs";
@@ -268,7 +283,7 @@ namespace ProjectRidge.EditorTools
             return m;
         }
 
-        static void Crate(Transform root, string name, Vector3 pos, float yaw, InteractionConfig config, Material wood, params SearchableContainer.Entry[] contents)
+        internal static GameObject Crate(Transform root, string name, Vector3 pos, float yaw, InteractionConfig config, Material wood, params SearchableContainer.Entry[] contents)
         {
             var go = new GameObject(name);
             go.transform.SetParent(root, false);
@@ -293,9 +308,10 @@ namespace ProjectRidge.EditorTools
                 arr.GetArrayElementAtIndex(i).FindPropertyRelative("amount").intValue = contents[i].amount;
             }
             so.ApplyModifiedPropertiesWithoutUndo();
+            return go;
         }
 
-        static Transform Part(Transform parent, PrimitiveType type, Vector3 localPos, Vector3 scale, Material mat)
+        internal static Transform Part(Transform parent, PrimitiveType type, Vector3 localPos, Vector3 scale, Material mat)
         {
             var go = GameObject.CreatePrimitive(type);
             Object.DestroyImmediate(go.GetComponent<Collider>());

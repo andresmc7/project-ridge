@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81bc69e43019c914ebe1bf95cc9044ac, type: 3}
+  m_Name: AudioBank
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Core.AudioBank
+  music: 0.55
+  ambient: 0.7
+  player: 0.8
+  enemy: 1
+  weapons: 0.9
+  ui: 0.7
+  windLoop: {fileID: 8300000, guid: 0fbf879a411eba34d82c1dbbd449ba51, type: 3}
+  forestLoop: {fileID: 8300000, guid: 866a1852e4cf8144883cff00e21e9d8f, type: 3}
+  musicAmbientLoop: {fileID: 8300000, guid: dce05a93d20d7a1438d82ee8f3b8cbfc, type: 3}
+  musicChaseLoop: {fileID: 8300000, guid: 5f26aade2b8669647bec8ae41cd77d8b, type: 3}
+  alertSting: {fileID: 8300000, guid: 00d8d9daa5836864d9abb1ec03994991, type: 3}
+  heartbeatLoop: {fileID: 8300000, guid: fd2f6b97fa312f94b9b773741e9ba4fb, type: 3}
+  stepsDirt:
+  - {fileID: 8300000, guid: 417b0ac577ca69443b767b3e42b2219d, type: 3}
+  - {fileID: 8300000, guid: b92519f1f539a254ea232494598e5ca3, type: 3}
+  - {fileID: 8300000, guid: 5e2abb59ffa24b842b367745e04da2fb, type: 3}
+  - {fileID: 8300000, guid: 4d3ddf6f04f22664f869b8663507a2c2, type: 3}
+  stepsWood:
+  - {fileID: 8300000, guid: 818e929168c8a754185821a03dafba5b, type: 3}
+  - {fileID: 8300000, guid: 02aea3ced3aa1e2428b3b9b9e7b3d293, type: 3}
+  - {fileID: 8300000, guid: 606e707a15492d94ab590b0a3e3da841, type: 3}
+  hurt: {fileID: 8300000, guid: 205bd3fb8266f30448db5be1cf8feceb, type: 3}
+  death: {fileID: 8300000, guid: a3d1906d536c8d744bb49cf785dfc115, type: 3}
+  heal: {fileID: 8300000, guid: e734826f3132b204abb5db8785cd4084, type: 3}
+  pickup: {fileID: 8300000, guid: 437e3b394c6e66f43b779a2468febff4, type: 3}
+  crateOpen: {fileID: 8300000, guid: d43c46b63209eb749978a962ef5f9e05, type: 3}
+  craft: {fileID: 8300000, guid: 406fcd1beb037c8459e0c7ee980ea9e3, type: 3}
+  clubSwing: {fileID: 8300000, guid: 0d2017efd48f97c428362c2179314495, type: 3}
+  clubHit: {fileID: 8300000, guid: d7cbe6ba46abc9d458c1d593bc6f9bc6, type: 3}
+  clubBreak: {fileID: 8300000, guid: 3feddd3118230f447a7300bfb8a56b35, type: 3}
+  flareShot: {fileID: 8300000, guid: 447ef2615071dcf4f8b86b10051ae096, type: 3}
+  flareBurnLoop: {fileID: 8300000, guid: a311b3e9fac8c504a81545e263ceff76, type: 3}
+  dryFire: {fileID: 8300000, guid: 1e5d2285d0341bc48bacd66c6c61f959, type: 3}
+  lurkerSteps:
+  - {fileID: 8300000, guid: a402ddf611006834a98902a7d6400ee6, type: 3}
+  - {fileID: 8300000, guid: 14f3fd43e9b52344fac6522af5adf6d1, type: 3}
+  - {fileID: 8300000, guid: 89b3a72244562ce40a468df335e460ee, type: 3}
+  lurkerClicks:
+  - {fileID: 8300000, guid: 6ab2400767ad19344ab6a8d67cd86444, type: 3}
+  - {fileID: 8300000, guid: 7db55aa31d7cfd34585d4a49ef1647b7, type: 3}
+  - {fileID: 8300000, guid: 7f23d88dbf5d550409cf86e950975c80, type: 3}
+  - {fileID: 8300000, guid: d9ae541192df2594b830a7a9676f2e9f, type: 3}
+  lurkerScreech: {fileID: 8300000, guid: 17692f681c20c8d469c77091e260de98, type: 3}
+  lurkerAttack: {fileID: 8300000, guid: 65f3929776a03ae45b37a3c9e1a19d59, type: 3}
+  lurkerGrowlLoop: {fileID: 8300000, guid: 9f4deaf6bacdf454cb5fd04f367ae106, type: 3}
+  lurkerHurt: {fileID: 8300000, guid: c3c90e851092a334c8987e1b10743fad, type: 3}
+  lurkerDeath: {fileID: 8300000, guid: e2bb0426ef97b344e9e633d57162dbb1, type: 3}
+  ufoCapture: {fileID: 8300000, guid: 2f3973dfa0a04fc49a72a496c47e7cff, type: 3}
+  checkpoint: {fileID: 8300000, guid: 9bc1f0a731b452245bf23be12dd4d331, type: 3}
+  clueSting: {fileID: 8300000, guid: ca6713577026256428af6413d04a2c9e, type: 3}
+  uiClick: {fileID: 8300000, guid: a68c6dbd9d716434292b3b47f0ec08af, type: 3}
+  radioStatic: {fileID: 8300000, guid: 88e3b45c93918244997e098dcc70d716, type: 3}
+  radioVoice: {fileID: 8300000, guid: 9e8fafa5e8f2c65498c3f231eb657671, type: 3}

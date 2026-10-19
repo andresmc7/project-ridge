@@ -146,7 +146,7 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>Copia transparente de un material URP Lit, para el desvanecido por oclusión de cámara.</summary>
-        static Material FadedVariant(Material src)
+        internal static Material FadedVariant(Material src)
         {
             string path = AssetDatabase.GetAssetPath(src).Replace(".mat", "_Faded.mat");
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -166,7 +166,7 @@ namespace ProjectRidge.EditorTools
             return m;
         }
 
-        static void AddFadeable(GameObject go, Renderer[] renderers, Material[] opaque)
+        internal static void AddFadeable(GameObject go, Renderer[] renderers, Material[] opaque)
         {
             var faded = new Material[opaque.Length];
             for (int i = 0; i < opaque.Length; i++) faded[i] = FadedVariant(opaque[i]);
@@ -220,7 +220,7 @@ namespace ProjectRidge.EditorTools
         /// lightmapUV: solo para rocas (horneadas). Props densos y vegetación usan sondas de luz: el unwrap de mallas
         /// de 40–100k triángulos tarda minutos y puede fallar ("Could not pack uvs").
         /// </summary>
-        static int EnsureLayer(int index, string name)
+        internal static int EnsureLayer(int index, string name)
         {
             var tm = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
             var layer = tm.FindProperty("layers").GetArrayElementAtIndex(index);
@@ -375,7 +375,7 @@ namespace ProjectRidge.EditorTools
             if (oldSpawn != null) Object.DestroyImmediate(oldSpawn);
             var spawn = new GameObject("PlayerSpawn").transform;
             spawn.SetPositionAndRotation(player.transform.position, player.transform.rotation);
-            var respawn = player.GetComponent<ProjectRidge.Player.PlayerRespawn>() ?? player.AddComponent<ProjectRidge.Player.PlayerRespawn>();
+            if (!player.TryGetComponent(out ProjectRidge.Player.PlayerRespawn respawn)) respawn = player.AddComponent<ProjectRidge.Player.PlayerRespawn>();
             var rso = new SerializedObject(respawn);
             rso.FindProperty("config").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.PlayerHealthConfig>("Assets/_Project/Data/PlayerHealthConfig.asset");
             rso.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
@@ -407,7 +407,7 @@ namespace ProjectRidge.EditorTools
             log.AppendLine("ufo ok");
 
             var cam = Camera.main.gameObject;
-            var fader = cam.GetComponent<ProjectRidge.CameraRig.CameraOcclusionFader>() ?? cam.AddComponent<ProjectRidge.CameraRig.CameraOcclusionFader>();
+            if (!cam.TryGetComponent(out ProjectRidge.CameraRig.CameraOcclusionFader fader)) fader = cam.AddComponent<ProjectRidge.CameraRig.CameraOcclusionFader>();
             var fso = new SerializedObject(fader);
             fso.FindProperty("config").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ProjectRidge.CameraRig.IsoCameraConfig>("Assets/_Project/Data/IsoCameraConfig.asset");
             fso.FindProperty("target").objectReferenceValue = player.transform;
@@ -653,7 +653,7 @@ namespace ProjectRidge.EditorTools
             return count;
         }
 
-        static void BuildUFO(Terrain terrain, GameObject player)
+        internal static void BuildUFO(Terrain terrain, GameObject player)
         {
             var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.AI.UFOConfig>("Assets/_Project/Data/UFOConfig.asset");
             if (cfg == null) { cfg = ScriptableObject.CreateInstance<ProjectRidge.AI.UFOConfig>(); AssetDatabase.CreateAsset(cfg, "Assets/_Project/Data/UFOConfig.asset"); }
@@ -788,7 +788,7 @@ namespace ProjectRidge.EditorTools
             Wall("W", new Vector3(-e, h * 0.5f, 0f), new Vector3(t, h, Size));
         }
 
-        static void SetupLighting(System.Text.StringBuilder log)
+        internal static void SetupLighting(System.Text.StringBuilder log)
         {
             var moonGo = new GameObject("Moon");
             var moon = moonGo.AddComponent<Light>();
@@ -802,8 +802,8 @@ namespace ProjectRidge.EditorTools
             RenderSettings.sun = moon;
             RenderSettings.skybox = null;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.15f, 0.18f, 0.24f);
-            RenderSettings.ambientEquatorColor = new Color(0.08f, 0.095f, 0.11f);
+            RenderSettings.ambientSkyColor = new Color(0.17f, 0.2f, 0.27f);
+            RenderSettings.ambientEquatorColor = new Color(0.1f, 0.115f, 0.13f);
             RenderSettings.ambientGroundColor = new Color(0.03f, 0.035f, 0.04f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
@@ -813,7 +813,7 @@ namespace ProjectRidge.EditorTools
             var cam = Camera.main;
             cam.backgroundColor = RenderSettings.fogColor;
             cam.allowHDR = true;
-            var data = cam.GetComponent<UniversalAdditionalCameraData>() ?? cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
+            if (!cam.TryGetComponent(out UniversalAdditionalCameraData data)) data = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
             data.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
 
@@ -851,7 +851,7 @@ namespace ProjectRidge.EditorTools
             Lightmapping.lightingSettings = ls;
         }
 
-        static void SetupPostFx()
+        internal static void SetupPostFx()
         {
             string path = DataDir + "/LookDev_PostFX.asset";
             var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
@@ -927,7 +927,7 @@ namespace ProjectRidge.EditorTools
             return "tris=" + UnityStats.triangles + " batches=" + UnityStats.batches + " setpass=" + UnityStats.setPassCalls;
         }
 
-        static void Render(Camera cam, string path)
+        public static void Render(Camera cam, string path)
         {
             const int w = 1600, h = 900;
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);

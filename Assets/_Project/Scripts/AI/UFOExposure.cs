@@ -23,7 +23,21 @@ namespace ProjectRidge.AI
 
         public float Exposure { get; private set; }
         public bool IsLit { get; private set; }
+        /// <summary>0–1: cuánto falta para que te atrape (solo sube bajo la luz con la exposición llena).</summary>
+        public float Capture => captureTimer / config.captureTime;
         public event Action<Vector3> Escalated;
+        /// <summary>El OVNI te atrapó: el flujo de juego te devuelve al último checkpoint.</summary>
+        public event Action Captured;
+
+        private float captureTimer;
+
+        /// <summary>Tras un respawn: sin exposición acumulada.</summary>
+        public void ResetExposure()
+        {
+            Exposure = 0f;
+            captureTimer = 0f;
+            IsLit = false;
+        }
 
         private void Update()
         {
@@ -39,11 +53,21 @@ namespace ProjectRidge.AI
             {
                 float gain = config.exposureGain * (player.IsCrouching ? config.crouchExposureFactor : 1f);
                 Exposure = Mathf.Min(1f, Exposure + gain * dt);
-                if (Exposure >= 1f) Escalate();
+                if (Exposure >= 1f)
+                {
+                    Escalate();
+                    captureTimer += dt;
+                    if (captureTimer >= config.captureTime)
+                    {
+                        ResetExposure();
+                        Captured?.Invoke();
+                    }
+                }
             }
             else
             {
                 Exposure = Mathf.Max(0f, Exposure - config.exposureDecay * dt);
+                captureTimer = Mathf.Max(0f, captureTimer - dt * 2f);
             }
         }
 
