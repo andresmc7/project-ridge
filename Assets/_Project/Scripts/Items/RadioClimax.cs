@@ -10,8 +10,8 @@ namespace ProjectRidge.Items
 {
     /// <summary>
     /// Clímax: encender la radio de la camioneta inicia una transmisión que hay que aguantar. El ruido de la radio
-    /// atrae a los Lurker y el OVNI barre la zona; el papá debe esconderse cerca (arbustos, pasto alto, detrás de la
-    /// camioneta). Si sobrevive hasta el final, la luz cae sobre la camioneta y termina el nivel.
+    /// atrae a los Lurker, los reflectores cercanos aceleran y se encienden los del clímax; el papá debe esconderse
+    /// en el pasto alrededor de la camioneta. Si sobrevive, la luz cae sobre la camioneta y termina el nivel.
     /// </summary>
     public class RadioClimax : Interactable
     {
@@ -20,6 +20,11 @@ namespace ProjectRidge.Items
         [SerializeField] private float noiseRadius = 28f;
         [SerializeField] private float noiseInterval = 6f;
         [SerializeField] private PlayerHealth playerHealth;
+        [Tooltip("Reflectores que se encienden solo durante la transmisión.")]
+        [SerializeField] private Searchlight[] climaxLights;
+        [Tooltip("Los reflectores a esta distancia aceleran su barrido.")]
+        [Min(0f)] [SerializeField] private float rushRadius = 30f;
+        [Min(1f)] [SerializeField] private float rushSpeed = 1.45f;
 
         public static event Action Started;
         public static event Action Squealed;
@@ -56,7 +61,15 @@ namespace ProjectRidge.Items
             // Murió durante la transmisión: se puede reintentar desde el checkpoint junto a la camioneta.
             if (routine != null) StopCoroutine(routine);
             running = false;
+            SetRush(false);
             routine = null;
+        }
+
+        private void SetRush(bool on)
+        {
+            if (climaxLights != null) foreach (var s in climaxLights) if (s != null) s.Activate(on);
+            foreach (var s in Searchlight.Active)
+                if (Vector3.Distance(s.Spot, transform.position) <= rushRadius) s.SpeedScale = on ? rushSpeed : 1f;
         }
 
         private IEnumerator Transmission()
@@ -64,7 +77,7 @@ namespace ProjectRidge.Items
             running = true;
             Started?.Invoke();
             var flow = GameFlow.Instance;
-            var ufo = FindFirstObjectByType<UFOController>();
+            SetRush(true);
             float end = Time.time + duration;
             float nextNoise = Time.time;
             while (Time.time < end)
@@ -74,6 +87,7 @@ namespace ProjectRidge.Items
                 {
                     running = false;
                     routine = null;
+                    SetRush(false);
                     yield break;
                 }
                 int left = Mathf.CeilToInt(end - Time.time);
@@ -84,13 +98,16 @@ namespace ProjectRidge.Items
                     NoiseSystem.Emit(transform.position, noiseRadius, NoiseType.Interaction, gameObject);
                     Squealed?.Invoke();
                 }
-                if (ufo != null) ufo.Track(transform.position + new Vector3(Mathf.Sin(Time.time * 0.6f) * 6f, 0f, Mathf.Cos(Time.time * 0.45f) * 6f));
                 yield return new WaitForSeconds(0.5f);
             }
             running = false;
             done = true;
             // La luz encuentra la camioneta: final.
-            if (ufo != null) ufo.Track(transform.position);
+            SetRush(false);
+            Searchlight nearest = null;
+            foreach (var s in Searchlight.Active)
+                if (nearest == null || (s.Spot - transform.position).sqrMagnitude < (nearest.Spot - transform.position).sqrMagnitude) nearest = s;
+            if (nearest != null) nearest.Override(transform.position);
             flow?.TriggerEnding();
         }
     }

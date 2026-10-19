@@ -190,7 +190,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7320856089867379557}
-  - component: {fileID: 1380634106960576730}
   - component: {fileID: 7217090642124001688}
   - component: {fileID: 6313999724807955762}
   m_Layer: 0
@@ -215,30 +214,8 @@ Transform:
   m_Children:
   - {fileID: 4600974711301603043}
   - {fileID: 6070505864453016301}
-  - {fileID: 442083412329870804}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1380634106960576730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8407371066702699748}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2fc40a9d0c9fbd459ba5adee6aff55b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.OcclusionFadeable
-  renderers:
-  - {fileID: 5365279366385629795}
-  - {fileID: 2912789560700767214}
-  opaqueMaterials:
-  - {fileID: 2100000, guid: 5159276ca993b37419ca63502907b619, type: 2}
-  - {fileID: 2100000, guid: 6fa21501afe32684fb5542de79f8d6a7, type: 2}
-  fadedMaterials:
-  - {fileID: 2100000, guid: d9ffbc087acd4354288f40f74ad8513d, type: 2}
-  - {fileID: 2100000, guid: 181b7b84f910996488a0cc028f101c0d, type: 2}
 --- !u!136 &7217090642124001688
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -282,56 +259,3 @@ LODGroup:
     - renderer: {fileID: 5365279366385629795}
     - renderer: {fileID: 2912789560700767214}
   m_Enabled: 1
---- !u!1 &8666746829942142617
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 442083412329870804}
-  - component: {fileID: 4200969286653115360}
-  m_Layer: 11
-  m_Name: Canopy
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &442083412329870804
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8666746829942142617}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7320856089867379557}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &4200969286653115360
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8666746829942142617}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2.25
-  m_Center: {x: 0, y: 4.3500004, z: 0}

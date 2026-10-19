@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3773380390884500767}
   - component: {fileID: 2477459021793279423}
   - component: {fileID: 8285756631168731164}
-  - component: {fileID: 3996601213729274421}
   m_Layer: 0
   m_Name: HollowRock_2
   m_TagString: Untagged
@@ -114,21 +113,3 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: fcbd207fd0948c741a2e984a2ec5fda5, type: 2}
---- !u!114 &3996601213729274421
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6808682578831990379}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2fc40a9d0c9fbd459ba5adee6aff55b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.OcclusionFadeable
-  renderers:
-  - {fileID: 2477459021793279423}
-  opaqueMaterials:
-  - {fileID: 2100000, guid: b267af6ac0becad459c739cc50404634, type: 2}
-  fadedMaterials:
-  - {fileID: 2100000, guid: ded5a5d27087a0a428ca482d61fbeddb, type: 2}

@@ -10,11 +10,11 @@ using UnityEngine.Rendering.Universal;
 namespace ProjectRidge.EditorTools
 {
     /// <summary>
-    /// Nivel completo "The Hollow" (spec sección 6): refugio en ruinas sin techo → sendero → arroyo con puente
-    /// (ruta corta y expuesta por el prado del OVNI) o tronco caído (ruta larga y cubierta por el bosque del norte)
-    /// → campamento abandonado → camino de acceso con la camioneta y la radio (final).
-    /// Estilo: geometría chunky y legible (terrazas, acantilados, rocas y copas redondeadas) con texturas fotográficas.
-    /// Regenerable: reconstruye todo lo generado a partir de la escena del look dev (jugador, cámara, HUD, Lurker, OVNI).
+    /// Nivel completo "The Hollow" (v3): refugio → cinco salas de sigilo (reflectores rojos y Lurkers con patrones
+    /// fijos, pastizales escondite) → camioneta con la radio (clímax y final). Ver HollowLayout para el diseño.
+    /// Estilo: diorama oscuro (Echoes of Wisdom + Alan Wake): geometría chunky y legible, cámara al norte, ningún
+    /// objeto tapa el suelo caminable (regla de oclusión), luz roja y niebla.
+    /// Regenerable: reconstruye todo lo generado a partir de la escena del look dev (jugador, cámara, HUD, Lurker).
     /// </summary>
     public static partial class HollowBuilder
     {
@@ -23,36 +23,6 @@ namespace ProjectRidge.EditorTools
         const string DataDir = "Assets/_Project/Art/Hollow";
         const string PrefabDir = "Assets/_Project/Prefabs/Hollow";
         const int Seed = 4127;
-
-        // Terreno: 150 × 100 m, origen en y = -3 para poder tallar el arroyo.
-        const float SizeX = 100f, SizeZ = 64f, MaxHeight = 24f, Base = 3f;
-        const int HeightRes = 513, AlphaRes = 512;
-
-        // ------------------------------------------------------------------ Layout
-
-        static readonly Vector3 CabinCenter = new Vector3(-26f, 0f, -2f);
-        const float CabinYaw = 8f;
-        static readonly Vector3 Meadow = new Vector3(8f, 0f, -9f);
-        const float MeadowRadius = 6.5f;
-        static readonly Vector3 Camp = new Vector3(21f, 0f, 4f);
-        static readonly Vector3 TruckPos = new Vector3(29.5f, 0f, 1f);
-        const float RoadX = 30f, RoadHalf = 2.6f;
-        const float BridgeZ = -3f, LogZ = 8.5f;
-
-        static readonly Vector3[] MainTrail =
-        {
-            new Vector3(-26, 0, -2), new Vector3(-20, 0, -1), new Vector3(-15, 0, -4), new Vector3(-11, 0, -3),
-            new Vector3(-1, 0, -3), new Vector3(4, 0, -7), new Vector3(9, 0, -8), new Vector3(14, 0, -6),
-            new Vector3(18, 0, -2), new Vector3(21, 0, 3), new Vector3(25, 0, 2), new Vector3(RoadX, 0, 1)
-        };
-
-        static readonly Vector3[] NorthTrail =
-        {
-            new Vector3(-15, 0, -4), new Vector3(-14, 0, 3), new Vector3(-11, 0, 8.5f), new Vector3(-1, 0, 8.5f),
-            new Vector3(5, 0, 11), new Vector3(11, 0, 10), new Vector3(16, 0, 6), new Vector3(21, 0, 3)
-        };
-
-        static float RavineX(float z) => -6f + 1.0f * Mathf.Sin(z * 0.15f);
 
         // ------------------------------------------------------------------ Entrada
 
@@ -64,8 +34,8 @@ namespace ProjectRidge.EditorTools
                 AssetDatabase.CopyAsset(SourceScene, ScenePath);
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
-            foreach (var n in new[] { "LookDevEnvironment", "Items", "LurkerPatrol", "LurkerPatrol_B", "UFO", "UFOScanPoints", "LightProbes",
-                                      "Moon", "PostFX", "PlayerSpawn", "Hollow", "Lurker_B", "Checkpoints" })
+            foreach (var n in new[] { "LookDevEnvironment", "Items", "LurkerPatrol", "LurkerPatrol_B", "LurkerPatrol_C", "LurkerPatrol_D", "UFO", "UFOScanPoints",
+                                      "LightProbes", "Moon", "PostFX", "PlayerSpawn", "Hollow", "Lurker_B", "Lurker_C", "Lurker_D", "Checkpoints", "Searchlights" })
             {
                 var old = GameObject.Find(n);
                 if (old != null) Object.DestroyImmediate(old);
@@ -104,9 +74,8 @@ namespace ProjectRidge.EditorTools
             SetupPlayerAndEnemies(terrain, player, log);
             PlaceItems(terrain, log);
             BuildCheckpoints(terrain);
-
-            LookDevForestCornerBuilder.BuildUFO(terrain, player);
-            PlaceUfoScanPoints(terrain);
+            log.AppendLine(BuildSearchlights(terrain));
+            SetupCamera();
 
             // NavMesh
             var surface = root.gameObject.AddComponent<NavMeshSurface>();
@@ -135,6 +104,19 @@ namespace ProjectRidge.EditorTools
             foreach (var s in EditorBuildSettings.scenes)
                 if (s.path != ScenePath) list.Add(new EditorBuildSettingsScene(s.path, false));
             EditorBuildSettings.scenes = list.ToArray();
+        }
+
+        /// <summary>Cámara de diorama: mira al norte (como Zelda), alta y fija. Sin oclusión que desvanecer.</summary>
+        static void SetupCamera()
+        {
+            var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.CameraRig.IsoCameraConfig>("Assets/_Project/Data/IsoCameraConfig.asset");
+            if (cfg == null) return;
+            cfg.yaw = 0f;
+            cfg.pitch = 55f;
+            cfg.distance = 14f;
+            cfg.fieldOfView = 42f;
+            cfg.positionDamping = 0.25f;
+            EditorUtility.SetDirty(cfg);
         }
 
         // ------------------------------------------------------------------ Materiales
@@ -212,69 +194,7 @@ namespace ProjectRidge.EditorTools
         static float Smooth(float a, float b, float x) => Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(a, b, x));
         static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
 
-        static float DistanceToPath(Vector3 w, Vector3[] path)
-        {
-            w = Flat(w);
-            float best = float.MaxValue;
-            for (int i = 1; i < path.Length; i++)
-            {
-                Vector3 a = path[i - 1], b = path[i];
-                Vector3 ab = b - a;
-                float t = Mathf.Clamp01(Vector3.Dot(w - a, ab) / ab.sqrMagnitude);
-                best = Mathf.Min(best, Vector3.Distance(w, a + ab * t));
-            }
-            return best;
-        }
-
-        static float DistanceToTrails(Vector3 w) => Mathf.Min(DistanceToPath(w, MainTrail), DistanceToPath(w, NorthTrail));
-
-        /// <summary>Meseta central que separa la ruta expuesta (sur) de la cubierta (norte). 0 fuera, 1 encima.</summary>
-        static float PlateauMask(Vector3 w)
-        {
-            float dx = (w.x - 8f) / 7f, dz = (w.z - 2f) / 3.2f;
-            float d = Mathf.Sqrt(dx * dx + dz * dz) + (Mathf.PerlinNoise(w.x * 0.15f + 3f, w.z * 0.15f) - 0.5f) * 0.18f;
-            return Smooth(1f, 0.9f, d);
-        }
-
-        /// <summary>Distancia (m) al borde del área jugable; negativa fuera.</summary>
-        static float EdgeDistance(Vector3 w)
-        {
-            float wobble = (Mathf.PerlinNoise(w.x * 0.08f + 11f, w.z * 0.08f + 5f) - 0.5f) * 6f;
-            float e = Mathf.Min(34f - Mathf.Abs(w.x), 20f - Mathf.Abs(w.z)) + wobble;
-            // El camino de acceso corre hasta el borde este: no lo tapa el acantilado.
-            if (Mathf.Abs(w.x - RoadX) < RoadHalf + 2f) e = Mathf.Max(e, 34f - Mathf.Abs(w.x));
-            return e;
-        }
-
-        static float HeightAt(Vector3 w)
-        {
-            float h = (Mathf.PerlinNoise(w.x * 0.05f + 7f, w.z * 0.05f + 3f) - 0.5f) * 1.2f
-                    + (Mathf.PerlinNoise(w.x * 0.16f + 1f, w.z * 0.16f + 9f) - 0.5f) * 0.35f;
-
-            // Lomas suaves para dar profundidad.
-            h += 1.6f * Smooth(6f, 1.5f, Vector3.Distance(Flat(w), new Vector3(-20f, 0f, 12f)));
-            h += 1.8f * Smooth(6f, 1.5f, Vector3.Distance(Flat(w), new Vector3(18f, 0f, -15f)));
-            h += 1.4f * Smooth(5f, 1.5f, Vector3.Distance(Flat(w), new Vector3(-18f, 0f, -14f)));
-
-            // Zonas planas (sendero, refugio, prado, campamento, camino).
-            float flat = 0f;
-            flat = Mathf.Max(flat, Smooth(3.4f, 1.6f, DistanceToTrails(w)));
-            flat = Mathf.Max(flat, Smooth(9f, 6f, Vector3.Distance(Flat(w), CabinCenter)));
-            flat = Mathf.Max(flat, Smooth(MeadowRadius + 3f, MeadowRadius - 2f, Vector3.Distance(Flat(w), Meadow)) * 0.8f);
-            flat = Mathf.Max(flat, Smooth(8f, 5f, Vector3.Distance(Flat(w), Camp)));
-            flat = Mathf.Max(flat, Smooth(RoadHalf + 2.5f, RoadHalf, Mathf.Abs(w.x - RoadX)));
-            h = Mathf.Lerp(h, 0f, flat);
-
-            // Terrazas: meseta central (+4 m, acantilado) y bordes del valle en dos escalones.
-            h += 4.2f * PlateauMask(w);
-            float e = EdgeDistance(w);
-            h += 6f * Smooth(0f, -2.4f, e) + 5f * Smooth(-8f, -10.5f, e);
-
-            // Arroyo: barranco de paredes empinadas.
-            float dx = Mathf.Abs(w.x - RavineX(w.z));
-            h -= 2.7f * Smooth(3.7f, 2.2f, dx);
-            return h;
-        }
+        static Vector3 TerrainPoint(float nx, float nz) => new Vector3(TerrainMin.x + nx * SizeX, 0f, TerrainMin.y + nz * SizeZ);
 
         static Terrain BuildTerrain(Transform parent, Mats m)
         {
@@ -289,7 +209,7 @@ namespace ProjectRidge.EditorTools
             for (int z = 0; z < HeightRes; z++)
                 for (int x = 0; x < HeightRes; x++)
                 {
-                    var w = new Vector3(x / (float)(HeightRes - 1) * SizeX - SizeX * 0.5f, 0f, z / (float)(HeightRes - 1) * SizeZ - SizeZ * 0.5f);
+                    var w = TerrainPoint(x / (float)(HeightRes - 1), z / (float)(HeightRes - 1));
                     heights[z, x] = Mathf.Clamp01((HeightAt(w) + Base) / MaxHeight);
                 }
             td.SetHeights(0, 0, heights);
@@ -300,14 +220,15 @@ namespace ProjectRidge.EditorTools
                 for (int x = 0; x < AlphaRes; x++)
                 {
                     float nx = x / (float)(AlphaRes - 1), nz = z / (float)(AlphaRes - 1);
-                    var w = new Vector3(nx * SizeX - SizeX * 0.5f, 0f, nz * SizeZ - SizeZ * 0.5f);
+                    var w = TerrainPoint(nx, nz);
                     float steep = td.GetSteepness(nx, nz);
                     float rock = Smooth(24f, 38f, steep);
-                    float trail = Smooth(2.4f, 1.1f, DistanceToTrails(w));
-                    trail = Mathf.Max(trail, Smooth(RoadHalf + 0.8f, RoadHalf - 0.6f, Mathf.Abs(w.x - RoadX)));
+                    float trail = Smooth(2.2f, 1.0f, DistanceToTrails(w));
+                    trail = Mathf.Max(trail, Smooth(RoadHalf + 0.8f, RoadHalf - 0.6f, Mathf.Abs(w.x - RoadX)) * Smooth(0.5f, -0.5f, Walk(w)));
                     trail = Mathf.Max(trail, Smooth(5f, 2.5f, Vector3.Distance(Flat(w), Camp)) * 0.7f);
                     trail = Mathf.Max(trail, Smooth(1.5f, 0.6f, Mathf.Abs(w.x - RavineX(w.z))));
-                    float leaves = Smooth(0.5f, 0.68f, Mathf.PerlinNoise(w.x * 0.08f + 40f, w.z * 0.08f + 13f));
+                    // Fuera de las salas, hojarasca oscura: el escenario jugable se lee como un claro.
+                    float leaves = Mathf.Max(Smooth(0.5f, 0.68f, Mathf.PerlinNoise(w.x * 0.08f + 40f, w.z * 0.08f + 13f)), Smooth(0.5f, 2.5f, Walk(w)) * 0.85f);
                     trail *= 1f - rock;
                     leaves *= (1f - trail) * (1f - rock);
                     float ground = Mathf.Max(0f, 1f - rock - trail - leaves);
@@ -323,7 +244,7 @@ namespace ProjectRidge.EditorTools
             var go = Terrain.CreateTerrainGameObject(td);
             go.name = "Terrain";
             go.transform.SetParent(parent, false);
-            go.transform.position = new Vector3(-SizeX * 0.5f, -Base, -SizeZ * 0.5f);
+            go.transform.position = new Vector3(TerrainMin.x, -Base, TerrainMin.y);
             var terrain = go.GetComponent<Terrain>();
             string matPath = DataDir + "/Hollow_TerrainLit.mat";
             var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
@@ -350,38 +271,34 @@ namespace ProjectRidge.EditorTools
 
         static readonly Dictionary<string, GameObject> prefabCache = new Dictionary<string, GameObject>();
 
+        static readonly ChunkyMeshGenerator.TreeShape[] ConiferShapes =
+        {
+            new ChunkyMeshGenerator.TreeShape { height = 7.5f, radius = 2.3f, tiers = 4, trunkRadius = 0.28f, lobes = 5 },
+            new ChunkyMeshGenerator.TreeShape { height = 9.5f, radius = 2.6f, tiers = 5, trunkRadius = 0.32f, lobes = 6 },
+            new ChunkyMeshGenerator.TreeShape { height = 6f, radius = 2.0f, tiers = 3, trunkRadius = 0.24f, lobes = 4 },
+            new ChunkyMeshGenerator.TreeShape { height = 11f, radius = 2.8f, tiers = 5, trunkRadius = 0.36f, lobes = 7 },
+            new ChunkyMeshGenerator.TreeShape { height = 8.5f, radius = 2.1f, tiers = 4, trunkRadius = 0.27f, lobes = 5 },
+        };
+
+        static float RoundTreeHeight(int variant) => 5.5f + variant * 0.8f;
+        static float RoundTreeTop(int variant) => RoundTreeHeight(variant) * 0.5f + 2.6f + variant * 0.3f;
+        static float RoundTreeRadius(int variant) => 2.2f + variant * 0.3f;
+
         static GameObject TreePrefab(int variant, Mats m)
         {
             string name = "HollowConifer_" + variant;
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            var shapes = new[]
-            {
-                new ChunkyMeshGenerator.TreeShape { height = 7.5f, radius = 2.3f, tiers = 4, trunkRadius = 0.28f, lobes = 5 },
-                new ChunkyMeshGenerator.TreeShape { height = 9.5f, radius = 2.6f, tiers = 5, trunkRadius = 0.32f, lobes = 6 },
-                new ChunkyMeshGenerator.TreeShape { height = 6f, radius = 2.0f, tiers = 3, trunkRadius = 0.24f, lobes = 4 },
-                new ChunkyMeshGenerator.TreeShape { height = 11f, radius = 2.8f, tiers = 5, trunkRadius = 0.36f, lobes = 7 },
-                new ChunkyMeshGenerator.TreeShape { height = 8.5f, radius = 2.1f, tiers = 4, trunkRadius = 0.27f, lobes = 5 },
-            };
-            var s = shapes[variant % shapes.Length];
+            var s = ConiferShapes[variant % ConiferShapes.Length];
             var mesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Conifer(name, 100 + variant * 17, s));
             var go = new GameObject(name);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
             mr.sharedMaterials = new[] { m.barkWind, m.needles };
             mr.receiveGI = ReceiveGI.LightProbes;
-            LookDevForestCornerBuilder.AddFadeable(go, new Renderer[] { mr }, new[] { m.barkWind, m.needles });
             var col = go.AddComponent<CapsuleCollider>();
             col.radius = s.trunkRadius + 0.12f;
             col.height = 4f;
             col.center = Vector3.up * 2f;
-            var canopy = new GameObject("Canopy");
-            canopy.layer = LookDevForestCornerBuilder.EnsureLayer(11, "Canopy");
-            canopy.transform.SetParent(go.transform, false);
-            var cc = canopy.AddComponent<CapsuleCollider>();
-            cc.isTrigger = true;
-            cc.radius = s.radius * 0.7f;
-            cc.height = s.height * 0.75f;
-            cc.center = Vector3.up * (s.height * 0.22f + cc.height * 0.5f);
             var lod = go.AddComponent<LODGroup>();
             lod.SetLODs(new[] { new LOD(0.01f, new Renderer[] { mr }) });
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic); // sin static batching: el viento usa el espacio de objeto
@@ -395,9 +312,9 @@ namespace ProjectRidge.EditorTools
         {
             string name = "HollowRoundTree_" + variant;
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            float h = 5.5f + variant * 0.8f;
+            float h = RoundTreeHeight(variant);
             var trunkMesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Log(name + "_Trunk", h * 0.62f, 0.22f + variant * 0.03f, 8));
-            var crownMesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Blob(name + "_Crown", 300 + variant * 13, 2.2f + variant * 0.3f, 6, 2.6f + variant * 0.3f));
+            var crownMesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Blob(name + "_Crown", 300 + variant * 13, RoundTreeRadius(variant), 6, 2.6f + variant * 0.3f));
             var go = new GameObject(name);
             var trunk = new GameObject("Trunk");
             trunk.transform.SetParent(go.transform, false);
@@ -414,18 +331,10 @@ namespace ProjectRidge.EditorTools
             cr.sharedMaterial = m.leavesTree;
             tr.receiveGI = ReceiveGI.LightProbes;
             cr.receiveGI = ReceiveGI.LightProbes;
-            LookDevForestCornerBuilder.AddFadeable(go, new Renderer[] { tr, cr }, new[] { m.bark, m.leavesTree });
             var col = go.AddComponent<CapsuleCollider>();
             col.radius = 0.35f;
             col.height = 4f;
             col.center = Vector3.up * 2f;
-            var canopy = new GameObject("Canopy");
-            canopy.layer = 11;
-            canopy.transform.SetParent(go.transform, false);
-            var sc = canopy.AddComponent<SphereCollider>();
-            sc.isTrigger = true;
-            sc.radius = 2f + variant * 0.25f;
-            sc.center = Vector3.up * (h * 0.5f + 1.2f);
             var lod = go.AddComponent<LODGroup>();
             lod.SetLODs(new[] { new LOD(0.01f, new Renderer[] { tr, cr }) });
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
@@ -435,10 +344,7 @@ namespace ProjectRidge.EditorTools
             return saved;
         }
 
-        /// <summary>
-        /// Arbusto escondite: trigger en TallGrass (los Lurker te ven peor) y otro en Canopy de su altura
-        /// (agachado dentro, el reflector del OVNI no te alcanza; de pie la cabeza asoma).
-        /// </summary>
+        /// <summary>Arbusto decorativo de borde (fuera del área jugable; los escondites son los pastizales).</summary>
         static GameObject BushPrefab(int variant, Mats m)
         {
             string name = "HollowBush_" + variant;
@@ -452,24 +358,6 @@ namespace ProjectRidge.EditorTools
             mr.sharedMaterial = m.bush;
             mr.receiveGI = ReceiveGI.LightProbes;
             mr.shadowCastingMode = ShadowCastingMode.On;
-
-            var hide = new GameObject("Concealment");
-            hide.layer = 8; // TallGrass
-            hide.transform.SetParent(go.transform, false);
-            var hc = hide.AddComponent<CapsuleCollider>();
-            hc.isTrigger = true;
-            hc.radius = r * 0.85f;
-            hc.height = 2f;
-            hc.center = Vector3.up * 0.5f;
-
-            var shade = new GameObject("Canopy");
-            shade.layer = 11;
-            shade.transform.SetParent(go.transform, false);
-            var bc = shade.AddComponent<SphereCollider>();
-            bc.isTrigger = true;
-            bc.radius = r * 0.9f;
-            bc.center = Vector3.up * (height - r * 0.9f + 0.05f);
-
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
             var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
             Object.DestroyImmediate(go);
@@ -477,12 +365,15 @@ namespace ProjectRidge.EditorTools
             return saved;
         }
 
+        static Vector3 RockSize(int variant, bool cliff) => cliff
+            ? new Vector3(3.2f + variant * 0.4f, 2.6f + (variant % 2) * 0.8f, 2.6f + variant * 0.3f)
+            : new Vector3(1.6f + variant * 0.35f, 1.2f + (variant % 3) * 0.35f, 1.4f + variant * 0.25f);
+
         static GameObject RockPrefab(int variant, bool cliff, Mats m)
         {
             string name = (cliff ? "HollowCliff_" : "HollowRock_") + variant;
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            Vector3 size = cliff ? new Vector3(3.2f + variant * 0.4f, 2.6f + (variant % 2) * 0.8f, 2.6f + variant * 0.3f)
-                                 : new Vector3(1.6f + variant * 0.35f, 1.2f + (variant % 3) * 0.35f, 1.4f + variant * 0.25f);
+            Vector3 size = RockSize(variant, cliff);
             var mesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Rock(name, 700 + variant * 31 + (cliff ? 1000 : 0), size, cliff ? 0.7f : 0.15f, cliff ? 0.22f : 0.3f));
             var go = new GameObject(name);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
@@ -492,7 +383,6 @@ namespace ProjectRidge.EditorTools
             var mc = go.AddComponent<MeshCollider>();
             mc.sharedMesh = mesh;
             mc.convex = true;
-            if (size.y > 1.6f) LookDevForestCornerBuilder.AddFadeable(go, new Renderer[] { mr }, new[] { m.rock });
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
             var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
             Object.DestroyImmediate(go);
@@ -508,19 +398,10 @@ namespace ProjectRidge.EditorTools
             return go;
         }
 
-        // ------------------------------------------------------------------ Dispersión
+        // ------------------------------------------------------------------ Dispersión (con la regla de oclusión)
 
-        static bool Reserved(Vector3 p, List<Vector3> blockers, float trailClear)
-        {
-            if (DistanceToTrails(p) < trailClear) return true;
-            if (Vector3.Distance(Flat(p), CabinCenter) < 9f) return true;
-            if (Vector3.Distance(Flat(p), Meadow) < MeadowRadius) return true;
-            if (Vector3.Distance(Flat(p), Camp) < 8f) return true;
-            if (Mathf.Abs(p.x - RoadX) < RoadHalf + 2.5f) return true;
-            if (Mathf.Abs(p.x - RavineX(p.z)) < 4.5f) return true;
-            foreach (var b in blockers) if ((Flat(b) - Flat(p)).sqrMagnitude < 9f) return true;
-            return false;
-        }
+        /// <summary>¿Cabe algo de esta altura total (sobre el piso de las salas) y este radio aquí sin tapar suelo caminable?</summary>
+        static bool Fits(Vector3 p, float topY, float radius) => topY <= MaxHeightAt(p, radius);
 
         static int ScatterTrees(Transform root, Terrain t, Mats m, System.Random rng, List<Vector3> blockers)
         {
@@ -528,27 +409,22 @@ namespace ProjectRidge.EditorTools
             var parent = new GameObject("Trees").transform;
             parent.SetParent(root, false);
             var placed = new List<Vector3>();
-            for (int tries = 0; tries < 30000 && placed.Count < 240; tries++)
+            for (int tries = 0; tries < 60000 && placed.Count < 520; tries++)
             {
-                var p = new Vector3(R(-44f, 42f), 0f, R(-28f, 28f));
-                if (Reserved(p, blockers, 3.2f)) continue;
-                float e = EdgeDistance(p);
-                if (e < -7f) continue;
-                // Más denso en el bosque del norte (ruta cubierta) y junto a los bordes; ralo en la meseta.
-                float density = 0.45f;
-                if (p.z > 6f && p.x > -4f && p.x < 20f) density = 0.95f;
-                if (e < 6f) density = 0.9f;
-                if (PlateauMask(p) > 0.5f) density = 0.55f;
-                if (rng.NextDouble() > density) continue;
-                float minGap = p.z > 6f ? 2.6f : 3.1f;
-                bool close = false;
-                foreach (var q in placed) if ((q - p).sqrMagnitude < minGap * minGap) { close = true; break; }
-                if (close) continue;
-
+                var p = new Vector3(R(TerrainMin.x + 2f, TerrainMin.x + SizeX - 2f), 0f, R(TerrainMin.y + 2f, TerrainMin.y + SizeZ - 2f));
+                bool round = rng.NextDouble() < 0.4;
+                int variant = round ? rng.Next(3) : rng.Next(ConiferShapes.Length);
+                float scale = R(0.85f, 1.2f);
+                float radius = (round ? RoundTreeRadius(variant) : ConiferShapes[variant].radius) * scale;
+                if (Reserved(p, blockers, radius + 0.6f)) continue;
                 p.y = GroundY(t, p) - 0.1f;
-                bool round = rng.NextDouble() < 0.18;
-                var prefab = round ? RoundTreePrefab(rng.Next(3), m) : TreePrefab(rng.Next(5), m);
-                Spawn(prefab, parent, p, R(0f, 360f), R(0.85f, 1.2f));
+                float top = p.y + (round ? RoundTreeTop(variant) : ConiferShapes[variant].height) * scale;
+                if (!Fits(p, top, radius)) continue;
+                float minGap = 2.4f;
+                bool close = false;
+                foreach (var q in placed) if ((Flat(q) - Flat(p)).sqrMagnitude < minGap * minGap) { close = true; break; }
+                if (close) continue;
+                Spawn(round ? RoundTreePrefab(variant, m) : TreePrefab(variant, m), parent, p, R(0f, 360f), scale);
                 placed.Add(p);
             }
             return placed.Count;
@@ -561,39 +437,47 @@ namespace ProjectRidge.EditorTools
             parent.SetParent(root, false);
             int count = 0;
 
-            // Bloques de acantilado sobre las paredes empinadas (lectura de terrazas).
-            for (float x = -48f; x <= 48f; x += 2.8f)
-                for (float z = -30f; z <= 30f; z += 2.8f)
+            // Bloques de acantilado sobre las paredes empinadas (lectura de terrazas), solo donde no tapan.
+            for (float x = TerrainMin.x + 1f; x <= TerrainMin.x + SizeX - 1f; x += 2.6f)
+                for (float z = TerrainMin.y + 1f; z <= TerrainMin.y + SizeZ - 1f; z += 2.6f)
                 {
-                    var p = new Vector3(x + R(-1.2f, 1.2f), 0f, z + R(-1.2f, 1.2f));
-                    float nx = (p.x + SizeX * 0.5f) / SizeX, nz = (p.z + SizeZ * 0.5f) / SizeZ;
+                    var p = new Vector3(x + R(-1.1f, 1.1f), 0f, z + R(-1.1f, 1.1f));
+                    float nx = (p.x - TerrainMin.x) / SizeX, nz = (p.z - TerrainMin.y) / SizeZ;
                     if (nx < 0f || nx > 1f || nz < 0f || nz > 1f) continue;
-                    float steep = t.terrainData.GetSteepness(nx, nz);
-                    if (steep < 38f) continue;
+                    if (t.terrainData.GetSteepness(nx, nz) < 36f) continue;
                     if (Mathf.Abs(p.x - RavineX(p.z)) < 3.6f) continue; // el barranco queda con la textura de roca
-                    if (rng.NextDouble() > 0.55) continue;
-                    p.y = GroundY(t, p) - R(0.6f, 1.2f);
-                    Spawn(RockPrefab(rng.Next(4), true, m), parent, p, R(0f, 360f), R(0.9f, 1.4f));
+                    if (rng.NextDouble() > 0.6) continue;
+                    int v = rng.Next(4);
+                    float scale = R(0.9f, 1.4f);
+                    float sink = R(0.5f, 1.1f);
+                    p.y = GroundY(t, p) - sink;
+                    if (!Fits(p, p.y + RockSize(v, true).y * scale, RockSize(v, true).x * 0.5f * scale)) continue;
+                    Spawn(RockPrefab(v, true, m), parent, p, R(0f, 360f), scale);
                     count++;
                 }
 
-            // Cantos sueltos.
-            for (int tries = 0; tries < 4000 && count < 230; tries++)
+            // Cantos sueltos fuera de las salas.
+            for (int tries = 0; tries < 6000 && count < 420; tries++)
             {
-                var p = new Vector3(R(-33f, 31f), 0f, R(-19f, 19f));
-                if (Reserved(p, blockers, 2.5f)) continue;
-                if (rng.NextDouble() > 0.35) continue;
+                var p = new Vector3(R(TerrainMin.x + 2f, TerrainMin.x + SizeX - 2f), 0f, R(TerrainMin.y + 2f, TerrainMin.y + SizeZ - 2f));
+                if (Reserved(p, blockers, 0.8f)) continue;
+                if (rng.NextDouble() > 0.4) continue;
+                int v = rng.Next(4);
+                float scale = R(0.6f, 1.3f);
                 p.y = GroundY(t, p) - 0.15f;
-                Spawn(RockPrefab(rng.Next(4), false, m), parent, p, R(0f, 360f), R(0.6f, 1.3f));
+                if (!Fits(p, p.y + RockSize(v, false).y * scale, RockSize(v, false).x * 0.5f * scale)) continue;
+                Spawn(RockPrefab(v, false, m), parent, p, R(0f, 360f), scale);
                 count++;
             }
 
-            // Cobertura deliberada en el prado del OVNI: rocas para agacharse detrás de la luz.
-            var meadowCover = new[] { new Vector2(-4, 2), new Vector2(-1, -3.5f), new Vector2(3, 2.5f), new Vector2(5, -2.5f), new Vector2(-4.5f, -3.5f), new Vector2(1, 4.5f) };
-            foreach (var c in meadowCover)
+            // Cobertura de diseño dentro de las salas: agachado detrás, el Lurker no te ve; de pie, sí.
+            var cover = new GameObject("CoverRocks").transform;
+            cover.SetParent(parent, false);
+            foreach (var c in CoverRocks)
             {
-                var p = OnGround(t, Meadow.x + c.x, Meadow.z + c.y, -0.15f);
-                Spawn(RockPrefab(rng.Next(4), false, m), parent, p, R(0f, 360f), R(1.1f, 1.35f));
+                var p = OnGround(t, c.x, c.y, -0.15f);
+                Spawn(RockPrefab(rng.Next(2) == 0 ? 0 : 3, false, m), cover, p, R(0f, 360f), 1.15f * c.z);
+                blockers.Add(p);
                 count++;
             }
             return count;
@@ -604,29 +488,19 @@ namespace ProjectRidge.EditorTools
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
             var parent = new GameObject("Bushes").transform;
             parent.SetParent(root, false);
-            // Escondites deliberados: junto al sendero, bordes del prado, ruta norte y campamento.
-            var spots = new List<Vector2>
-            {
-                new Vector2(-22, -5), new Vector2(-18, 2), new Vector2(-16, -7), new Vector2(-13, 0),
-                new Vector2(0, -5.5f), new Vector2(2, -12), new Vector2(13, -11), new Vector2(15, -3),
-                new Vector2(-13, 6), new Vector2(0, 12), new Vector2(3, 7), new Vector2(8, 13), new Vector2(13, 13), new Vector2(14, 8),
-                new Vector2(18, 0.5f), new Vector2(24, 7), new Vector2(24, -2), new Vector2(27, 5), new Vector2(17, 7),
-            };
             int count = 0;
-            foreach (var s in spots)
+            // Borde de las salas: arbustos que dibujan el contorno del escenario (como los setos de un diorama).
+            for (int tries = 0; tries < 9000 && count < 260; tries++)
             {
-                var p = OnGround(t, s.x + R(-0.8f, 0.8f), s.y + R(-0.8f, 0.8f), -0.05f);
-                Spawn(BushPrefab(rng.Next(4), m), parent, p, R(0f, 360f), R(0.95f, 1.2f));
-                count++;
-            }
-            for (int tries = 0; tries < 3000 && count < 75; tries++)
-            {
-                var p = new Vector3(R(-33f, 31f), 0f, R(-19f, 19f));
-                if (Reserved(p, blockers, 1.8f) && !(DistanceToTrails(p) > 1.8f && Vector3.Distance(Flat(p), Meadow) > MeadowRadius - 1f && Vector3.Distance(Flat(p), Meadow) < MeadowRadius + 2f)) continue;
-                if (EdgeDistance(p) < 1f) continue;
-                if (rng.NextDouble() > 0.4) continue;
+                var p = new Vector3(R(TerrainMin.x + 2f, TerrainMin.x + SizeX - 2f), 0f, R(TerrainMin.y + 2f, TerrainMin.y + SizeZ - 2f));
+                float d = Walk(p);
+                if (d < 0.6f || d > 4.5f) continue;
+                if (Mathf.Abs(p.x - RavineX(p.z)) < 4.5f) continue;
+                int v = rng.Next(4);
+                float scale = R(0.8f, 1.2f);
                 p.y = GroundY(t, p) - 0.05f;
-                Spawn(BushPrefab(rng.Next(4), m), parent, p, R(0f, 360f), R(0.8f, 1.15f));
+                if (!Fits(p, p.y + 1.25f * scale, (1.15f + v * 0.2f) * scale)) continue;
+                Spawn(BushPrefab(v, m), parent, p, R(0f, 360f), scale);
                 count++;
             }
             return count;
@@ -638,21 +512,21 @@ namespace ProjectRidge.EditorTools
         {
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
             var grassTex = ChunkyMeshGenerator.GrassTexture(5);
-            var mat = WindMaterial("Hollow_GrassWind", grassTex, null, Color.white, 0.08f, 0.06f, 2.5f, 0.03f, true, 0.4f);
-            var tallMat = WindMaterial("Hollow_TallGrassWind", grassTex, null, new Color(1f, 0.9f, 0.66f), 0.08f, 0.1f, 1.3f, 0.03f, true, 0.4f);
+            var mat = WindMaterial("Hollow_GrassWind", grassTex, null, new Color(0.78f, 0.86f, 0.72f), 0.08f, 0.06f, 2.5f, 0.03f, true, 0.4f);
+            // Pastizal escondite: dorado, alto y denso. Se reconoce de un vistazo (lectura de juego, no decorado).
+            var tallMat = WindMaterial("Hollow_TallGrassWind", grassTex, null, new Color(1.6f, 1.22f, 0.48f), 0.08f, 0.1f, 1.3f, 0.03f, true, 0.45f);
             var shortMeshes = new Mesh[4];
             for (int i = 0; i < shortMeshes.Length; i++)
                 shortMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassShort_" + i, 900 + i, 0.4f + i * 0.05f, 10, 0.2f));
             var tallMeshes = new Mesh[2];
             for (int i = 0; i < tallMeshes.Length; i++)
-                tallMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassTall_" + i, 950 + i, 1.05f + i * 0.1f, 20, 0.35f));
+                tallMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassTall_" + i, 950 + i, 1.2f + i * 0.12f, 22, 0.35f));
 
             var parent = new GameObject("Grass").transform;
             parent.SetParent(root, false);
             mat.SetFloat("_UseVertexHeight", 1f);
             tallMat.SetFloat("_UseVertexHeight", 1f);
-            // Las matas se combinan por parcela de 12 m (cientos de draw calls menos); la altura de cada hoja
-            // viaja en UV2.x para que el viento siga funcionando sobre la malla combinada.
+            // Las matas se combinan por parcela de 12 m; la altura de cada hoja viaja en UV2.x para el viento.
             var chunks = new Dictionary<(int, int, Material), List<CombineInstance>>();
             void Tuft(Mesh mesh, Vector3 p, float scale, Material m)
             {
@@ -661,66 +535,65 @@ namespace ProjectRidge.EditorTools
                 list.Add(new CombineInstance { mesh = mesh, transform = Matrix4x4.TRS(p, Quaternion.Euler(0f, R(0f, 360f), 0f), Vector3.one * scale) });
             }
 
-            int count = 0;
-            for (int tries = 0; tries < 9000 && count < 1500; tries++)
+            bool InPatch(Vector3 p, float pad)
             {
-                var p = new Vector3(R(-33f, 31f), 0f, R(-19f, 19f));
-                bool meadow = Vector3.Distance(Flat(p), Meadow) < MeadowRadius + 2f;
-                if (DistanceToTrails(p) < 1.4f || Vector3.Distance(Flat(p), CabinCenter) < 4.5f) continue;
-                if (Mathf.Abs(p.x - RoadX) < RoadHalf + 0.5f || Mathf.Abs(p.x - RavineX(p.z)) < 3.8f) continue;
-                if (EdgeDistance(p) < 0f) continue;
-                if (!meadow && rng.NextDouble() > 0.55) continue;
-                // Matas agrupadas (se leen mejor desde la cámara alta que sueltas).
+                foreach (var h in HidePatches) if ((new Vector2(p.x - h.x, p.z - h.y)).magnitude < h.z + pad) return true;
+                return false;
+            }
+
+            // Pasto corto dentro de las salas (textura del suelo) y en los bordes; nunca sobre el sendero.
+            int count = 0;
+            for (int tries = 0; tries < 16000 && count < 2200; tries++)
+            {
+                var p = new Vector3(R(TerrainMin.x + 2f, TerrainMin.x + SizeX - 2f), 0f, R(TerrainMin.y + 2f, TerrainMin.y + SizeZ - 2f));
+                float d = Walk(p);
+                if (d > 3f) continue;
+                if (DistanceToTrails(p) < 1.3f || Vector3.Distance(Flat(p), CabinCenter) < 4.5f || InPatch(p, 0.6f)) continue;
+                if (Mathf.Abs(p.x - RoadX) < RoadHalf + 0.4f && d < 0f) continue;
+                if (Mathf.Abs(p.x - RavineX(p.z)) < 3.8f) continue;
                 int clump = rng.Next(3, 6);
                 for (int k = 0; k < clump; k++)
                 {
                     var q = new Vector3(p.x + R(-0.5f, 0.5f), 0f, p.z + R(-0.5f, 0.5f));
                     q.y = GroundY(t, q) - 0.02f;
-                    Tuft(shortMeshes[rng.Next(shortMeshes.Length)], q, R(1.1f, 1.6f), mat);
+                    Tuft(shortMeshes[rng.Next(shortMeshes.Length)], q, R(1.0f, 1.45f), mat);
                     count++;
                 }
             }
 
-            // Pastizales altos: escondites (TallGrass) y, agachado, sombra frente al reflector (Canopy a su altura).
-            var patches = new[] { new Vector2(-3, -0.5f), new Vector2(3, -4.5f), new Vector2(4.5f, 3) };
-            var extra = new[] { new Vector2(-1, 12.5f), new Vector2(10, 12.5f), new Vector2(17, -4), new Vector2(26, 6), new Vector2(-17, 3), new Vector2(-21, -6) };
-            var all = new List<Vector2>();
-            foreach (var c in patches) all.Add(new Vector2(Meadow.x + c.x, Meadow.z + c.y));
-            all.AddRange(extra);
-            foreach (var c in all)
+            // Pastizales escondite (diseño): agachado dentro, ni reflectores ni Lurkers te ven.
+            foreach (var h in HidePatches)
             {
-                var center = OnGround(t, c.x, c.y);
-                var patch = new GameObject("TallGrassPatch");
+                var center = OnGround(t, h.x, h.y);
+                var patch = new GameObject("HidingGrass");
                 patch.transform.SetParent(parent, false);
-                patch.transform.SetPositionAndRotation(center, Quaternion.Euler(0f, R(0f, 360f), 0f));
-                for (int i = 0; i < 46; i++)
+                patch.transform.SetPositionAndRotation(center, Quaternion.identity);
+                int n = Mathf.RoundToInt(22f * h.z * h.z);
+                for (int i = 0; i < n; i++)
                 {
-                    Vector2 o = Random.insideUnitCircle * 2.2f;
-                    var p = OnGround(t, c.x + o.x, c.y + o.y, -0.02f);
-                    Tuft(tallMeshes[rng.Next(tallMeshes.Length)], p, R(0.85f, 1.15f), tallMat);
+                    Vector2 o = new Vector2(R(-1f, 1f), R(-1f, 1f));
+                    if (o.sqrMagnitude > 1f) { i--; continue; }
+                    o *= h.z;
+                    var p = OnGround(t, h.x + o.x, h.y + o.y, -0.02f);
+                    // Más bajo en el borde: el contorno se lee redondo y limpio desde arriba.
+                    float edge = 1f - o.magnitude / h.z;
+                    Tuft(tallMeshes[rng.Next(tallMeshes.Length)], p, R(0.8f, 1.05f) * (0.75f + 0.35f * edge), tallMat);
                 }
                 var hide = new GameObject("Concealment");
-                hide.layer = 8;
+                hide.layer = 8; // TallGrass
                 hide.transform.SetParent(patch.transform, false);
                 var hc = hide.AddComponent<CapsuleCollider>();
                 hc.isTrigger = true;
-                hc.radius = 2.1f;
+                hc.radius = h.z * 0.92f;
                 hc.height = 2.5f;
                 hc.center = Vector3.up * 0.8f;
-                var shade = new GameObject("Canopy");
-                shade.layer = 11;
-                shade.transform.SetParent(patch.transform, false);
-                var bc = shade.AddComponent<BoxCollider>();
-                bc.isTrigger = true;
-                bc.size = new Vector3(3.6f, 1.05f, 3.6f);
-                bc.center = Vector3.up * 0.52f;
-                count += 46;
+                count += n;
             }
 
             int chunkIndex = 0;
             foreach (var kv in chunks)
             {
-                var mesh = new Mesh { name = "GrassChunk_" + chunkIndex++, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+                var mesh = new Mesh { name = "GrassChunk_" + chunkIndex++, indexFormat = IndexFormat.UInt32 };
                 mesh.CombineMeshes(kv.Value.ToArray(), true, true);
                 mesh.RecalculateBounds();
                 mesh = ChunkyMeshGenerator.Save(mesh);
@@ -748,32 +621,40 @@ namespace ProjectRidge.EditorTools
                 go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
                 go.AddComponent<BoxCollider>().size = size;
             }
-            Wall("N", new Vector3(0f, 6f, 21f), new Vector3(100f, 14f, 1f));
-            Wall("S", new Vector3(0f, 6f, -21f), new Vector3(100f, 14f, 1f));
-            Wall("W", new Vector3(-35f, 6f, 0f), new Vector3(1f, 14f, 64f));
-            Wall("E", new Vector3(34f, 6f, 0f), new Vector3(1f, 14f, 64f));
+            float cx = TerrainMin.x + SizeX * 0.5f, cz = TerrainMin.y + SizeZ * 0.5f;
+            Wall("N", new Vector3(cx, 6f, TerrainMin.y + SizeZ), new Vector3(SizeX, 20f, 1f));
+            Wall("S", new Vector3(cx, 6f, TerrainMin.y), new Vector3(SizeX, 20f, 1f));
+            Wall("W", new Vector3(TerrainMin.x, 6f, cz), new Vector3(1f, 20f, SizeZ));
+            Wall("E", new Vector3(TerrainMin.x + SizeX, 6f, cz), new Vector3(1f, 20f, SizeZ));
 
-            // Orillas del arroyo: muros invisibles salvo en el puente y en el tronco caído.
-            for (float z = -22f; z < 22f; z += 2f)
+            // Contorno del escenario: muros bajos invisibles justo fuera del borde caminable, para que ni el papá ni
+            // los Lurker suban por las cornisas (el terreno empinado ya frena, esto lo garantiza).
+            for (float x = TerrainMin.x + 1f; x < TerrainMin.x + SizeX - 1f; x += 0.8f)
+                for (float z = TerrainMin.y + 1f; z < TerrainMin.y + SizeZ - 1f; z += 0.8f)
+                {
+                    var p = new Vector3(x, 0f, z);
+                    float d = Walk(p);
+                    if (d < 0.35f || d > 1.15f) continue;
+                    if (Mathf.Abs(p.x - RavineX(p.z)) < 3.4f) continue;
+                    Wall("Edge", new Vector3(x, GroundY(t, p) + 1f, z), new Vector3(0.8f, 2.5f, 0.8f));
+                }
+
+            // Orillas del arroyo: muros invisibles salvo en el puente.
+            for (float z = -16f; z < 16f; z += 2f)
             {
                 float zc = z + 1f;
-                if (Mathf.Abs(zc - BridgeZ) < 2.2f || Mathf.Abs(zc - LogZ) < 1.4f) continue;
+                if (Mathf.Abs(zc - BridgeZ) < 2.2f) continue;
                 float x = RavineX(zc);
-                float slope = Mathf.Atan(1.5f * 0.07f * Mathf.Cos(zc * 0.07f)) * Mathf.Rad2Deg;
+                float slope = Mathf.Atan(0.6f * 0.2f * Mathf.Cos(zc * 0.2f)) * Mathf.Rad2Deg;
                 Wall("BankW", new Vector3(x - 3.4f, 1.5f, zc), new Vector3(0.6f, 6f, 2.3f), -slope);
                 Wall("BankE", new Vector3(x + 3.4f, 1.5f, zc), new Vector3(0.6f, 6f, 2.3f), -slope);
             }
-            // Flancos de los cruces: cierran el hueco entre los muros de orilla y el ancho del puente/tronco.
-            void Flank(float z0, float halfWidth, float gap)
-            {
-                float x = RavineX(z0);
-                float len = gap - halfWidth;
-                foreach (float s in new[] { -1f, 1f })
-                    foreach (float side in new[] { -1f, 1f })
-                        Wall("CrossingFlank", new Vector3(x + side * 3.4f, 1.5f, z0 + s * (halfWidth + len * 0.5f)), new Vector3(0.6f, 6f, len + 0.2f));
-            }
-            Flank(BridgeZ, 1.05f, 2.0f);
-            Flank(LogZ, 0.6f, 2.0f);
+            // Flancos del puente: cierran el hueco entre los muros de orilla y el ancho del tablero.
+            float bx = RavineX(BridgeZ);
+            const float halfWidth = 1.05f, gap = 2.0f, len = gap - halfWidth;
+            foreach (float s in new[] { -1f, 1f })
+                foreach (float side in new[] { -1f, 1f })
+                    Wall("CrossingFlank", new Vector3(bx + side * 3.4f, 1.5f, BridgeZ + s * (halfWidth + len * 0.5f)), new Vector3(0.6f, 6f, len + 0.2f));
         }
 
         static void TunePostFx()
@@ -781,13 +662,8 @@ namespace ProjectRidge.EditorTools
             var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/_Project/Art/LookDev/LookDev_PostFX.asset");
             if (profile == null) return;
             if (!profile.TryGet(out DepthOfField dof)) { dof = profile.Add<DepthOfField>(true); AssetDatabase.AddObjectToAsset(dof, profile); }
-            // Desenfoque gaussiano de fondo: lectura de diorama (tilt-shift suave), barato en móvil.
             dof.mode.Override(DepthOfFieldMode.Gaussian);
-            dof.gaussianStart.Override(24f);
-            dof.gaussianEnd.Override(48f);
-            dof.gaussianMaxRadius.Override(1f);
             dof.highQualitySampling.Override(false);
-            if (profile.TryGet(out ColorAdjustments ca)) { ca.postExposure.Override(1.05f); ca.saturation.Override(-6f); ca.contrast.Override(16f); }
             EditorUtility.SetDirty(profile);
         }
 
@@ -796,10 +672,12 @@ namespace ProjectRidge.EditorTools
             var go = new GameObject("LightProbes");
             var group = go.AddComponent<LightProbeGroup>();
             var pts = new List<Vector3>();
-            for (float x = -33f; x <= 32f; x += 6f)
-                for (float z = -19f; z <= 19f; z += 6f)
+            for (float x = TerrainMin.x + 3f; x <= TerrainMin.x + SizeX - 3f; x += 4f)
+                for (float z = TerrainMin.y + 3f; z <= TerrainMin.y + SizeZ - 3f; z += 4f)
                 {
-                    float y = GroundY(t, new Vector3(x, 0f, z));
+                    var p = new Vector3(x, 0f, z);
+                    if (Walk(p) > 6f) continue;
+                    float y = GroundY(t, p);
                     pts.Add(new Vector3(x, y + 0.7f, z));
                     pts.Add(new Vector3(x, y + 4f, z));
                 }

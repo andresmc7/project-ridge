@@ -8,8 +8,10 @@ namespace ProjectRidge.Player
     {
         [Range(0f, 1f)] public float crouchVisibility = 0.55f;
         [Range(0f, 1f)] public float tallGrassVisibility = 0.45f;
-        [Tooltip("Piso: agacharse en pasto alto nunca vuelve invisible al jugador.")]
+        [Tooltip("Piso de visibilidad fuera de un escondite.")]
         [Range(0f, 1f)] public float minVisibility = 0.2f;
+        [Tooltip("Agachado dentro del pasto alto = escondido: ni los Lurker ni los reflectores te ven. Es la regla central del loop (esconderse, observar, avanzar).")]
+        public bool crouchInGrassHides = true;
 
         [Header("Movimiento")]
         [Tooltip("Multiplicador quieto.")]

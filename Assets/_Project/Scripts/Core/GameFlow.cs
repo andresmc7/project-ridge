@@ -81,6 +81,7 @@ namespace ProjectRidge.Core
             input.InteractPressed += OnDismiss;
             input.AttackPressed += OnDismiss;
             if (ufoExposure != null) ufoExposure.Captured += OnCaptured;
+            Searchlight.PlayerCaught += OnSearchlightCaught;
         }
 
         private void OnDisable()
@@ -90,6 +91,7 @@ namespace ProjectRidge.Core
             input.InteractPressed -= OnDismiss;
             input.AttackPressed -= OnDismiss;
             if (ufoExposure != null) ufoExposure.Captured -= OnCaptured;
+            Searchlight.PlayerCaught -= OnSearchlightCaught;
             Time.timeScale = 1f;
             if (Instance == this) Instance = null;
         }
@@ -256,11 +258,14 @@ namespace ProjectRidge.Core
             StartCoroutine(DeathRoutine("YOU DIED", Color.black, lift: false));
         }
 
+        private void OnSearchlightCaught(Searchlight _) => OnCaptured();
+
         private void OnCaptured()
         {
             if (Current != State.Playing) return;
             Captured?.Invoke();
-            StartCoroutine(DeathRoutine("TAKEN", new Color(0.85f, 0.95f, 1f), lift: true));
+            // La luz roja de la nave se lo lleva: el fundido toma su color.
+            StartCoroutine(DeathRoutine("TAKEN", new Color(0.95f, 0.32f, 0.26f), lift: true));
         }
 
         private IEnumerator DeathRoutine(string message, Color fadeColor, bool lift)
@@ -295,6 +300,7 @@ namespace ProjectRidge.Core
             foreach (var enemy in EnemyController.Active.ToArray())
                 enemy.ResetAfterPlayerRespawn(checkpointPos, healthConfig.respawnEnemyClearRadius, healthConfig.respawnGraceSeconds);
             if (ufoExposure != null) { ufoExposure.ResetExposure(); ufoExposure.enabled = true; }
+            Searchlight.SuppressAll(healthConfig.respawnGraceSeconds);
 
             bigMessage.text = "";
             yield return FadeTo(0f, 1.2f, fadeColor);

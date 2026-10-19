@@ -24,6 +24,7 @@ namespace ProjectRidge.Core
 
         private AudioSource musicCalm, musicChase, wind, forest, rain, heartbeat, ui, playerSfx;
         private AudioSource radio;
+        private readonly List<(Searchlight light, AudioSource hum)> hums = new List<(Searchlight, AudioSource)>();
         private readonly List<AudioSource> pool = new List<AudioSource>();
         private int poolIndex;
         private float lastSting = -99f;
@@ -69,6 +70,8 @@ namespace ProjectRidge.Core
             RadioClimax.Started += OnRadioStarted;
             RadioClimax.Squealed += OnRadioSquealed;
             CreateCreekSources();
+            CreateSearchlightSources();
+            Searchlight.PlayerSpotted += OnSpotted;
 
             var flow = GameFlow.Instance;
             if (flow != null)
@@ -86,6 +89,7 @@ namespace ProjectRidge.Core
             ScriptedApparition.Appeared -= OnApparition;
             RadioClimax.Started -= OnRadioStarted;
             RadioClimax.Squealed -= OnRadioSquealed;
+            Searchlight.PlayerSpotted -= OnSpotted;
             AudioListener.pause = false;
         }
 
@@ -114,6 +118,31 @@ namespace ProjectRidge.Core
             radio.volume = bank.ui;
             radio.Play();
             Sting(true);
+        }
+
+        private void OnSpotted(Searchlight s)
+        {
+            At(bank.searchlightAlarm, s.Spot, bank.enemy, 0.03f);
+            Sting(true);
+        }
+
+        /// <summary>Cada reflector zumba sobre su círculo (la fuente viaja con él): se oye venir antes de verlo.</summary>
+        private void CreateSearchlightSources()
+        {
+            if (bank.searchlightHumLoop == null) return;
+            foreach (var s in FindObjectsByType<Searchlight>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                var circle = s.transform.Find("Pool");
+                if (circle == null) continue;
+                var src = circle.gameObject.AddComponent<AudioSource>();
+                Configure3D(src, 2.5f, 20f);
+                src.clip = bank.searchlightHumLoop;
+                src.loop = true;
+                src.volume = bank.ambient * 0.9f;
+                src.time = Random.Range(0f, 5f);
+                src.Play();
+                hums.Add((s, src));
+            }
         }
 
         /// <summary>El arroyo suena a lo largo de su cauce (fuentes 3D cada pocos metros).</summary>
@@ -165,6 +194,8 @@ namespace ProjectRidge.Core
 
         private void Update()
         {
+            foreach (var (light, hum) in hums)
+                if (light != null && hum != null) hum.mute = !light.isActiveAndEnabled;
             anyHunting = false;
             foreach (var kv in growls)
             {

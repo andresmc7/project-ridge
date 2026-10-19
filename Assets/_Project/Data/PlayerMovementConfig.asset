@@ -16,9 +16,10 @@ MonoBehaviour:
   walkSpeed: 1.2
   jogSpeed: 2.8
   sprintSpeed: 4.2
-  acceleration: 20
-  deceleration: 25
-  turnSpeed: 540
+  acceleration: 40
+  deceleration: 55
+  turnSpeed: 1800
+  alignmentSharpness: 2
   stickDeadzone: 0.15
   jogThreshold: 0.7
   standHeight: 1.8

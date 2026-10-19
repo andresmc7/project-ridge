@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4807100865574134441}
   - component: {fileID: 6659054805429994552}
   - component: {fileID: 667548335146606983}
-  - component: {fileID: 1986605281895838516}
   m_Layer: 0
   m_Name: HollowCliff_2
   m_TagString: Untagged
@@ -114,21 +113,3 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: a330a3ae8ed10d74b8414ce0d45c4f5e, type: 2}
---- !u!114 &1986605281895838516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7793153387547510357}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2fc40a9d0c9fbd459ba5adee6aff55b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.OcclusionFadeable
-  renderers:
-  - {fileID: 6659054805429994552}
-  opaqueMaterials:
-  - {fileID: 2100000, guid: b267af6ac0becad459c739cc50404634, type: 2}
-  fadedMaterials:
-  - {fileID: 2100000, guid: ded5a5d27087a0a428ca482d61fbeddb, type: 2}

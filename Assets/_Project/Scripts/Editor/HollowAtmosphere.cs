@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ProjectRidge.Core;
@@ -168,13 +169,15 @@ namespace ProjectRidge.EditorTools
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = new Color(0.055f, 0.07f, 0.085f);
-            RenderSettings.fogDensity = 0.034f;
+            RenderSettings.fogDensity = 0.024f;
             Camera.main.backgroundColor = RenderSettings.fogColor;
 
             int cards = FogCards(root, t, noise);
             log.AppendLine("fog cards=" + cards);
             int puddles = Puddles(root, t);
             log.AppendLine("puddles=" + puddles);
+            int fungi = GlowFungi(root, t);
+            log.AppendLine("glow fungi=" + fungi);
             Particles(root, player, dot);
             log.AppendLine("particles ok");
             UpgradeUfo(noise, dot);
@@ -369,13 +372,13 @@ namespace ProjectRidge.EditorTools
             var go = new GameObject("HeroFill");
             var l = go.AddComponent<Light>();
             l.type = LightType.Point;
-            l.range = 3.8f;
-            l.intensity = 1.6f;
+            l.range = 4.6f;
+            l.intensity = 2.6f;
             l.color = new Color(0.55f, 0.66f, 0.88f);
             l.shadows = LightShadows.None;
             var data = go.AddComponent<UniversalAdditionalLightData>();
             data.renderingLayers = 2u;
-            FollowPlayer(go, player.transform, new Vector3(-1.4f, 2.6f, -1.4f));
+            FollowPlayer(go, player.transform, new Vector3(-0.8f, 2.8f, -1.9f)); // desde el lado de la cámara (al sur)
         }
 
         static void SetupFlashlight(GameObject player)
@@ -427,18 +430,144 @@ namespace ProjectRidge.EditorTools
             }
             // El arroyo exhala niebla.
             for (float z = -20f; z <= 20f; z += 4.5f) Card(new Vector3(RavineX(z), -1.4f, z), 7f, z * 13f);
-            // El prado del reflector y el sendero.
-            Card(OnGround(t, Meadow.x, Meadow.z, 0.55f), 14f, 20f);
-            Card(OnGround(t, Meadow.x - 4f, Meadow.z + 3f, 0.9f), 9f, 70f);
-            foreach (var p in MainTrail.Concat(NorthTrail))
-                if (Random.value < 0.55f) Card(OnGround(t, p.x + Random.Range(-2f, 2f), p.z + Random.Range(-2f, 2f), Random.Range(0.35f, 0.9f)), Random.Range(6f, 10f), Random.Range(0f, 360f));
-            // Bordes del valle: un muro de niebla que cierra el cuadro.
-            for (float x = -32f; x <= 30f; x += 7f)
+            // Niebla que se arrastra desde el bosque hasta el borde de cada sala, nunca encima del escenario:
+            // el sendero y los escondites siempre se leen; la oscuridad y la niebla los rodean.
+            var rng = new System.Random(31);
+            int placed = 0;
+            for (int tries = 0; tries < 4000 && placed < 70; tries++)
             {
-                Card(OnGround(t, x, -18.5f, 1.2f), 11f, 0f);
-                Card(OnGround(t, x, 18.5f, 1.2f), 11f, 0f);
+                var p = new Vector3(TerrainMin.x + (float)rng.NextDouble() * SizeX, 0f, TerrainMin.y + (float)rng.NextDouble() * SizeZ);
+                float d = Walk(p);
+                if (d < 1.6f || d > 7f) continue;
+                float size = 7f + (float)rng.NextDouble() * 5f;
+                Card(OnGround(t, p.x, p.z, 0.6f + (float)rng.NextDouble() * 0.6f), size, (float)rng.NextDouble() * 360f);
+                placed++;
             }
             return n;
+        }
+
+        // ------------------------------------------------------------------ Hongos luminosos
+
+        static Mesh ShroomPart(string name, bool cap)
+        {
+            const int seg = 8;
+            var v = new List<Vector3>();
+            var tris = new List<int>();
+            if (!cap)
+            {
+                // Tallo: cilindro unitario (radio 1, alto 1), se escala por instancia.
+                for (int i = 0; i <= seg; i++)
+                {
+                    float a = i / (float)seg * Mathf.PI * 2f;
+                    var d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                    v.Add(d); v.Add(d + Vector3.up);
+                }
+                for (int i = 0; i < seg; i++) { int b = i * 2; tris.AddRange(new[] { b, b + 1, b + 2, b + 1, b + 3, b + 2 }); }
+            }
+            else
+            {
+                // Sombrero: media elipsoide aplastada con borde un poco caído.
+                const int rings = 4;
+                for (int r = 0; r <= rings; r++)
+                {
+                    float phi = r / (float)rings * Mathf.PI * 0.5f;
+                    for (int i = 0; i <= seg; i++)
+                    {
+                        float a = i / (float)seg * Mathf.PI * 2f;
+                        float rad = Mathf.Cos(phi);
+                        v.Add(new Vector3(Mathf.Cos(a) * rad, Mathf.Sin(phi) * 0.6f - (r == 0 ? 0.15f : 0f), Mathf.Sin(a) * rad));
+                    }
+                }
+                for (int r = 0; r < rings; r++)
+                    for (int i = 0; i < seg; i++)
+                    {
+                        int a0 = r * (seg + 1) + i, a1 = a0 + seg + 1;
+                        tris.AddRange(new[] { a0, a1, a0 + 1, a1, a1 + 1, a0 + 1 });
+                    }
+            }
+            var m = new Mesh { name = name, vertices = v.ToArray(), triangles = tris.ToArray() };
+            m.RecalculateNormals();
+            m.RecalculateBounds();
+            return m;
+        }
+
+        /// <summary>
+        /// Hongos bioluminiscentes en racimos a lo largo del borde de cada sala: dibujan el contorno del escenario
+        /// (lectura de diorama), ponen color frío en la oscuridad y no gastan luces (emisión + bloom).
+        /// </summary>
+        static int GlowFungi(Transform root, Terrain t)
+        {
+            var capMat = AssetDatabase.LoadAssetAtPath<Material>(DataDir + "/Hollow_GlowCap.mat");
+            if (capMat == null) { capMat = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(capMat, DataDir + "/Hollow_GlowCap.mat"); }
+            capMat.SetColor("_BaseColor", new Color(0.25f, 0.8f, 0.78f));
+            capMat.SetFloat("_Smoothness", 0.55f);
+            capMat.EnableKeyword("_EMISSION");
+            capMat.SetColor("_EmissionColor", new Color(0.18f, 1.25f, 1.15f));
+            capMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            EditorUtility.SetDirty(capMat);
+            var stemMat = AssetDatabase.LoadAssetAtPath<Material>(DataDir + "/Hollow_GlowStem.mat");
+            if (stemMat == null) { stemMat = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(stemMat, DataDir + "/Hollow_GlowStem.mat"); }
+            stemMat.SetColor("_BaseColor", new Color(0.72f, 0.78f, 0.7f));
+            stemMat.EnableKeyword("_EMISSION");
+            stemMat.SetColor("_EmissionColor", new Color(0.05f, 0.2f, 0.18f));
+            EditorUtility.SetDirty(stemMat);
+
+            var stem = ShroomPart("ShroomStem", false);
+            var cap = ShroomPart("ShroomCap", true);
+            var chunks = new Dictionary<(int, int), (List<CombineInstance> stems, List<CombineInstance> caps)>();
+            var rng = new System.Random(57);
+            float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+            bool NearPatch(Vector3 p)
+            {
+                foreach (var h in HidePatches) if (new Vector2(p.x - h.x, p.z - h.y).magnitude < h.z + 0.8f) return true;
+                return false;
+            }
+
+            int clusters = 0, count = 0;
+            for (int tries = 0; tries < 20000 && clusters < 110; tries++)
+            {
+                var c = new Vector3(R(TerrainMin.x, TerrainMin.x + SizeX), 0f, R(TerrainMin.y, TerrainMin.y + SizeZ));
+                float d = Walk(c);
+                if (d < -0.5f || d > 0.9f) continue;
+                if (DistanceToTrails(c) < 2.4f || NearPatch(c) || Mathf.Abs(c.x - RavineX(c.z)) < 4.2f) continue;
+                clusters++;
+                int n = rng.Next(3, 8);
+                for (int i = 0; i < n; i++)
+                {
+                    var p = new Vector3(c.x + R(-0.45f, 0.45f), 0f, c.z + R(-0.45f, 0.45f));
+                    p.y = GroundY(t, p) - 0.02f;
+                    float h = R(0.07f, 0.26f), capR = R(0.05f, 0.13f);
+                    var tilt = Quaternion.Euler(R(-12f, 12f), R(0f, 360f), R(-12f, 12f));
+                    var key = (Mathf.FloorToInt(p.x / 12f), Mathf.FloorToInt(p.z / 12f));
+                    if (!chunks.TryGetValue(key, out var lists)) chunks[key] = lists = (new List<CombineInstance>(), new List<CombineInstance>());
+                    lists.stems.Add(new CombineInstance { mesh = stem, transform = Matrix4x4.TRS(p, tilt, new Vector3(capR * 0.28f, h, capR * 0.28f)) });
+                    lists.caps.Add(new CombineInstance { mesh = cap, transform = Matrix4x4.TRS(p + tilt * Vector3.up * h, tilt, Vector3.one * capR) });
+                    count++;
+                }
+            }
+
+            var parent = new GameObject("GlowFungi").transform;
+            parent.SetParent(root, false);
+            int k = 0;
+            foreach (var kv in chunks)
+            {
+                foreach (var (list, mat, tag) in new[] { (kv.Value.stems, stemMat, "Stems"), (kv.Value.caps, capMat, "Caps") })
+                {
+                    var mesh = new Mesh { name = "Fungi" + tag + "_" + k, indexFormat = IndexFormat.UInt32 };
+                    mesh.CombineMeshes(list.ToArray(), true, true);
+                    mesh.RecalculateBounds();
+                    mesh = ChunkyMeshGenerator.Save(mesh);
+                    var go = new GameObject(mesh.name);
+                    go.transform.SetParent(parent, false);
+                    go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                    var mr = go.AddComponent<MeshRenderer>();
+                    mr.sharedMaterial = mat;
+                    mr.shadowCastingMode = ShadowCastingMode.Off;
+                    mr.receiveGI = ReceiveGI.LightProbes;
+                }
+                k++;
+            }
+            return count;
         }
 
         // ------------------------------------------------------------------ Charcos

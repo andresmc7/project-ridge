@@ -757,6 +757,45 @@ namespace ProjectRidge.EditorTools
             return MakeLoop(outB, 0.5f);
         }
 
+        static float[] SearchlightHum()
+        {
+            // Zumbido de la nave sobre el reflector: dos graves que baten, un silbido eléctrico y chisporroteo.
+            var b = Buf(6f);
+            var bp = new BP();
+            float p1 = 0f, p2 = 0f, p3 = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR;
+                p1 += TAU * 55f / SR;
+                p2 += TAU * 55.7f / SR;
+                p3 += TAU * (1320f + 40f * Mathf.Sin(t * 2.1f)) / SR;
+                float hum = (Mathf.Sin(p1) + Mathf.Sin(p2) + 0.45f * Mathf.Sin(p1 * 2f) + 0.2f * Mathf.Sin(p2 * 3f)) * 0.3f;
+                float whine = Mathf.Sin(p3) * 0.045f * (0.6f + 0.4f * Mathf.Sin(t * 0.9f));
+                float hiss = bp.Process(Noise(), 3200f, 1.2f) * 0.1f * Mathf.PerlinNoise(t * 7f, 3f);
+                b[i] = hum + whine + hiss;
+            }
+            Normalize(b, 0.6f);
+            return MakeLoop(b, 1f);
+        }
+
+        static float[] SearchlightAlarm()
+        {
+            // "Te vio": dos pulsos ásperos que suben, con cola metálica.
+            var b = Buf(0.8f);
+            float ph = 0f;
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR;
+                float local = t % 0.3f;
+                float f = (t < 0.3f ? 620f : 880f) * (1f + local * 0.6f);
+                ph += TAU * f / SR;
+                float tone = Mathf.Sin(ph) * 0.55f + Mathf.Sign(Mathf.Sin(ph * 0.5f)) * 0.18f;
+                b[i] = t < 0.6f ? tone * Env(local, 0.004f, 0.12f) : 0f;
+            }
+            Normalize(b, 0.85f);
+            return Reverb(b, 0.3f, 0.7f, 0.4f);
+        }
+
         static float[] StoneImpact()
         {
             var b = Clicks(0.3f, 3, 2200f, 5f, 0.08f);
@@ -857,6 +896,8 @@ namespace ProjectRidge.EditorTools
             bank.creekLoop = Write("amb_creek_loop", CreekLoop());
             bank.radioLoop = Write("radio_loop", RadioLoop());
             bank.stoneImpact = Write("stone_impact", StoneImpact());
+            bank.searchlightHumLoop = Write("searchlight_hum_loop", SearchlightHum());
+            bank.searchlightAlarm = Write("searchlight_alarm", SearchlightAlarm());
             EditorUtility.SetDirty(bank);
             AssetDatabase.SaveAssets();
             return "audio bank: " + AssetDatabase.FindAssets("t:AudioClip", new[] { OutDir }).Length + " clips";

@@ -116,7 +116,6 @@ namespace ProjectRidge.EditorTools
             int n = 0;
             n += BuildCabin(parent, t, m, blockers);
             n += BuildBridge(parent, t, m);
-            n += BuildLogCrossing(parent, t, m);
             n += BuildStream(parent, t, m);
             n += BuildCamp(parent, t, m, blockers);
             n += BuildRoadAndTruck(parent, t, m, blockers);
@@ -142,18 +141,21 @@ namespace ProjectRidge.EditorTools
                     Board(w, "Panel", new Vector3(p.width, p.height, T), m.planks, new Vector3(p.start + p.width * 0.5f - length * 0.5f, p.height * 0.5f + 0.1f, 0f), Vector3.zero);
             }
             Wall("Wall_N", new Vector3(0f, 0f, D * 0.5f), 0f, W, new[] { new Panel(0f, 1.4f, 2.3f), new Panel(1.4f, 1.1f, 1.7f), new Panel(2.5f, 0.9f, 0.9f), new Panel(4.6f, 1.6f, 2.1f) });
-            Wall("Wall_S", new Vector3(0f, 0f, -D * 0.5f), 180f, W, new[] { new Panel(0f, 1.7f, 2.2f), new Panel(1.7f, 1.2f, 0.85f), new Panel(2.9f, 1.3f, 1.9f), new Panel(4.2f, 2.0f, 2.4f) });
+            // Pared sur en ruinas y baja (corte de diorama): la cámara mira al norte y ve el interior entero.
+            Wall("Wall_S", new Vector3(0f, 0f, -D * 0.5f), 180f, W, new[] { new Panel(0f, 1.7f, 0.7f), new Panel(1.7f, 1.2f, 0.45f), new Panel(2.9f, 1.3f, 0.8f), new Panel(4.2f, 2.0f, 0.6f) });
             Wall("Wall_W", new Vector3(-W * 0.5f, 0f, 0f), -90f, D, new[] { new Panel(0f, 1.8f, 2.5f), new Panel(1.8f, 1.5f, 1.4f), new Panel(3.3f, 1.9f, 2.0f) });
             Wall("Wall_E", new Vector3(W * 0.5f, 0f, 0f), 90f, D, new[] { new Panel(0f, 1.7f, 2.2f), new Panel(3.0f, 2.2f, 1.6f) }); // puerta de 1.3 m
             // Las paredes se desvanecen cuando tapan al papá (dentro del refugio o detrás).
             foreach (var wn in new[] { "Wall_N", "Wall_S", "Wall_W", "Wall_E" }) MakeFadeable(c.Find(wn).gameObject);
             // Dintel sobre la ventana sur y un tablón suelto colgando.
-            Board(c, "Sill_S", new Vector3(1.2f, 0.12f, 0.22f), m.planks, new Vector3(-0.75f, 0.95f, -D * 0.5f), Vector3.zero, false);
-            Board(c, "HangingBoard", new Vector3(1.4f, 0.25f, 0.08f), m.planks, new Vector3(0.3f, 1.25f, -D * 0.5f - 0.25f), new Vector3(0f, 10f, 35f), false);
+            Board(c, "HangingBoard", new Vector3(1.4f, 0.25f, 0.08f), m.planks, new Vector3(0.3f, 0.2f, -D * 0.5f - 0.35f), new Vector3(0f, 10f, 80f), false);
 
             // Postes de las esquinas.
             foreach (var p in new[] { new Vector3(-W, 0, -D), new Vector3(W, 0, -D), new Vector3(-W, 0, D), new Vector3(W, 0, D) })
-                LogPiece(c, "CornerPost", 2.7f, 0.14f, m, new Vector3(p.x * 0.5f, 1.35f, p.z * 0.5f), new Vector3(-90f, 0f, 0f));
+            {
+                float h = p.z < 0f ? 0.9f : 2.7f;
+                LogPiece(c, "CornerPost", h, 0.14f, m, new Vector3(p.x * 0.5f, h * 0.5f, p.z * 0.5f), new Vector3(-90f, 0f, 0f));
+            }
 
             // Techo caído: una viga aún cruza, otra apoyada en diagonal, tablones en el suelo.
             LogPiece(c, "Beam_Standing", W + 0.6f, 0.13f, m, new Vector3(0f, 2.25f, 0.6f), new Vector3(0f, 90f, 0f), false);
@@ -385,17 +387,18 @@ namespace ProjectRidge.EditorTools
             MakeFadeable(truck.gameObject);
 
             // Barrera de "camino cerrado" al sur y postes con reflectores.
-            var barrier = Group(parent, "RoadClosed", OnGround(t, RoadX, -9f), 0f);
+            var barrier = Group(parent, "RoadClosed", OnGround(t, RoadX, -6.2f), 0f);
             foreach (float x in new[] { -2.2f, 2.2f }) LogPiece(barrier, "Post", 1.1f, 0.08f, m, new Vector3(x, 0.55f, 0f), new Vector3(-90f, 0f, 0f));
             var stripe = Tinted(m.planks, "Hollow_BarrierStripe", new Color(0.9f, 0.55f, 0.35f));
             Board(barrier, "Bar", new Vector3(5f, 0.3f, 0.08f), stripe, new Vector3(0f, 0.9f, 0f), new Vector3(0f, 0f, -4f));
             Sign(barrier, "ROAD CLOSED", new Vector3(3.6f, 0f, 0.4f), 0f, m);
-            for (float z = -18f; z < 19f; z += 7f)
+            for (float z = -4f; z < 7f; z += 5f)
             {
-                if (Mathf.Abs(z - TruckPos.z) < 4f) continue;
+                if (Mathf.Abs(z - TruckPos.z) < 3f) continue;
                 foreach (float s in new[] { -1f, 1f })
                 {
-                    var p = OnGround(t, RoadX + s * (RoadHalf + 0.4f), z + (s > 0 ? 3f : 0f));
+                    var p = OnGround(t, RoadX + s * (RoadHalf + 0.4f), z + (s > 0 ? 2f : 0f));
+                    if (Walk(p) > -0.4f) continue;
                     var post = Group(parent, "RoadMarker", p, 0f);
                     LogPiece(post, "Post", 1f, 0.05f, m, new Vector3(0f, 0.5f, 0f), new Vector3(-90f, 0f, 0f), false);
                     Board(post, "Reflector", new Vector3(0.08f, 0.1f, 0.02f), m.glowLantern, new Vector3(0f, 0.9f, -0.05f), Vector3.zero, false);
@@ -414,21 +417,20 @@ namespace ProjectRidge.EditorTools
             var orange = Tinted(m.planks, "Hollow_TrailBlaze", new Color(1f, 0.55f, 0.25f));
             orange.EnableKeyword("_EMISSION");
             orange.SetColor("_EmissionColor", new Color(0.35f, 0.12f, 0.03f));
-            foreach (var path in new[] { MainTrail, NorthTrail })
-                for (int i = 1; i < path.Length - 1; i += 2)
-                {
-                    Vector3 dir = (path[i + 1] - path[i - 1]).normalized;
-                    Vector3 side = Vector3.Cross(Vector3.up, dir);
-                    var p = OnGround(t, path[i].x + side.x * 2.2f, path[i].z + side.z * 2.2f);
-                    var post = Group(g, "TrailMarker", p, Random.Range(0f, 360f));
-                    LogPiece(post, "Post", 1.2f, 0.07f, m, new Vector3(0f, 0.55f, 0f), new Vector3(-90f, 0f, 0f), false);
-                    Board(post, "Blaze", new Vector3(0.16f, 0.2f, 0.16f), orange, new Vector3(0f, 0.95f, 0f), Vector3.zero, false);
-                }
+            // Postes con marca naranja a la salida de cada sala: dicen "por aquí" sin texto.
+            foreach (var c in Corridors)
+            {
+                Vector3 a = new Vector3(c.x, 0f, c.y), b = new Vector3(c.z, 0f, c.w);
+                Vector3 dir = (b - a).normalized;
+                Vector3 side = Vector3.Cross(Vector3.up, dir);
+                var p = OnGround(t, a.x + dir.x * 1.5f + side.x * 1.4f, a.z + dir.z * 1.5f + side.z * 1.4f);
+                var post = Group(g, "TrailMarker", p, Random.Range(0f, 360f));
+                LogPiece(post, "Post", 1.2f, 0.07f, m, new Vector3(0f, 0.55f, 0f), new Vector3(-90f, 0f, 0f), false);
+                Board(post, "Blaze", new Vector3(0.16f, 0.2f, 0.16f), orange, new Vector3(0f, 0.95f, 0f), Vector3.zero, false);
+            }
 
-            // Troncos caídos: cobertura baja (agacharse detrás).
-            var logs = new[] { new Vector4(-19, -6, 30, 4f), new Vector4(-14, 5, -60, 3.5f), new Vector4(1, -1, 15, 4f), new Vector4(12, -12, 70, 4f),
-                               new Vector4(17, 1.5f, -20, 3.5f), new Vector4(4, 13.5f, 10, 4f), new Vector4(12, 8, 80, 3.5f), new Vector4(24, -4, 45, 4f) };
-            foreach (var l in logs)
+            // Troncos caídos de diseño.
+            foreach (var l in CoverLogs)
             {
                 var p = OnGround(t, l.x, l.y, 0.32f);
                 var go = LogPiece(g, "FallenLog", l.w, 0.42f, m, Vector3.zero, Vector3.zero);
@@ -436,8 +438,8 @@ namespace ProjectRidge.EditorTools
                 blockers.Add(p);
             }
 
-            // Árboles secos (siluetas inquietantes) junto al prado y el camino.
-            var dead = new[] { new Vector2(2, -13), new Vector2(15, -9), new Vector2(26, 9), new Vector2(-17, 8), new Vector2(-23, -9) };
+            // Árboles secos sobre los acantilados del norte: siluetas contra la niebla, nunca tapan.
+            var dead = new[] { new Vector2(-60f, 8.4f), new Vector2(-35f, 9f), new Vector2(-9f, 9.6f), new Vector2(14f, 10.2f), new Vector2(39f, 8.4f), new Vector2(57f, 10f) };
             foreach (var d in dead)
             {
                 var p = OnGround(t, d.x, d.y, -0.1f);
@@ -466,17 +468,16 @@ namespace ProjectRidge.EditorTools
             var respawn = player.GetComponent<ProjectRidge.Player.PlayerRespawn>();
             if (respawn != null) Object.DestroyImmediate(respawn); // el GameFlow maneja muerte y checkpoints
 
-            // Lurker A: guarda el campamento y la llegada al camino (las dos rutas convergen aquí).
-            var lurkerA = GameObject.Find("Lurker");
-            var a = Patrol("LurkerPatrol", t, new[] { new Vector2(17, -1), new Vector2(24, -3), new Vector2(26.5f, 5), new Vector2(20, 8.5f), new Vector2(16.5f, 4.5f) });
-            SetPatrol(lurkerA, a, t);
-
-            // Lurker B: el bosque del norte (la ruta cubierta no es gratis).
-            var lurkerB = Object.Instantiate(lurkerA);
-            lurkerB.name = "Lurker_B";
-            var b = Patrol("LurkerPatrol_B", t, new[] { new Vector2(-1, 10.5f), new Vector2(5, 13.5f), new Vector2(11.5f, 12.5f), new Vector2(7, 9.5f) });
-            SetPatrol(lurkerB, b, t);
-            log.AppendLine("lurkers=2");
+            var template = GameObject.Find("Lurker");
+            foreach (var (name, pts) in Patrols)
+            {
+                var lurker = name == "Lurker" ? template : Object.Instantiate(template);
+                lurker.name = name;
+                var route = Patrol("LurkerPatrol" + name.Substring("Lurker".Length), t, pts);
+                SetPatrol(lurker, route, t);
+                EnsureVisionCone(lurker);
+            }
+            log.AppendLine("lurkers=" + Patrols.Length);
         }
 
         static Transform[] Patrol(string name, Terrain t, Vector2[] pts)
@@ -490,7 +491,8 @@ namespace ProjectRidge.EditorTools
                 p.position = OnGround(t, pts[i].x, pts[i].y, 0.02f);
                 list[i] = p;
             }
-            // En cada parada el Lurker mira hacia afuera de su zona (vigila la oscuridad): patrón legible.
+            // En cada parada mira hacia afuera de su ruta, sobre todo a los lados (por donde llega el papá).
+            // Una patrulla en línea recta mira al oeste: hacia el camino del jugador.
             Vector3 c = Vector3.zero;
             foreach (var p in list) c += p.position;
             c /= list.Length;
@@ -498,7 +500,9 @@ namespace ProjectRidge.EditorTools
             {
                 Vector3 o = p.position - c;
                 o.y = 0f;
-                if (o.sqrMagnitude > 0.01f) p.rotation = Quaternion.LookRotation(o);
+                o.z *= 0.35f;
+                if (o.sqrMagnitude < 0.25f || Mathf.Abs(o.x) < 0.4f) o = Vector3.left;
+                p.rotation = Quaternion.LookRotation(o.normalized);
             }
             return list;
         }
@@ -516,11 +520,35 @@ namespace ProjectRidge.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        /// <summary>Cono de visión en el suelo: el patrón del Lurker se lee de un vistazo.</summary>
+        static void EnsureVisionCone(GameObject lurker)
+        {
+            var old = lurker.transform.Find("VisionCone");
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+            var go = new GameObject("VisionCone");
+            go.transform.SetParent(lurker.transform, false);
+            go.AddComponent<MeshFilter>();
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            string path = DataDir + "/FX_VisionCone.mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (mat == null) { mat = new Material(Shader.Find("ProjectRidge/VisionCone")); AssetDatabase.CreateAsset(mat, path); }
+            mr.sharedMaterial = mat;
+            var cone = go.AddComponent<ProjectRidge.AI.VisionCone>();
+            var enemy = lurker.GetComponent<ProjectRidge.AI.EnemyController>();
+            var so = new SerializedObject(cone);
+            so.FindProperty("enemy").objectReferenceValue = enemy;
+            so.FindProperty("config").objectReferenceValue = new SerializedObject(enemy).FindProperty("config").objectReferenceValue;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         static void PlaceItems(Terrain t, System.Text.StringBuilder log)
         {
             var root = new GameObject("Items").transform;
             var cabinRot = Quaternion.Euler(0f, CabinYaw, 0f);
             Vector3 Cabin(float x, float z) => OnGround(t, CabinCenter.x, CabinCenter.z, 0.16f) + cabinRot * new Vector3(x, 0f, z);
+            Vector3 At(float x, float z) => OnGround(t, x, z, 0.02f);
 
             var config = ItemsSetupBuilder.LoadConfig();
             var med = ItemsSetupBuilder.LoadItem("Medkit");
@@ -528,35 +556,31 @@ namespace ProjectRidge.EditorTools
             var scrap = ItemsSetupBuilder.LoadItem("Scrap");
             var wood = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_weathered_brown_planks.mat");
 
-            // Refugio: suministros esparcidos.
-            ItemsSetupBuilder.Crate(root, "Crate_Shelter", Cabin(2.3f, -1.6f), CabinYaw + 15f, config, wood,
+            // Refugio: suministros.
+            ItemsSetupBuilder.Crate(root, "Crate_Shelter", Cabin(2.3f, -1.4f), CabinYaw + 15f, config, wood,
                 new SearchableContainer.Entry { item = med, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
-            ItemsSetupBuilder.PickupObject(root, "Scrap", Cabin(-1.2f, -1.7f), 40f);
+            ItemsSetupBuilder.PickupObject(root, "Scrap", Cabin(-1.2f, -1.5f), 40f);
 
-            // Sendero y prado (la bengala del prado está bajo el barrido del OVNI: recompensa con riesgo).
-            ItemsSetupBuilder.PickupObject(root, "Scrap", OnGround(t, -18f, -3.5f, 0.02f), 10f);
-            ItemsSetupBuilder.PickupObject(root, "Flare", OnGround(t, Meadow.x + 1f, Meadow.z + 1f, 0.02f), 70f);
-            ItemsSetupBuilder.PickupObject(root, "Medkit", OnGround(t, Meadow.x - 3f, Meadow.z - 1.6f, 0.02f), 200f);
-
-            // Ruta norte: caja escondida entre arbustos.
-            ItemsSetupBuilder.Crate(root, "Crate_North", OnGround(t, 1.5f, 13f), 160f, config, wood,
+            // Sala 3: la bengala está justo en el cruce de los dos reflectores (recompensa con riesgo).
+            ItemsSetupBuilder.PickupObject(root, "Flare", At(11.2f, 0.6f), 70f);
+            ItemsSetupBuilder.PickupObject(root, "Medkit", At(16.4f, 5.6f), 200f);
+            // Sala 4: caja escondida en el centro, entre las rocas.
+            ItemsSetupBuilder.Crate(root, "Crate_Thicket", OnGround(t, 34.4f, 0.6f), 160f, config, wood,
                 new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = med, amount = 1 });
-            ItemsSetupBuilder.PickupObject(root, "Scrap", OnGround(t, 9f, 13.5f, 0.02f), 120f);
-
             // Campamento.
             ItemsSetupBuilder.Crate(root, "Crate_Camp", OnGround(t, Camp.x - 2.6f, Camp.z - 2.2f), 70f, config, wood,
                 new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
-            ItemsSetupBuilder.PickupObject(root, "Medkit", OnGround(t, Camp.x + 3.6f, Camp.z + 2.8f, 0.02f), 15f);
+            ItemsSetupBuilder.PickupObject(root, "Medkit", At(Camp.x + 3.6f, Camp.z + 2.2f), 15f);
 
-            // Piedras para distraer, donde el jugador las necesita (antes de cada encuentro).
+            // Piedras para distraer, justo antes de cada sala con Lurker.
             ItemsSetupBuilder.EnsureItem("Stone", "Stone", "STONE", 4);
-            foreach (var s in new[] { new Vector2(-23.5f, -3.4f), new Vector2(-17.5f, -2.2f), new Vector2(-12.5f, 6.5f), new Vector2(1.5f, -8.5f), new Vector2(3f, 10.5f), new Vector2(14.5f, -4.5f), new Vector2(17.5f, 7.5f), new Vector2(24.5f, -1f) })
+            foreach (var s in new[] { new Vector2(-25.5f, 1.1f), new Vector2(-21.6f, -1.6f), new Vector2(-3.6f, -2.6f), new Vector2(24.6f, -1.6f), new Vector2(29.4f, -4.2f), new Vector2(48.4f, 1.2f), new Vector2(51.2f, -2.2f) })
                 ItemsSetupBuilder.PickupObject(root, "Stone", OnGround(t, s.x, s.y, 0.04f), Random.Range(0f, 360f));
 
             // Garrote de repuesto junto al puente.
             var club = new GameObject("Pickup_Club");
             club.transform.SetParent(root, false);
-            club.transform.position = OnGround(t, RavineX(BridgeZ) - 6.5f, BridgeZ + 1.6f, 0.06f);
+            club.transform.position = OnGround(t, -21f, 2.2f, 0.06f);
             club.transform.rotation = Quaternion.Euler(0f, 30f, 90f);
             var stick = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             Object.DestroyImmediate(stick.GetComponent<Collider>());
@@ -630,34 +654,114 @@ namespace ProjectRidge.EditorTools
                 so.FindProperty("objective").stringValue = objective;
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
-            Cp("CP_Creek", -16f, -3.5f, new Vector3(5f, 3f, 3f), "Cross the creek.");
-            Cp("CP_Creek_North", -14f, 4f, new Vector3(5f, 3f, 3f), "Cross the creek.");
-            Cp("CP_Bridge", 0f, -3.5f, new Vector3(4f, 3f, 3f), "Find where they went.");
-            Cp("CP_Log", 0f, 9f, new Vector3(4f, 3f, 3f), "Find where they went.");
-            Cp("CP_Camp", 16f, 2f, new Vector3(8f, 3f, 3f), "");
-            Cp("CP_Radio", 25.5f, 1f, new Vector3(4f, 3f, 6f), "Use the truck's radio.");
+            // En los pasillos entre salas: lugares seguros, fuera de rutas y conos. El objetivo enseña el loop.
+            Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Red light takes you. Crouch (C) in the golden grass and wait for it to pass.");
+            Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek. Watch where it looks.");
+            Cp("CP_TwoLights", -1.6f, 0.4f, new Vector3(3f, 3f, 4.5f), "Learn the pattern. Move between the lights.");
+            Cp("CP_Thicket", 24f, 0f, new Vector3(3f, 3f, 4.5f), "Find where they went.");
+            Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the truck on the access road.");
+            // Fuera de la ruta de S5 y de los reflectores del clímax (que se apagan al morir).
+            Cp("CP_Radio", 58.6f, -2f, new Vector3(3f, 3f, 6f), "Use the truck's radio.");
         }
 
-        static void PlaceUfoScanPoints(Terrain t)
+        // ------------------------------------------------------------------ Reflectores rojos
+
+        static string BuildSearchlights(Terrain t)
         {
-            var pointsRoot = GameObject.Find("UFOScanPoints").transform;
-            for (int i = pointsRoot.childCount - 1; i >= 0; i--) Object.DestroyImmediate(pointsRoot.GetChild(i).gameObject);
-            // Barre el prado y la salida del puente (ruta expuesta).
-            var xz = new[] { new Vector2(2, -6), new Vector2(5, -12), new Vector2(9, -8.5f), new Vector2(13, -11), new Vector2(11, -5), new Vector2(6, -9) };
-            var pts = new Transform[xz.Length];
-            for (int i = 0; i < xz.Length; i++)
+            const string cfgPath = "Assets/_Project/Data/SearchlightConfig.asset";
+            var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.AI.SearchlightConfig>(cfgPath);
+            if (cfg == null) { cfg = ScriptableObject.CreateInstance<ProjectRidge.AI.SearchlightConfig>(); AssetDatabase.CreateAsset(cfg, cfgPath); }
+
+            var noise = NoiseTex();
+            string poolPath = FxDir + "/FX_LightPool.mat";
+            var pool = AssetDatabase.LoadAssetAtPath<Material>(poolPath);
+            if (pool == null) { pool = new Material(Shader.Find("ProjectRidge/LightPool")); AssetDatabase.CreateAsset(pool, poolPath); }
+            pool.SetTexture("_NoiseTex", noise);
+            pool.SetColor("_Color", cfg.color);
+            EditorUtility.SetDirty(pool);
+
+            string beamPath = FxDir + "/FX_SearchBeam.mat";
+            var beam = AssetDatabase.LoadAssetAtPath<Material>(beamPath);
+            if (beam == null) { beam = new Material(Shader.Find("ProjectRidge/VolumetricBeam")); AssetDatabase.CreateAsset(beam, beamPath); }
+            beam.SetTexture("_NoiseTex", noise);
+            beam.SetColor("_Color", cfg.color);
+            beam.SetFloat("_Intensity", 1.1f);
+            beam.SetFloat("_Density", 0.1f);
+            beam.SetFloat("_NoiseScale", 0.16f);
+            beam.SetFloat("_NoiseSpeed", 0.3f);
+            beam.SetFloat("_CameraFade", 6f);
+            beam.SetFloat("_EdgePower", 1.4f);
+            beam.SetFloat("_LengthFalloff", 0.6f);
+            EditorUtility.SetDirty(beam);
+
+            var cone = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/_Project/Art/Meshes/UFO_BeamCone.asset");
+            var cube = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+
+            var root = new GameObject("Searchlights").transform;
+            var built = new Dictionary<string, ProjectRidge.AI.Searchlight>();
+            foreach (var d in Searchlights)
             {
-                var p = new GameObject("S" + i).transform;
-                p.SetParent(pointsRoot, false);
-                p.position = OnGround(t, xz[i].x, xz[i].y);
-                pts[i] = p;
+                var go = new GameObject(d.name);
+                go.transform.SetParent(root, false);
+                var poolGo = new GameObject("Pool");
+                poolGo.transform.SetParent(go.transform, false);
+                poolGo.AddComponent<MeshFilter>().sharedMesh = cube;
+                var pr = poolGo.AddComponent<MeshRenderer>();
+                pr.sharedMaterial = pool;
+                pr.shadowCastingMode = ShadowCastingMode.Off;
+                pr.receiveShadows = false;
+                var beamGo = new GameObject("Beam");
+                beamGo.transform.SetParent(go.transform, false);
+                beamGo.AddComponent<MeshFilter>().sharedMesh = cone;
+                var br = beamGo.AddComponent<MeshRenderer>();
+                br.sharedMaterial = beam;
+                br.shadowCastingMode = ShadowCastingMode.Off;
+                br.receiveShadows = false;
+
+                var s = go.AddComponent<ProjectRidge.AI.Searchlight>();
+                var so = new SerializedObject(s);
+                so.FindProperty("config").objectReferenceValue = cfg;
+                var route = so.FindProperty("route");
+                route.arraySize = d.route.Length;
+                for (int i = 0; i < d.route.Length; i++) route.GetArrayElementAtIndex(i).vector3Value = OnGround(t, d.route[i].x, d.route[i].y);
+                so.FindProperty("loop").boolValue = d.loop;
+                so.FindProperty("speed").floatValue = d.speed;
+                so.FindProperty("pauseAtPoints").floatValue = d.pause;
+                so.FindProperty("phase").floatValue = d.phase;
+                so.FindProperty("startActive").boolValue = d.startActive;
+                so.FindProperty("spotVolume").objectReferenceValue = pr;
+                so.FindProperty("beamVisual").objectReferenceValue = br;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                go.transform.position = OnGround(t, d.route[0].x, d.route[0].y);
+                built[d.name] = s;
             }
-            var ufo = Object.FindFirstObjectByType<ProjectRidge.AI.UFOController>();
-            var so = new SerializedObject(ufo);
-            var arr = so.FindProperty("scanPoints");
-            arr.arraySize = pts.Length;
-            for (int i = 0; i < pts.Length; i++) arr.GetArrayElementAtIndex(i).objectReferenceValue = pts[i];
-            so.ApplyModifiedPropertiesWithoutUndo();
+
+            // Una sola luz real con sombras, en el reflector más cercano al papá.
+            var lightGo = new GameObject("SearchlightLight");
+            lightGo.transform.SetParent(root, false);
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.shadows = LightShadows.Soft;
+            light.lightmapBakeType = LightmapBakeType.Realtime;
+            light.color = cfg.color;
+            light.cookie = BeamCookie();
+            var proxy = lightGo.AddComponent<ProjectRidge.AI.SearchlightLightProxy>();
+            var pso = new SerializedObject(proxy);
+            pso.FindProperty("config").objectReferenceValue = cfg;
+            pso.ApplyModifiedPropertiesWithoutUndo();
+
+            // La radio enciende los reflectores del clímax.
+            var radio = Object.FindFirstObjectByType<RadioClimax>();
+            if (radio != null)
+            {
+                var rso = new SerializedObject(radio);
+                var arr = rso.FindProperty("climaxLights");
+                arr.arraySize = 2;
+                arr.GetArrayElementAtIndex(0).objectReferenceValue = built["S6_Climax"];
+                arr.GetArrayElementAtIndex(1).objectReferenceValue = built["S7_Climax"];
+                rso.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return "searchlights=" + Searchlights.Length;
         }
     }
 }

@@ -5,7 +5,7 @@ namespace ProjectRidge.Player
 {
     /// <summary>
     /// Locomoción del papá con CharacterController: modos Crouch/Walk/Jog/Sprint, movimiento relativo a la cámara,
-    /// giro suave y gravedad. Expone el modo y la velocidad real para el sistema de ruido (M2).
+    /// giro casi instantáneo con avance alineado al cuerpo (sin deslizarse) y gravedad. Expone el modo y la velocidad real para el sistema de ruido (M2).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
@@ -65,6 +65,8 @@ namespace ProjectRidge.Player
 
         private void Update()
         {
+            // Desactivado durante la captura o el reposicionamiento: no hay nada que mover.
+            if (!controller.enabled) return;
             float dt = Time.deltaTime;
             Vector2 stick = InputLocked || ActionLocked ? Vector2.zero : Vector2.ClampMagnitude(input.Move, 1f);
             float tilt = stick.magnitude;
@@ -78,8 +80,21 @@ namespace ProjectRidge.Player
             Vector3 desiredDirection = hasInput ? CameraRelative(stick / tilt) : Vector3.zero;
 
             DesiredDirection = desiredDirection;
+
+            // Giro primero, rápido: el cuerpo encara el input casi al instante.
+            if (hasInput && SpeedMultiplier > 0.5f)
+            {
+                Quaternion target = Quaternion.LookRotation(desiredDirection, Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, target, config.turnSpeed * dt);
+            }
+
+            // Se avanza siempre hacia donde mira el cuerpo, escalado por lo alineado que está con el input:
+            // nunca se desliza de lado ni camina de espaldas al cambiar de dirección (pivote limpio).
             float targetSpeed = hasInput ? SpeedFor(mode) * SpeedMultiplier : 0f;
-            Vector3 targetVelocity = desiredDirection * targetSpeed;
+            float alignment = hasInput ? Mathf.Clamp01(Vector3.Dot(transform.forward, desiredDirection)) : 0f;
+            alignment = Mathf.Pow(alignment, config.alignmentSharpness);
+            Vector3 targetVelocity = transform.forward * targetSpeed * alignment;
+            if (SpeedMultiplier > 0.5f) horizontalVelocity = transform.forward * horizontalVelocity.magnitude;
             float rate = targetVelocity.sqrMagnitude >= horizontalVelocity.sqrMagnitude ? config.acceleration : config.deceleration;
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * dt);
 
@@ -88,12 +103,6 @@ namespace ProjectRidge.Player
             verticalVelocity += config.gravity * dt;
 
             controller.Move((horizontalVelocity + Vector3.up * verticalVelocity) * dt);
-
-            if (hasInput && SpeedMultiplier > 0.5f)
-            {
-                Quaternion target = Quaternion.LookRotation(desiredDirection, Vector3.up);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, target, config.turnSpeed * dt);
-            }
 
             // Velocidad real después de colisiones; es la que debe usar el ruido. CharacterController ya desliza
             // por paredes y esquinas, así que horizontalVelocity no se recorta al chocar.

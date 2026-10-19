@@ -69,3 +69,5 @@ MonoBehaviour:
   radioVoice: {fileID: 8300000, guid: 9e8fafa5e8f2c65498c3f231eb657671, type: 3}
   radioLoop: {fileID: 8300000, guid: 5ff2d3412545c574dab7de9d6ede253d, type: 3}
   stoneImpact: {fileID: 8300000, guid: 325610d3e1da52d4eaafec5b82fc27ab, type: 3}
+  searchlightHumLoop: {fileID: 8300000, guid: 33c119e8b7bf6f241b7d6f34a460d586, type: 3}
+  searchlightAlarm: {fileID: 8300000, guid: e0d2f3a55e52611458c35b2b0e8ff0b3, type: 3}

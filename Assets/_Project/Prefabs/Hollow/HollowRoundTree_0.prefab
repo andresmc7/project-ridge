@@ -90,59 +90,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &7068809697675108824
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4740124525267694810}
-  - component: {fileID: 2172353603769478698}
-  m_Layer: 11
-  m_Name: Canopy
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4740124525267694810
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7068809697675108824}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2783483623219922530}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &2172353603769478698
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7068809697675108824}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2
-  m_Center: {x: 0, y: 3.95, z: 0}
 --- !u!1 &8594365851684138719
 GameObject:
   m_ObjectHideFlags: 0
@@ -243,7 +190,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2783483623219922530}
-  - component: {fileID: 3203799605292167327}
   - component: {fileID: 2135894418107607656}
   - component: {fileID: 4041452916284347030}
   m_Layer: 0
@@ -268,30 +214,8 @@ Transform:
   m_Children:
   - {fileID: 215681886880251811}
   - {fileID: 6136195554862809083}
-  - {fileID: 4740124525267694810}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3203799605292167327
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8739699068386663425}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2fc40a9d0c9fbd459ba5adee6aff55b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.CameraRig.OcclusionFadeable
-  renderers:
-  - {fileID: 2803476276562052873}
-  - {fileID: 5573568057382086313}
-  opaqueMaterials:
-  - {fileID: 2100000, guid: 5159276ca993b37419ca63502907b619, type: 2}
-  - {fileID: 2100000, guid: 6fa21501afe32684fb5542de79f8d6a7, type: 2}
-  fadedMaterials:
-  - {fileID: 2100000, guid: d9ffbc087acd4354288f40f74ad8513d, type: 2}
-  - {fileID: 2100000, guid: 181b7b84f910996488a0cc028f101c0d, type: 2}
 --- !u!136 &2135894418107607656
 CapsuleCollider:
   m_ObjectHideFlags: 0

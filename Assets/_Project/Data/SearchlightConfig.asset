@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b71971dc2e6b5a42ae190bdd3923211, type: 3}
+  m_Name: SearchlightConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.AI.SearchlightConfig
+  spotRadius: 2.3
+  detectionFraction: 0.85
+  verticalTolerance: 2.5
+  exposeTime: 0.65
+  exposureDecay: 1.6
+  alertRadius: 12
+  beamHeight: 22
+  beamBackOffset: 9
+  color: {r: 1, g: 0.12, b: 0.07, a: 1}
+  alarmColor: {r: 1, g: 0.75, b: 0.55, a: 1}
+  lightIntensity: 90
+  lightRange: 40
+  proxyMaxDistance: 24

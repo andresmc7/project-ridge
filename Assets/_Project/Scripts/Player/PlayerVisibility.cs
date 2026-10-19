@@ -14,10 +14,14 @@ namespace ProjectRidge.Player
         public Vector3 ChestPoint => transform.position + Vector3.up * (body.height * 0.7f);
         public Vector3 HeadPoint => transform.position + Vector3.up * (body.height * 0.95f);
 
+        /// <summary>Agachado dentro del pasto alto: invisible para Lurkers y reflectores.</summary>
+        public bool IsHidden => config.crouchInGrassHides && player.IsCrouching && tallGrass.IsInTallGrass;
+
         public float VisibilityMultiplier
         {
             get
             {
+                if (IsHidden) return 0f;
                 float cover = 1f;
                 if (player.IsCrouching) cover *= config.crouchVisibility;
                 if (tallGrass.IsInTallGrass) cover *= config.tallGrassVisibility;

@@ -60,5 +60,9 @@ namespace ProjectRidge.Core
         public AudioClip radioVoice;
         public AudioClip radioLoop;
         public AudioClip stoneImpact;
+        [Tooltip("Zumbido 3D sobre cada reflector rojo: se oye venir.")]
+        public AudioClip searchlightHumLoop;
+        [Tooltip("Un reflector te vio (empieza la exposición).")]
+        public AudioClip searchlightAlarm;
     }
 }

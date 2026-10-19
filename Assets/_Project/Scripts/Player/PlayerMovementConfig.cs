@@ -12,12 +12,14 @@ namespace ProjectRidge.Player
         [Min(0f)] public float sprintSpeed = 5.5f;
 
         [Header("Aceleración (m/s²)")]
-        [Min(0.01f)] public float acceleration = 20f;
-        [Min(0.01f)] public float deceleration = 25f;
+        [Min(0.01f)] public float acceleration = 40f;
+        [Min(0.01f)] public float deceleration = 55f;
 
         [Header("Giro")]
-        [Tooltip("Grados por segundo al girar hacia la dirección de avance.")]
-        [Min(1f)] public float turnSpeed = 720f;
+        [Tooltip("Grados por segundo al girar hacia la dirección de avance (1800: media vuelta en 0.1 s).")]
+        [Min(1f)] public float turnSpeed = 1800f;
+        [Tooltip("Cuánto frena el avance mientras el cuerpo aún no encara el input (1 = coseno; más alto = pivota casi en el sitio).")]
+        [Min(0.1f)] public float alignmentSharpness = 2f;
 
         [Header("Joystick")]
         [Tooltip("Inclinación mínima para moverse.")]

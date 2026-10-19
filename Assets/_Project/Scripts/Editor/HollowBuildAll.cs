@@ -14,8 +14,8 @@ namespace ProjectRidge.EditorTools
             log.Append(Build());
             log.Append(CharacterBuilder.Build());
             var tr = UnityEngine.Terrain.activeTerrain;
-            // Primer avistamiento: al pisar el sendero, un Lurker cruza la otra orilla entre la niebla.
-            log.AppendLine(CharacterBuilder.BuildApparition(OnGround(tr, -14.5f, -3.5f), new[] { OnGround(tr, -2f, 13f), OnGround(tr, -2.5f, 4f), OnGround(tr, -2.5f, -4.5f), OnGround(tr, -1.5f, -15f) }));
+            // Primer avistamiento: al entrar en la sala 1, un Lurker cruza el borde del acantilado norte y se detiene a mirar.
+            log.AppendLine(CharacterBuilder.BuildApparition(OnGround(tr, -47.5f, 0f), new[] { OnGround(tr, -29f, 8.6f), OnGround(tr, -36f, 8.3f), OnGround(tr, -43f, 8.7f), OnGround(tr, -46.5f, 14f) }));
             log.Append(BuildAtmosphere(UnityEngine.Terrain.activeTerrain, UnityEngine.GameObject.Find("Player")));
             log.AppendLine(HudBuilder.Build());
             log.AppendLine(HudBuilder.BuildFlow());
