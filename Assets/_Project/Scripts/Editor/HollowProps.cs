@@ -239,7 +239,9 @@ namespace ProjectRidge.EditorTools
             InvisibleWall(g, "LogSideS", new Vector3(0f, 1.1f, -0.6f), new Vector3(7f, 1.8f, 0.15f), Vector3.zero);
             // Raíces arrancadas en un extremo y ramas rotas.
             var rootRock = RockPrefab(1, false, m);
-            Spawn(rootRock, g, g.TransformPoint(new Vector3(-6.6f, -0.2f, 0f)), 20f, 1.3f);
+            // Raíz arrancada a un costado del extremo, sin colisión: no debe desviar al jugador del tronco.
+            var rootGo = Spawn(rootRock, g, g.TransformPoint(new Vector3(-6.8f, -0.2f, 1.6f)), 20f, 1.1f);
+            Object.DestroyImmediate(rootGo.GetComponent<Collider>());
             LogPiece(g, "Branch1", 2.2f, 0.12f, m, new Vector3(2.4f, 0.55f, 0.45f), new Vector3(-30f, 40f, 0f), false);
             LogPiece(g, "Branch2", 1.8f, 0.1f, m, new Vector3(-1.5f, 0.6f, -0.5f), new Vector3(-35f, -130f, 0f), false);
             LogPiece(g, "Branch3", 1.4f, 0.08f, m, new Vector3(4.2f, 0.3f, -0.55f), new Vector3(10f, 160f, 0f), false);
