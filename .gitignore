@@ -50,3 +50,6 @@ crashlytics-build.properties
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Descargas de terceros pendientes de revisar (no se versionan)
+_incoming/
