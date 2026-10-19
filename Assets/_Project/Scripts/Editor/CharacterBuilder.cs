@@ -222,7 +222,7 @@ namespace ProjectRidge.EditorTools
         static void BuildLurker(GameObject lurker)
         {
             var (skinA, skinN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Skin, 66);
-            var skin = Mat("Lurker_Skin", new Color(0.78f, 0.78f, 0.84f), 0.62f);
+            var skin = Mat("Lurker_Skin", new Color(0.62f, 0.62f, 0.68f), 0.48f);
             skin.SetTexture("_BaseMap", skinA);
             skin.SetTexture("_BumpMap", skinN);
             skin.EnableKeyword("_NORMALMAP");

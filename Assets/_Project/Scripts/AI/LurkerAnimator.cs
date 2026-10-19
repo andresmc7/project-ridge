@@ -115,7 +115,7 @@ namespace ProjectRidge.AI
             j.hips.localRotation = E(0f, Mathf.Sin(phase) * 8f * speedBlend, Mathf.Sin(phase * 0.5f) * 4f * speedBlend);
 
             // ---------- Torso encorvado; al cazar casi horizontal.
-            float hunch = Mathf.Lerp(28f, 62f, chaseBlend);
+            float hunch = Mathf.Lerp(40f, 62f, chaseBlend);
             float breathe = Mathf.Sin(Time.time * 2.3f) * 2f * (1f - speedBlend);
             j.spine.localRotation = E(hunch * 0.45f, Mathf.Sin(phase) * 7f * speedBlend, Mathf.Sin(Time.time * 0.7f) * 3f);
             j.chest.localRotation = E(hunch * 0.55f + breathe, -Mathf.Sin(phase) * 10f * speedBlend, 0f);

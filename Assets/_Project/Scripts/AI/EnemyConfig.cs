@@ -16,6 +16,8 @@ namespace ProjectRidge.AI
         [Range(10f, 360f)] public float viewAngle = 110f;
         [Tooltip("A esta distancia te detecta aunque estés fuera de su campo de visión (te siente).")]
         [Min(0f)] public float proximityRadius = 1.8f;
+        [Tooltip("Dentro de proximityRadius solo te siente si tu visibilidad supera esto (agachado y despacio por la espalda no).")]
+        [Range(0f, 2f)] public float proximityMinVisibility = 0.55f;
         [Tooltip("Segundos entre chequeos de percepción (no hace falta cada frame).")]
         [Min(0.01f)] public float perceptionInterval = 0.1f;
 

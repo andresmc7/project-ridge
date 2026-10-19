@@ -114,12 +114,26 @@ namespace ProjectRidge.AI
             perception.NoiseHeard -= OnNoiseHeard;
         }
 
-        private void Start() => EnterPatrol();
+        private void Start()
+        {
+            // El agente viene desactivado en la escena: en el player puede activarse antes de que el NavMeshSurface
+            // registre su malla ("Failed to create agent"). En Start la malla ya está registrada.
+            if (!agent.enabled) agent.enabled = true;
+            else if (!agent.isOnNavMesh) { agent.enabled = false; agent.enabled = true; }
+            if (!agent.isOnNavMesh)
+            {
+                Debug.LogWarning(name + " fuera del NavMesh en " + transform.position);
+                return;
+            }
+            Debug.Log(name + " en el NavMesh");
+            EnterPatrol();
+        }
 
         private void Update()
         {
             stateTime += Time.deltaTime;
             if (State == EnemyState.Dead) return;
+            if (!agent.enabled || !agent.isOnNavMesh) return;
             if (State == EnemyState.Stunned)
             {
                 TickStunned();

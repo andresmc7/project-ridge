@@ -92,6 +92,8 @@ namespace ProjectRidge.EditorTools
             log.AppendLine("rocks=" + rocks);
             int bushes = PlaceBushes(root, terrain, mats, rng, blockers);
             log.AppendLine("bushes=" + bushes);
+            int grass = PlaceGrass(root, terrain, rng);
+            log.AppendLine("grass tufts=" + grass);
             BuildBounds(root, terrain);
 
             LookDevForestCornerBuilder.SetupLighting(log);
@@ -626,6 +628,99 @@ namespace ProjectRidge.EditorTools
                 p.y = GroundY(t, p) - 0.05f;
                 Spawn(BushPrefab(rng.Next(4), m), parent, p, R(0f, 360f), R(0.8f, 1.15f));
                 count++;
+            }
+            return count;
+        }
+
+        // ------------------------------------------------------------------ Pasto
+
+        static int PlaceGrass(Transform root, Terrain t, System.Random rng)
+        {
+            float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+            var mat = Simple("Hollow_Grass", ChunkyMeshGenerator.GrassTexture(5), null, Color.white, 0.08f);
+            mat.SetFloat("_Cull", 0f);
+            mat.enableInstancing = true;
+            var tallMat = Simple("Hollow_TallGrass", mat.GetTexture("_BaseMap") as Texture2D, null, new Color(1f, 0.9f, 0.66f), 0.08f);
+            tallMat.SetFloat("_Cull", 0f);
+            tallMat.enableInstancing = true;
+            var shortMeshes = new Mesh[4];
+            for (int i = 0; i < shortMeshes.Length; i++)
+                shortMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassShort_" + i, 900 + i, 0.4f + i * 0.05f, 10, 0.2f));
+            var tallMeshes = new Mesh[2];
+            for (int i = 0; i < tallMeshes.Length; i++)
+                tallMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassTall_" + i, 950 + i, 1.05f + i * 0.1f, 20, 0.35f));
+
+            var parent = new GameObject("Grass").transform;
+            parent.SetParent(root, false);
+            GameObject Tuft(Mesh mesh, Vector3 p, float scale, Material m)
+            {
+                var go = new GameObject("Tuft");
+                go.transform.SetParent(parent, false);
+                go.transform.SetPositionAndRotation(p, Quaternion.Euler(0f, R(0f, 360f), 0f));
+                go.transform.localScale = Vector3.one * scale;
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = m;
+                mr.shadowCastingMode = ShadowCastingMode.Off;
+                mr.receiveGI = ReceiveGI.LightProbes;
+                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+                return go;
+            }
+
+            int count = 0;
+            for (int tries = 0; tries < 9000 && count < 2200; tries++)
+            {
+                var p = new Vector3(R(-62f, 60f), 0f, R(-38f, 38f));
+                bool meadow = Vector3.Distance(Flat(p), Meadow) < MeadowRadius + 2f;
+                if (DistanceToTrails(p) < 1.4f || Vector3.Distance(Flat(p), CabinCenter) < 4.5f) continue;
+                if (Mathf.Abs(p.x - RoadX) < RoadHalf + 0.5f || Mathf.Abs(p.x - RavineX(p.z)) < 3.8f) continue;
+                if (EdgeDistance(p) < 0f) continue;
+                if (!meadow && rng.NextDouble() > 0.55) continue;
+                // Matas agrupadas (se leen mejor desde la cámara alta que sueltas).
+                int clump = rng.Next(3, 6);
+                for (int k = 0; k < clump; k++)
+                {
+                    var q = new Vector3(p.x + R(-0.5f, 0.5f), 0f, p.z + R(-0.5f, 0.5f));
+                    q.y = GroundY(t, q) - 0.02f;
+                    Tuft(shortMeshes[rng.Next(shortMeshes.Length)], q, R(1.1f, 1.6f), mat);
+                    count++;
+                }
+            }
+
+            // Pastizales altos: escondites (TallGrass) y, agachado, sombra frente al reflector (Canopy a su altura).
+            var patches = new[] { new Vector2(-3, 6), new Vector2(6, -7), new Vector2(-9, 1), new Vector2(10, 2) };
+            var extra = new[] { new Vector2(-10, 28), new Vector2(12, 30), new Vector2(22, 25), new Vector2(24, -2), new Vector2(40, -8), new Vector2(-21, -12), new Vector2(-34, 4) };
+            var all = new List<Vector2>();
+            foreach (var c in patches) all.Add(new Vector2(Meadow.x + c.x, Meadow.z + c.y));
+            all.AddRange(extra);
+            foreach (var c in all)
+            {
+                var center = OnGround(t, c.x, c.y);
+                var patch = new GameObject("TallGrassPatch");
+                patch.transform.SetParent(parent, false);
+                patch.transform.SetPositionAndRotation(center, Quaternion.Euler(0f, R(0f, 360f), 0f));
+                for (int i = 0; i < 46; i++)
+                {
+                    Vector2 o = Random.insideUnitCircle * 2.2f;
+                    var p = OnGround(t, c.x + o.x, c.y + o.y, -0.02f);
+                    Tuft(tallMeshes[rng.Next(tallMeshes.Length)], p, R(0.85f, 1.15f), tallMat).transform.SetParent(patch.transform, true);
+                }
+                var hide = new GameObject("Concealment");
+                hide.layer = 8;
+                hide.transform.SetParent(patch.transform, false);
+                var hc = hide.AddComponent<CapsuleCollider>();
+                hc.isTrigger = true;
+                hc.radius = 2.1f;
+                hc.height = 2.5f;
+                hc.center = Vector3.up * 0.8f;
+                var shade = new GameObject("Canopy");
+                shade.layer = 11;
+                shade.transform.SetParent(patch.transform, false);
+                var bc = shade.AddComponent<BoxCollider>();
+                bc.isTrigger = true;
+                bc.size = new Vector3(3.6f, 1.05f, 3.6f);
+                bc.center = Vector3.up * 0.52f;
+                count += 46;
             }
             return count;
         }

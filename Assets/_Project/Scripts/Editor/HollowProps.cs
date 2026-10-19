@@ -461,6 +461,8 @@ namespace ProjectRidge.EditorTools
         static void SetPatrol(GameObject lurker, Transform[] pts, Terrain t)
         {
             lurker.transform.position = pts[0].position;
+            // Desactivado en la escena: EnemyController lo activa en Start, cuando el NavMesh ya está registrado.
+            lurker.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
             var enemy = lurker.GetComponent<ProjectRidge.AI.EnemyController>();
             var so = new SerializedObject(enemy);
             var arr = so.FindProperty("patrolPoints");
@@ -489,7 +491,7 @@ namespace ProjectRidge.EditorTools
             // Sendero y prado (la bengala del prado está bajo el barrido del OVNI: recompensa con riesgo).
             ItemsSetupBuilder.PickupObject(root, "Scrap", OnGround(t, -38f, -11f, 0.02f), 10f);
             ItemsSetupBuilder.PickupObject(root, "Flare", OnGround(t, Meadow.x + 1f, Meadow.z + 1f, 0.02f), 70f);
-            ItemsSetupBuilder.PickupObject(root, "Medkit", OnGround(t, Meadow.x - 7.2f, Meadow.z - 5.2f, 0.02f), 200f);
+            ItemsSetupBuilder.PickupObject(root, "Medkit", OnGround(t, Meadow.x - 6.3f, Meadow.z - 3.8f, 0.02f), 200f);
 
             // Ruta norte: caja escondida entre arbustos.
             ItemsSetupBuilder.Crate(root, "Crate_North", OnGround(t, 2f, 29f), 160f, config, wood,

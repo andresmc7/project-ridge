@@ -359,6 +359,86 @@ namespace ProjectRidge.EditorTools
             return mesh;
         }
 
+        // ------------------------------------------------------------------ Pasto
+
+        /// <summary>Mata de pasto: hojas curvas de 3 segmentos que se afinan. UV: u a lo ancho, v de la base a la punta.</summary>
+        public static Mesh GrassTuft(string name, int seed, float height, int blades, float spread)
+        {
+            var rng = new System.Random(seed);
+            float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+            var v = new List<Vector3>();
+            var uv = new List<Vector2>();
+            var t = new List<int>();
+            for (int b = 0; b < blades; b++)
+            {
+                float ang = R(0f, Mathf.PI * 2f);
+                Vector3 root = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * R(0f, spread);
+                Vector3 lean = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * R(0.15f, 0.45f) * height;
+                Vector3 side = new Vector3(-Mathf.Sin(ang + R(-0.6f, 0.6f)), 0f, Mathf.Cos(ang + R(-0.6f, 0.6f)));
+                float h = height * R(0.6f, 1.1f);
+                float w = R(0.06f, 0.1f);
+                int start = v.Count;
+                const int seg = 3;
+                for (int s = 0; s <= seg; s++)
+                {
+                    float f = s / (float)seg;
+                    Vector3 c = root + Vector3.up * h * f + lean * f * f;
+                    float width = w * (1f - f * 0.9f);
+                    v.Add(c - side * width); uv.Add(new Vector2(0f, f));
+                    v.Add(c + side * width); uv.Add(new Vector2(1f, f));
+                }
+                for (int s = 0; s < seg; s++)
+                {
+                    int i = start + s * 2;
+                    t.AddRange(new[] { i, i + 2, i + 1, i + 1, i + 2, i + 3 });
+                }
+            }
+            var mesh = new Mesh { name = name };
+            mesh.SetVertices(v);
+            mesh.SetUVs(0, uv);
+            mesh.SetTriangles(t, 0);
+            // Normales hacia arriba: el pasto se ilumina parejo (como en los dioramas) y no parpadea por cara.
+            var n = new Vector3[v.Count];
+            for (int i = 0; i < n.Length; i++) n[i] = Vector3.up;
+            mesh.normals = n;
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        /// <summary>Textura del pasto: base oscura, punta clara y amarillenta, vetas finas a lo largo.</summary>
+        public static Texture2D GrassTexture(int seed)
+        {
+            const int w = 64, h = 256;
+            var rng = new System.Random(seed);
+            var px = new Color[w * h];
+            var baseC = new Color(0.04f, 0.06f, 0.03f);
+            var midC = new Color(0.22f, 0.3f, 0.1f);
+            var tipC = new Color(0.55f, 0.52f, 0.26f);
+            for (int x = 0; x < w; x++)
+            {
+                float vein = 0.85f + 0.3f * (float)rng.NextDouble();
+                for (int y = 0; y < h; y++)
+                {
+                    float f = y / (float)(h - 1);
+                    Color c = f < 0.6f ? Color.Lerp(baseC, midC, f / 0.6f) : Color.Lerp(midC, tipC, (f - 0.6f) / 0.4f);
+                    float edge = 1f - Mathf.Pow(Mathf.Abs(x / (float)(w - 1) * 2f - 1f), 3f) * 0.4f;
+                    px[y * w + x] = c * vein * edge;
+                }
+            }
+            PolyHavenMaterialBuilder.EnsureFolder(OutTextures);
+            string path = OutTextures + "/Grass_albedo.png";
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.SetPixels(px);
+            tex.Apply();
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+            imp.wrapMode = TextureWrapMode.Clamp;
+            imp.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
         // ------------------------------------------------------------------ Torno (miembros, cuerpos, cabezas)
 
         /// <summary>

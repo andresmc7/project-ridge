@@ -71,7 +71,7 @@ namespace ProjectRidge.AI
             bool inRange = distance <= config.viewDistance;
             Vector3 flat = new Vector3(toTarget.x, 0f, toTarget.z);
             bool inCone = Vector3.Angle(transform.forward, flat) <= config.viewAngle * 0.5f;
-            bool close = distance <= config.proximityRadius;
+            bool close = distance <= config.proximityRadius && target.VisibilityMultiplier > config.proximityMinVisibility;
 
             if (inRange && (inCone || close) && HasLineOfSight(eyePos))
             {
