@@ -25,7 +25,7 @@ namespace ProjectRidge.EditorTools
         /// Un bloque: centro y tamaño en metros, orientado con forward = cara visible. Esquinas redondeadas (radio
         /// relativo), ruido de superficie y color por vértice. mossTop: musgo en la cara de arriba.
         /// </summary>
-        public void Block(Vector3 center, Quaternion rot, Vector3 size, float round, Palette pal, float tone, bool mossTop, int seed)
+        public void Block(Vector3 center, Quaternion rot, Vector3 size, float round, Palette pal, float tone, bool mossTop, int seed, float noise = 0.07f, float noiseFreq = 2.1f)
         {
             const int div = 4;
             Vector3 half = size * 0.5f;
@@ -50,7 +50,8 @@ namespace ProjectRidge.EditorTools
                         Vector3 normal = dir.sqrMagnitude > 1e-6f ? dir.normalized : fn;
                         Vector3 pos = clamped + normal * r;
                         // Ruido suave: la piedra no es una caja perfecta.
-                        float bump = (Mathf.PerlinNoise(pos.x * 2.1f + seed * 0.37f, pos.y * 2.1f + pos.z * 1.7f) - 0.5f) * 0.07f;
+                        float bump = (Mathf.PerlinNoise(pos.x * noiseFreq + seed * 0.37f, pos.y * noiseFreq + pos.z * noiseFreq * 0.8f) - 0.5f) * noise
+                                     + (Mathf.PerlinNoise(pos.z * noiseFreq * 2.7f + seed, pos.x * noiseFreq * 2.3f) - 0.5f) * noise * 0.35f;
                         pos += normal * bump;
                         Vector3 world = center + rot * pos;
                         Vector3 worldN = rot * normal;

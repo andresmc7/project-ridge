@@ -54,7 +54,7 @@ Shader "Hidden/ProjectRidge/TiltShift"
                     float r = sqrt((i + 0.5) / TAPS);
                     float a = i * 2.39996;
                     float2 o = float2(cos(a), sin(a)) * r * radius;
-                    half3 c = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv + o).rgb;
+                    half3 c = min(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv + o).rgb, 4.0h); // tope: un brillo extremo no se expande
                     half l = dot(c, half3(0.2126, 0.7152, 0.0722));
                     half w = 1.0 + _Highlight * saturate(l - 0.6);
                     sum += c * w;

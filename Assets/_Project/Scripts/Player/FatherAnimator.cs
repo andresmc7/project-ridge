@@ -170,7 +170,7 @@ namespace ProjectRidge.Player
             // Linterna: en la mano, apuntando hacia adelante con suavizado (no tiembla con la animación).
             if (flashlightLight != null)
             {
-                flashlightLight.position = handL.position + transform.forward * 0.12f;
+                flashlightLight.position = handL.position + transform.forward * 0.35f; // por delante del cuerpo: no ilumina su propia mano a centímetros (eso reventaba el bloom)
                 Quaternion target = Quaternion.LookRotation(Quaternion.AngleAxis(flashlightPitch, transform.right) * transform.forward);
                 flashlightLight.rotation = Quaternion.Slerp(flashlightLight.rotation, target, 1f - Mathf.Exp(-flashlightFollow * Time.deltaTime));
             }

@@ -100,12 +100,21 @@ namespace ProjectRidge.EditorTools
             cc.enabled = true;
         }
 
+        /// <summary>Punto caminable (NavMesh) más cercano: nunca bajo un puente ni en un barranco.</summary>
         static Vector3 Ground(float x, float z)
         {
+            if (NavMesh.SamplePosition(new Vector3(x, 1f, z), out NavMeshHit hit, 3f, NavMesh.AllAreas)) return hit.position + Vector3.up * 0.05f;
             var t = Terrain.activeTerrain;
             var p = new Vector3(x, 0f, z);
             p.y = t.SampleHeight(p) + t.transform.position.y + 0.05f;
             return p;
+        }
+
+        /// <summary>Estado limpio entre pruebas: vida llena, Lurker de vuelta a su ruta, sin alertas.</summary>
+        static void Fresh(EnemyController lurker)
+        {
+            player.GetComponent<PlayerHealth>().Restore();
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 999f, 0f);
         }
 
         static void SetCrouch(bool on) { if (player.IsCrouching != on) Tap(Key.C); }
@@ -129,6 +138,28 @@ namespace ProjectRidge.EditorTools
             yield return 1.5f;
             if (GameFlow.Instance != null && GameFlow.Instance.Current != GameFlow.State.Playing) { Tap(Key.Space); yield return 1f; }
 
+            // ---- Bordes: desde el centro de cada sala, correr 5 s hacia el sur y hacia el norte; nunca caer.
+            Searchlight.SuppressAll(9999f);
+            foreach (var e in EnemyController.Active) e.Perception.Suppress(9999f);
+            var centers = new[] { new Vector2(-38f, 0f), new Vector2(-19f, 0f), new Vector2(-8f, 0f), new Vector2(11f, 1f), new Vector2(36f, -1f), new Vector2(61f, 0f) };
+            float lowest = 99f;
+            string where = "";
+            int rescuesBefore = PlayerFallRecovery.Recoveries;
+            foreach (var c in centers)
+                foreach (var dir in new[] { Vector2.down, Vector2.up, Vector2.left + Vector2.down, Vector2.right + Vector2.up })
+                {
+                    Teleport(Ground(c.x, c.y));
+                    yield return 0.2f;
+                    Stick(dir.normalized);
+                    yield return 5f;
+                    Stick(Vector2.zero);
+                    float y = player.transform.position.y;
+                    if (y < lowest) { lowest = y; where = c + " dir " + dir; }
+                    yield return 0.2f;
+                }
+            Check("edges hold", lowest > -0.8f && PlayerFallRecovery.Recoveries == rescuesBefore, "lowest y " + lowest.ToString("0.00") + " (" + where + "), rescues " + (PlayerFallRecovery.Recoveries - rescuesBefore));
+            foreach (var e in EnemyController.Active) e.Perception.Suppress(0f);
+
             // ---- Pasos: trotar 3 s en el sendero del refugio, contar pisadas.
             var anim = player.GetComponentInChildren<FatherAnimator>();
             int steps = 0;
@@ -148,15 +179,16 @@ namespace ProjectRidge.EditorTools
             Check("footsteps", cadence > 2.2f && cadence < 4.2f, "cadence " + cadence.ToString("0.00") + "/s at " + speed.ToString("0.00") + " m/s");
             yield return 0.8f;
 
-            // ---- Escondido y pisado: el Lurker del arroyo patrulla sobre el pastizal (-7, -4.1).
+            // ---- Escondido y pisado: el Lurker viene a investigar justo al lado del pastizal; al pasarte encima te nota.
             Isolate("Lurker");
             var lurker = Lurker("Lurker");
             var vis = player.GetComponent<PlayerVisibility>();
-            Teleport(Ground(-7f, -4.1f));
+            Teleport(Ground(-9.4f, -4.4f));
             yield return 0.3f;
             SetCrouch(true);
             yield return 0.6f;
             bool hidden = vis.IsHidden;
+            lurker.AlertTo(player.transform.position + Vector3.right * 0.6f);
             float minDist = 99f, maxSusp = 0f;
             EnemyState worst = EnemyState.Patrol;
             float end = Time.time + 40f;
@@ -165,13 +197,13 @@ namespace ProjectRidge.EditorTools
                 var a = lurker.transform.position; var b = player.transform.position; a.y = b.y = 0f;
                 minDist = Mathf.Min(minDist, Vector3.Distance(a, b));
                 maxSusp = Mathf.Max(maxSusp, lurker.Perception.Suspicion);
-                if (lurker.State == EnemyState.Investigate || lurker.State == EnemyState.Chase || lurker.State == EnemyState.Attack) { worst = lurker.State; break; }
+                if (lurker.State == EnemyState.Chase || lurker.State == EnemyState.Attack) { worst = lurker.State; break; }
                 yield return null;
             }
-            Check("hidden but stepped on", hidden && worst != EnemyState.Patrol, "hidden " + hidden + ", closest " + minDist.ToString("0.0") + " m, suspicion " + maxSusp.ToString("0.00") + ", state " + worst);
+            Check("hidden but stepped on", hidden && (worst == EnemyState.Chase || worst == EnemyState.Attack) && minDist < 1.6f, "hidden " + hidden + ", closest " + minDist.ToString("0.0") + " m, suspicion " + maxSusp.ToString("0.00") + ", state " + worst);
             SetCrouch(false);
             Searchlight.SuppressAll(9999f);
-            lurker.ResetAfterPlayerRespawn(Ground(-30f, 0f), 0f, 0f);
+            Fresh(lurker);
 
             // ---- Escondido lejos de la ruta: no debe notarte (control).
             Teleport(Ground(-20.6f, -3.3f));
@@ -188,7 +220,7 @@ namespace ProjectRidge.EditorTools
             player.GetComponent<PlayerInventory>().Add(flareItem, 1);
             SetCrouch(false);
             yield return 0.3f;
-            Teleport(Ground(-17.5f, -2.2f));
+            Teleport(Ground(-19.6f, -1.4f));
             yield return 0.3f;
             Tap(Key.Q);
             yield return 1.2f;
@@ -217,6 +249,8 @@ namespace ProjectRidge.EditorTools
             SetCrouch(false);
 
             // ---- Escombros: el Lurker pasa por una rama y la manda volando.
+            Fresh(lurker);
+            yield return 0.5f;
             KnockableProp target = null;
             float bestD = 99f;
             foreach (var k in Object.FindObjectsByType<KnockableProp>(FindObjectsSortMode.None))
@@ -244,13 +278,15 @@ namespace ProjectRidge.EditorTools
             Check("debris knocked by lurker", knocked && flew > 0.4f, target == null ? "no debris" : "knocked " + knocked + ", moved " + flew.ToString("0.00") + " m");
 
             // ---- Garrote por la espalda: reacción física, retroceso y embestida del papá.
-            lurker.ResetAfterPlayerRespawn(Ground(-30f, 0f), 0f, 0f);
-            yield return 0.5f;
+            Fresh(lurker);
+            Teleport(Ground(-20.6f, -3.3f));
+            yield return 1f;
             var lp = lurker.transform.position;
             Vector3 behind = lp - lurker.transform.forward * 1.2f;
             Teleport(Ground(behind.x, behind.z));
             player.FaceTowards(lp);
             yield return 0.1f;
+            player.GetComponent<PlayerCombat>().RestoreClub(); // el papá empieza sin garrote
             var reaction = lurker.GetComponentInChildren<HitReaction>();
             Vector3 lurkerBefore = lurker.transform.position;
             Vector3 dadBefore = player.transform.position;

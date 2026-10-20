@@ -50,11 +50,14 @@ namespace ProjectRidge.EditorTools
             var root = new GameObject("Hollow").transform;
             var terrain = BuildTerrain(root, mats);
             log.AppendLine("terrain ok");
-            log.AppendLine("terrace wall blocks=" + TerraceWalls(root, terrain));
+            log.AppendLine("cliff rocks=" + TerraceWalls(root, terrain, new[] { BushPrefab(0, mats), BushPrefab(1, mats), BushPrefab(2, mats), BushPrefab(3, mats) },
+                new[] { RockPrefab(0, true, mats), RockPrefab(1, true, mats), RockPrefab(2, true, mats), RockPrefab(3, true, mats) },
+                new[] { RockPrefab(0, false, mats), RockPrefab(1, false, mats), RockPrefab(2, false, mats), RockPrefab(3, false, mats) }));
 
             var rng = new System.Random(Seed);
             var blockers = new List<Vector3>(); // posiciones ocupadas por props construidos (no poner árboles encima)
             int built = BuildLandmarks(root, terrain, mats, blockers);
+            SetupWater(root, mats);
             log.AppendLine("landmarks=" + built);
             int trees = ScatterTrees(root, terrain, mats, rng, blockers);
             log.AppendLine("trees=" + trees);
@@ -235,6 +238,10 @@ namespace ProjectRidge.EditorTools
                     trail = Mathf.Max(trail, Smooth(1.5f, 0.6f, Mathf.Abs(w.x - RavineX(w.z))));
                     // Fuera de las salas, hojarasca oscura: el escenario jugable se lee como un claro.
                     float leaves = Mathf.Max(Smooth(0.55f, 0.72f, Mathf.PerlinNoise(w.x * 0.08f + 40f, w.z * 0.08f + 13f)), Smooth(3f, 7f, Walk(w)) * 0.7f);
+                    // Suelo natural, no césped: manchas de hojarasca y de tierra húmeda dentro de las salas, a dos escalas.
+                    leaves = Mathf.Max(leaves, Smooth(0.5f, 0.66f, Mathf.PerlinNoise(w.x * 0.17f + 3f, w.z * 0.17f + 71f)) * 0.8f);
+                    leaves = Mathf.Max(leaves, Smooth(0.6f, 0.75f, Mathf.PerlinNoise(w.x * 0.45f + 9f, w.z * 0.45f + 2f)) * 0.55f);
+                    trail = Mathf.Max(trail, Smooth(0.62f, 0.74f, Mathf.PerlinNoise(w.x * 0.23f + 51f, w.z * 0.23f + 19f)) * 0.6f);
                     trail *= 1f - rock;
                     leaves *= (1f - trail) * (1f - rock);
                     float ground = Mathf.Max(0f, 1f - rock - trail - leaves);
@@ -508,7 +515,7 @@ namespace ProjectRidge.EditorTools
         {
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
             var grassTex = ChunkyMeshGenerator.GrassTexture(5);
-            var mat = WindMaterial("Hollow_GrassWind", grassTex, null, new Color(0.78f, 0.86f, 0.72f), 0.08f, 0.06f, 2.5f, 0.03f, true, 0.4f);
+            var mat = WindMaterial("Hollow_GrassWind", grassTex, null, new Color(0.95f, 1.08f, 0.82f), 0.08f, 0.06f, 2.5f, 0.03f, true, 0.4f);
             // Pastizal escondite: dorado, alto y denso. Se reconoce de un vistazo (lectura de juego, no decorado).
             var tallMat = WindMaterial("Hollow_TallGrassWind", grassTex, null, new Color(1.6f, 1.22f, 0.48f), 0.08f, 0.1f, 1.3f, 0.03f, true, 0.45f);
             var shortMeshes = new Mesh[4];
@@ -546,13 +553,16 @@ namespace ProjectRidge.EditorTools
                 if (d > 3f) continue;
                 if (DistanceToTrails(p) < 1.3f || Vector3.Distance(Flat(p), CabinCenter) < 4.5f || InPatch(p, 0.6f)) continue;
                 if (Mathf.Abs(p.x - RoadX) < RoadHalf + 0.4f && d < 0f) continue;
+                // Dentro de las salas, pocas matas y bajas: lo único alto y denso del piso es el pastizal escondite.
+                bool inside = d < -1.2f;
+                if (inside && (rng.NextDouble() > 0.3 || InPatch(p, 1.6f))) continue;
                 if (Mathf.Abs(p.x - RavineX(p.z)) < 3.8f) continue;
                 int clump = rng.Next(3, 6);
                 for (int k = 0; k < clump; k++)
                 {
                     var q = new Vector3(p.x + R(-0.5f, 0.5f), 0f, p.z + R(-0.5f, 0.5f));
                     q.y = GroundY(t, q) - 0.02f;
-                    Tuft(shortMeshes[rng.Next(shortMeshes.Length)], q, R(1.0f, 1.45f), mat);
+                    Tuft(shortMeshes[rng.Next(shortMeshes.Length)], q, inside ? R(0.6f, 0.85f) : R(1.0f, 1.45f), mat);
                     count++;
                 }
             }
@@ -699,16 +709,19 @@ namespace ProjectRidge.EditorTools
             Wall("W", new Vector3(TerrainMin.x, 6f, cz), new Vector3(1f, 20f, SizeZ));
             Wall("E", new Vector3(TerrainMin.x + SizeX, 6f, cz), new Vector3(1f, 20f, SizeZ));
 
-            // Contorno del escenario: muros bajos invisibles justo fuera del borde caminable, para que ni el papá ni
-            // los Lurker suban por las cornisas (el terreno empinado ya frena, esto lo garantiza).
-            for (float x = TerrainMin.x + 1f; x < TerrainMin.x + SizeX - 1f; x += 0.8f)
-                for (float z = TerrainMin.y + 1f; z < TerrainMin.y + SizeZ - 1f; z += 0.8f)
+            // Contorno del escenario: muros invisibles justo en el borde caminable, a la altura del PISO de la sala (no
+            // del terreno de afuera: al sur el terreno baja una terraza y un muro a esa altura quedaba bajo los pies).
+            // Cubren desde bajo el escalón hasta 2.5 m sobre el piso: no se cae al sur ni se trepa al norte.
+            for (float x = TerrainMin.x + 1f; x < TerrainMin.x + SizeX - 1f; x += 0.6f)
+                for (float z = TerrainMin.y + 1f; z < TerrainMin.y + SizeZ - 1f; z += 0.6f)
                 {
                     var p = new Vector3(x, 0f, z);
                     float d = Walk(p);
-                    if (d < 0.35f || d > 1.15f) continue;
+                    if (d < 0.05f || d > 0.75f) continue;
                     if (Mathf.Abs(p.x - RavineX(p.z)) < 3.4f) continue;
-                    Wall("Edge", new Vector3(x, GroundY(t, p) + 1f, z), new Vector3(0.8f, 2.5f, 0.8f));
+                    Vector3 inward = -WalkNormal(p);
+                    float floor = GroundY(t, p + inward * (d + 0.4f));
+                    Wall("Edge", new Vector3(x, floor + 0.5f, z), new Vector3(0.7f, 6f, 0.7f));
                 }
 
             // Orillas del arroyo: muros invisibles salvo en el puente.

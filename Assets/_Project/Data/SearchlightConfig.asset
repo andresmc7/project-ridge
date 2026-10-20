@@ -22,6 +22,6 @@ MonoBehaviour:
   beamBackOffset: 9
   color: {r: 1, g: 0.12, b: 0.07, a: 1}
   alarmColor: {r: 1, g: 0.75, b: 0.55, a: 1}
-  lightIntensity: 90
+  lightIntensity: 45
   lightRange: 40
   proxyMaxDistance: 24

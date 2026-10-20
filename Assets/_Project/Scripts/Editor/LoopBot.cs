@@ -32,19 +32,21 @@ namespace ProjectRidge.EditorTools
             new Step(Kind.Pass, -61.2f, 0.8f), new Step(Kind.Pass, -58.2f, 0.8f), new Step(Kind.Pass, -55f, 0f), new Step(Kind.Pass, -48.5f, 0f),
             new Step(Kind.Hide, -42f, -0.4f), new Step(Kind.Hide, -38f, 1.4f), new Step(Kind.Hide, -34f, -0.8f),
             new Step(Kind.Pass, -29f, 0f), new Step(Kind.Pass, -24f, 0f),
-            new Step(Kind.Hide, -20.6f, -3.3f, true), new Step(Kind.Pass, -19.6f, -1f, true), new Step(Kind.Pass, -8.6f, -1f, true),
-            new Step(Kind.Hide, -7f, -4.1f, true), new Step(Kind.Hide, -6.6f, 3.4f, true), new Step(Kind.Pass, -1.6f, 0.4f, true),
+            new Step(Kind.Hide, -20.6f, -3.3f, true), new Step(Kind.Pass, -19.6f, -1f, true), new Step(Kind.Pass, -8.7f, -1f, true), // fin del puente (las barandas llegan a x = -9.1)
+            new Step(Kind.Hide, -8.4f, -4.4f, true), new Step(Kind.Pass, -1.5f, 0.2f, true), new Step(Kind.Pass, 0.2f, 0.7f, true),
             new Step(Kind.Hide, 4.2f, 0.6f), new Step(Kind.Hide, 8f, -2.7f), new Step(Kind.Hide, 11.2f, 3.6f), new Step(Kind.Hide, 14.4f, -2.5f),
             new Step(Kind.Hide, 17.8f, 2.8f), new Step(Kind.Hide, 20.6f, 0.4f), new Step(Kind.Pass, 24f, 0f),
-            new Step(Kind.Hide, 28.6f, -2.6f, true), new Step(Kind.Pass, 32.4f, 1.2f, true), new Step(Kind.Hide, 36f, 1.3f, true),
+            new Step(Kind.Hide, 28.6f, -2.6f, true), new Step(Kind.Pass, 32.4f, 1.2f, true), new Step(Kind.Hide, 36f, 0.7f, true),
             new Step(Kind.Hide, 43f, 1.4f, true), new Step(Kind.Pass, 47.6f, -0.5f, true),
             new Step(Kind.Hide, 52f, -4.6f, true), new Step(Kind.Hide, 57.4f, -3.3f, true), new Step(Kind.Hide, 62.4f, -0.7f, true),
             new Step(Kind.Radio, 65.2f, -0.9f, true), new Step(Kind.Survive, 62.4f, -0.7f, true),
         };
 
-        const float JogSpeed = 2.8f, WalkSpeed = 1.2f, Margin = 0.7f, MaxWait = 75f;
+        const int MaxFailures = 8;
+        const float JogSpeed = 3.2f, WalkSpeed = 1.2f, Margin = 0.7f, MaxWait = 75f;
 
         static int index;
+        static bool needResync;
         static float stateSince, lastProgress, startTime;
         static bool moving;
         static Vector3 lastPos;
@@ -75,8 +77,20 @@ namespace ProjectRidge.EditorTools
             Debug.Log("BOT: start");
         }
 
-        static void OnCaught(Searchlight s) { captures++; Log("CAUGHT by " + s.name + " near step " + index + " at " + player.transform.position); Backtrack(); }
-        static void OnDied() { deaths++; Log("DIED near step " + index + " at " + player.transform.position); Backtrack(); }
+        static void OnCaught(Searchlight s)
+        {
+            captures++;
+            Log("CAUGHT by " + s.name + " near step " + index + " at " + player.transform.position);
+            if (deaths + captures > MaxFailures) { Finish(false); return; }
+            Backtrack();
+        }
+        static void OnDied()
+        {
+            deaths++;
+            Log("DIED near step " + index + " at " + player.transform.position);
+            if (deaths + captures > MaxFailures) { Finish(false); return; } // nunca más un bucle de muertes de horas
+            Backtrack();
+        }
 
         /// <summary>Tras morir se reaparece en el último checkpoint: retomar desde el primer paso cercano a él.</summary>
         static void Backtrack()
@@ -85,16 +99,7 @@ namespace ProjectRidge.EditorTools
             Stick(Vector2.zero);
             stateSince = Time.time + 5.5f; // la secuencia de muerte/captura dura ~5 s
             lastProgress = stateSince;
-            int best = 0;
-            float bestD = float.MaxValue;
-            // El checkpoint queda detrás de la posición actual: se elige el paso más cercano en la ruta ya hecha.
-            Vector3 cp = GuessCheckpoint();
-            for (int i = 0; i <= index && i < Route.Length; i++)
-            {
-                float d = Vector3.Distance(Flat(Route[i].at), Flat(cp));
-                if (d < bestD) { bestD = d; best = i; }
-            }
-            index = best;
+            needResync = true; // tras reaparecer, retoma desde el paso de la ruta más cercano a donde apareció
         }
 
         static Vector3 GuessCheckpoint()
@@ -182,6 +187,18 @@ namespace ProjectRidge.EditorTools
             if (flow != null && flow.Current == GameFlow.State.Clue) { Tap(Key.E); return; }
             if (flow != null && flow.Current != GameFlow.State.Playing) return;
             if (Time.time < stateSince) return;
+            if (needResync)
+            {
+                needResync = false;
+                int best = 0;
+                float bestD = float.MaxValue;
+                for (int i = 0; i <= index && i < Route.Length; i++)
+                {
+                    float d = Vector3.Distance(Flat(Route[i].at), Flat(player.transform.position));
+                    if (d < bestD) { bestD = d; best = i; }
+                }
+                index = best;
+            }
             if (index >= Route.Length) return; // escondido durante la transmisión: esperar el final
 
             var step = Route[index];

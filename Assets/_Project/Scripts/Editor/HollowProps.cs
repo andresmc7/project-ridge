@@ -493,7 +493,8 @@ namespace ProjectRidge.EditorTools
                 list[i] = p;
             }
             // En cada parada mira hacia afuera de su ruta, sobre todo a los lados (por donde llega el papá).
-            // Una patrulla en línea recta mira al oeste: hacia el camino del jugador.
+            // Una patrulla en línea (ida y vuelta) mira hacia afuera en cada extremo: le da la espalda al centro, y esa
+            // es la ventana para cruzar su ruta (patrón legible).
             Vector3 c = Vector3.zero;
             foreach (var p in list) c += p.position;
             c /= list.Length;
@@ -501,8 +502,11 @@ namespace ProjectRidge.EditorTools
             {
                 Vector3 o = p.position - c;
                 o.y = 0f;
-                o.z *= 0.35f;
-                if (o.sqrMagnitude < 0.25f || Mathf.Abs(o.x) < 0.4f) o = Vector3.left;
+                if (list.Length > 2)
+                {
+                    o.z *= 0.35f;
+                    if (o.sqrMagnitude < 0.25f || Mathf.Abs(o.x) < 0.4f) o = Vector3.left;
+                }
                 p.rotation = Quaternion.LookRotation(o.normalized);
             }
             return list;
@@ -660,7 +664,7 @@ namespace ProjectRidge.EditorTools
             // En los pasillos entre salas: lugares seguros, fuera de rutas y conos. El objetivo enseña el loop.
             Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Red light takes you. Crouch (C) in the golden grass and wait for it to pass.");
             Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek. Watch where it looks.");
-            Cp("CP_TwoLights", -1.6f, 0.4f, new Vector3(3f, 3f, 4.5f), "Learn the pattern. Move between the lights.");
+            Cp("CP_TwoLights", 0.2f, 0.7f, new Vector3(3f, 3f, 4.5f), "Learn the pattern. Move between the lights.");
             Cp("CP_Thicket", 24f, 0f, new Vector3(3f, 3f, 4.5f), "Find where they went.");
             Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the truck on the access road.");
             // Fuera de la ruta de S5 y de los reflectores del clímax (que se apagan al morir).

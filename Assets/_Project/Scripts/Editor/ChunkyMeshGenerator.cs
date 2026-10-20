@@ -538,7 +538,23 @@ namespace ProjectRidge.EditorTools
             var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (existing != null)
             {
-                EditorUtility.CopySerialized(mesh, existing);
+                // Copia por la API de Mesh (no CopySerialized): así la GPU recibe los datos nuevos; con CopySerialized el
+                // editor seguía dibujando la malla vieja (pastizales y árboles "desaparecidos" tras regenerar).
+                existing.Clear();
+                existing.indexFormat = mesh.indexFormat;
+                existing.SetVertices(mesh.vertices);
+                if (mesh.normals.Length > 0) existing.SetNormals(mesh.normals);
+                if (mesh.tangents.Length > 0) existing.SetTangents(mesh.tangents);
+                if (mesh.colors.Length > 0) existing.SetColors(mesh.colors);
+                var uvs = new List<Vector4>();
+                for (int ch = 0; ch < 4; ch++)
+                {
+                    mesh.GetUVs(ch, uvs);
+                    if (uvs.Count > 0) existing.SetUVs(ch, uvs);
+                }
+                existing.subMeshCount = mesh.subMeshCount;
+                for (int s = 0; s < mesh.subMeshCount; s++) existing.SetTriangles(mesh.GetTriangles(s), s);
+                existing.RecalculateBounds();
                 Object.DestroyImmediate(mesh);
                 EditorUtility.SetDirty(existing);
                 return existing;

@@ -14,8 +14,8 @@ namespace ProjectRidge.EditorTools
     {
         static readonly StoneBatch.Palette WallPalette = new StoneBatch.Palette
         {
-            stoneA = new Color(0.36f, 0.25f, 0.19f), stoneB = new Color(0.27f, 0.22f, 0.2f),
-            moss = new Color(0.16f, 0.27f, 0.12f), grout = new Color(0.06f, 0.045f, 0.04f),
+            stoneA = new Color(0.3f, 0.28f, 0.24f), stoneB = new Color(0.2f, 0.2f, 0.19f),
+            moss = new Color(0.13f, 0.25f, 0.1f), grout = new Color(0.045f, 0.04f, 0.035f),
         };
 
         static Material StoneMaterial()
@@ -38,12 +38,11 @@ namespace ProjectRidge.EditorTools
             return g.sqrMagnitude > 1e-6f ? g.normalized : Vector3.forward;
         }
 
-        /// <summary>Muros de piedra sobre los escalones de terraza. Devuelve el número de bloques.</summary>
-        static int TerraceWalls(Transform root, Terrain t)
+        /// <summary>Afloramientos de roca natural sobre los escalones de terraza. Devuelve el número de rocas.</summary>
+        static int TerraceWalls(Transform root, Terrain t, GameObject[] bushSource, GameObject[] rockSource, GameObject[] screeSource)
         {
             var parent = new GameObject("TerraceWalls").transform;
             parent.SetParent(root, false);
-            var mat = StoneMaterial();
             var rng = new System.Random(Seed + 77);
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
 
@@ -53,7 +52,7 @@ namespace ProjectRidge.EditorTools
                 (StepWidth * 0.5f, true), (StepWidth * 0.5f, false),
                 (StepUp2At + StepWidth * 0.5f, true), (StepDown2At + StepWidth * 0.5f, false),
             };
-            const float grid = 0.25f, spacing = 0.8f;
+            const float grid = 0.25f, spacing = 1.3f;
             var accepted = new List<(Vector3 p, bool north)>();
             var hash = new Dictionary<Vector2Int, List<Vector3>>();
             bool FarEnough(Vector3 p)
@@ -95,8 +94,11 @@ namespace ProjectRidge.EditorTools
                     }
                 }
 
-            // Bloques por lotes de 16 m (frustum culling razonable, pocos draw calls).
-            var batches = new Dictionary<int, StoneBatch>();
+            // Afloramientos naturales: peñascos irregulares de tamaños muy distintos (no hileras de ladrillos), huecos de
+            // tierra entre ellos, piedras sueltas al pie y matas colgando del borde de arriba.
+            var rocksParent = new GameObject("CliffRocks").transform;
+            rocksParent.SetParent(parent, false);
+            var edgeBushes = new List<(Vector3 pos, float yaw, float scale)>();
             int blocks = 0;
             foreach (var (p, north) in accepted)
             {
@@ -106,35 +108,96 @@ namespace ProjectRidge.EditorTools
                 float low = Mathf.Min(a, b), high = Mathf.Max(a, b);
                 float wallH = high - low + 0.1f;
                 if (wallH < 0.6f) continue;
-                int rows = Mathf.Max(1, Mathf.RoundToInt(wallH / 0.8f));
-                float rowH = wallH / rows;
                 Vector3 tangent = Vector3.Cross(Vector3.up, face);
-                int key = Mathf.FloorToInt(p.x / 16f);
-                if (!batches.TryGetValue(key, out var batch)) batches[key] = batch = new StoneBatch();
-                for (int r = 0; r < rows; r++)
+
+                if (rng.NextDouble() >= 0.2) // si no, hueco: se ve la tierra oscura del talud
                 {
-                    float width = R(0.95f, 1.4f);
-                    float along = (r % 2) * 0.35f + R(-0.15f, 0.15f);
-                    float h = rowH * R(0.94f, 1.04f);
-                    Vector3 c = new Vector3(p.x, low + rowH * (r + 0.5f) - 0.04f, p.z) - face * 0.22f + tangent * along;
-                    var rot = Quaternion.LookRotation(face) * Quaternion.Euler(R(-3f, 3f), R(-5f, 5f), R(-2.5f, 2.5f));
-                    batch.Block(c, rot, new Vector3(width, h, 0.9f), 0.14f, WallPalette, R(0f, 1f), r == rows - 1, rng.Next(1000));
+                    int v = rng.Next(rockSource.Length);
+                    Vector3 baseSize = RockSize(v, true);
+                    float h = wallH * R(0.8f, 1.25f);
+                    float s = h / baseSize.y;
+                    var rock = Spawn(rockSource[v], rocksParent, Vector3.zero, 0f, 1f);
+                    rock.transform.localScale = new Vector3(s * R(0.7f, 1.25f), s, s * R(0.6f, 0.95f));
+                    rock.transform.rotation = Quaternion.LookRotation(face) * Quaternion.Euler(R(-10f, 10f), R(-35f, 35f), R(-12f, 12f));
+                    // Siempre hacia afuera del suelo caminable (n), nunca dentro: al norte queda incrustada en el talud; al sur,
+                    // delante de la cara que ve la cámara, sobre la terraza de abajo.
+                    float reach = Mathf.Max(rock.transform.localScale.x * baseSize.x, rock.transform.localScale.z * baseSize.z) * 0.5f;
+                    Vector3 c = new Vector3(p.x, low + h * 0.38f, p.z) + n * (reach * R(0.85f, 1f) + 0.2f) + tangent * R(-0.4f, 0.4f);
+                    if (Walk(c) < reach * 0.85f) { Object.DestroyImmediate(rock); }
+                    else { rock.transform.position = c; blocks++; }
+                }
+                // Piedras sueltas al pie del talud (solo en la terraza de abajo, al sur: nunca dentro de una sala).
+                if (!north && rng.NextDouble() < 0.35)
+                {
+                    int v = rng.Next(screeSource.Length);
+                    var stone = Spawn(screeSource[v], rocksParent, Vector3.zero, R(0f, 360f), R(0.35f, 0.7f));
+                    stone.transform.position = new Vector3(p.x, low - 0.1f, p.z) + face * R(0.6f, 1.3f) + tangent * R(-0.8f, 0.8f);
                     blocks++;
                 }
+                // Matas colgando del borde de arriba (rompen la línea del escalón).
+                if (rng.NextDouble() < 0.55)
+                {
+                    var top = new Vector3(p.x, high - 0.05f, p.z) - face * R(0.4f, 0.9f) + tangent * R(-0.5f, 0.5f);
+                    edgeBushes.Add((top, R(0f, 360f), R(0.6f, 1.05f)));
+                }
             }
-            foreach (var kv in batches)
+            if (bushSource != null)
             {
-                var mesh = ChunkyMeshGenerator.Save(kv.Value.ToMesh("TerraceWall_" + kv.Key));
-                var go = new GameObject("Wall_" + kv.Key);
-                go.transform.SetParent(parent, false);
-                go.AddComponent<MeshFilter>().sharedMesh = mesh;
-                var mr = go.AddComponent<MeshRenderer>();
-                mr.sharedMaterial = mat;
-                mr.shadowCastingMode = ShadowCastingMode.On;
-                mr.receiveGI = ReceiveGI.LightProbes;
-                GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
+                var bushParent = new GameObject("EdgeBushes").transform;
+                bushParent.SetParent(parent, false);
+                foreach (var (pos, yaw, scale) in edgeBushes)
+                {
+                    // Solo si no tapa suelo caminable (las del sur quedan bajas sobre la terraza de abajo: las filtra).
+                    if (pos.y + 1.25f * scale > MaxHeightAt(pos, 0.9f * scale) + 0.2f) continue;
+                    Spawn(bushSource[rng.Next(bushSource.Length)], bushParent, pos, yaw, scale);
+                }
             }
             return blocks;
+        }
+
+
+        /// <summary>
+        /// Agua de verdad en el arroyo: oscura y brillante (refleja el cielo de noche y la luna), con ondas en el mapa
+        /// de normales que corren río abajo (WaterFlow). Antes era una tabla negra con niebla encima.
+        /// </summary>
+        static void SetupWater(Transform root, Mats m)
+        {
+            const int size = 256;
+            var heights = new float[size * size];
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float u = x / (float)size, v = y / (float)size;
+                    // Ondas alargadas a lo largo de la corriente (eje V) + detalle.
+                    heights[y * size + x] = PeriodicFbm(u, v * 0.5f, 3, 6, 401) * 0.7f + PeriodicFbm(u, v, 2, 16, 402) * 0.3f;
+                }
+            var normal = WriteTex("Tex_WaterRipples", size, size, (x, y) =>
+            {
+                float hx = heights[y * size + (x + 1) % size] - heights[y * size + (x + size - 1) % size];
+                float hy = heights[((y + 1) % size) * size + x] - heights[((y + size - 1) % size) * size + x];
+                var n = new Vector3(-hx * 6f, -hy * 6f, 1f).normalized;
+                return new Color(n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f, 1f);
+            }, true, false, true);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(normal));
+            imp.textureType = TextureImporterType.NormalMap;
+            imp.SaveAndReimport();
+            normal = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(normal));
+
+            var water = m.water;
+            water.SetColor("_BaseColor", new Color(0.03f, 0.085f, 0.1f));
+            water.SetFloat("_Smoothness", 0.95f);
+            water.SetFloat("_Metallic", 0f);
+            water.SetTexture("_BumpMap", normal);
+            water.SetTextureScale("_BumpMap", new Vector2(1.5f, 1.5f));
+            water.SetFloat("_BumpScale", 0.7f);
+            water.EnableKeyword("_NORMALMAP");
+            EditorUtility.SetDirty(water);
+
+            var flow = new GameObject("WaterFlow").AddComponent<ProjectRidge.Core.WaterFlow>();
+            flow.transform.SetParent(root, false);
+            var so = new SerializedObject(flow);
+            so.FindProperty("water").objectReferenceValue = water;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ------------------------------------------------------------------ Capas de terreno pintadas
@@ -244,12 +307,15 @@ namespace ProjectRidge.EditorTools
                 new Color(0.52f, 0.42f, 0.32f), new Color(0.2f, 0.14f, 0.1f), 500, 4f, 2.6f, false, 9);
             var litter = PaintedTexture("Tex_PaintLitter", new Color(0.13f, 0.2f, 0.13f), new Color(0.2f, 0.17f, 0.11f),
                 new Color(0.3f, 0.24f, 0.13f), new Color(0.05f, 0.08f, 0.05f), 1800, 7f, 3f, false, 13);
-            var stone = PaintedTexture("Tex_PaintStone", new Color(0.32f, 0.26f, 0.22f), new Color(0.24f, 0.21f, 0.2f),
-                new Color(0.42f, 0.36f, 0.3f), new Color(0.1f, 0.08f, 0.07f), 700, 14f, 2f, false, 17);
+            var stone = PaintedTexture("Tex_PaintStone", new Color(0.28f, 0.26f, 0.22f), new Color(0.19f, 0.19f, 0.18f),
+                new Color(0.2f, 0.3f, 0.14f), new Color(0.08f, 0.07f, 0.06f), 900, 12f, 2.4f, false, 17); // musgo y grietas
             m.tlGround = PaintedLayer("PaintGrass", grass, 5f);
             m.tlTrail = PaintedLayer("PaintDirt", dirt, 4f);
             m.tlLeaves = PaintedLayer("PaintLitter", litter, 6f);
-            m.tlRock = PaintedLayer("PaintStone", stone, 4f);
+            // Taludes: tierra oscura con raíces (no piedra lisa): entre las rocas se ve el bosque, no un muro.
+            var earth = PaintedTexture("Tex_PaintEarth", new Color(0.17f, 0.13f, 0.1f), new Color(0.12f, 0.1f, 0.085f),
+                new Color(0.26f, 0.2f, 0.14f), new Color(0.05f, 0.04f, 0.03f), 1400, 16f, 1.6f, false, 21);
+            m.tlRock = PaintedLayer("PaintEarth", earth, 3f);
             m.rock = Simple("Hollow_PaintRock", stone, null, new Color(1.1f, 1.05f, 1f), 0.12f);
         }
     }

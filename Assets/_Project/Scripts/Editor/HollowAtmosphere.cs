@@ -65,8 +65,9 @@ namespace ProjectRidge.EditorTools
 
         static Texture2D CloudCookie() => WriteTex("Tex_CloudCookie", 256, 256, (x, y) =>
         {
-            float n = TileFbm(x / 256f, y / 256f, 5, 11.7f);
-            float c = Mathf.Lerp(0.55f, 1f, Mathf.SmoothStep(0.35f, 0.65f, n));
+            // Claros de luna entre las copas: manchas de luz y oscuridad bien marcadas (no un velo uniforme).
+            float n = PeriodicFbm(x / 256f, y / 256f, 4, 3, 117);
+            float c = Mathf.Lerp(0.3f, 1f, Mathf.SmoothStep(0.42f, 0.6f, n));
             return new Color(c, c, c, c);
         }, true, false, true);
 
@@ -307,16 +308,20 @@ namespace ProjectRidge.EditorTools
             var moon = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
             if (moon == null) { log.AppendLine("no moon"); return; }
             moon.color = new Color(0.6f, 0.71f, 0.92f);
-            moon.intensity = 1.55f;
+            moon.intensity = 2.1f;
             moon.shadows = LightShadows.Soft;
             moon.shadowStrength = 0.9f;
-            moon.transform.rotation = Quaternion.Euler(52f, 25f, 0f); // desde atrás-izquierda de la cámara: muros visibles iluminados, sombras hacia el fondo (diorama)
+            moon.transform.rotation = Quaternion.Euler(36f, 62f, 0f); // baja, desde atrás-izquierda: sombras largas que cruzan las salas (luz y oscuridad)
             moon.cookie = CloudCookie();
             if (!moon.TryGetComponent(out UniversalAdditionalLightData _)) moon.gameObject.AddComponent<UniversalAdditionalLightData>();
             if (!moon.TryGetComponent(out CloudShadows _)) moon.gameObject.AddComponent<CloudShadows>();
+            var cs = new SerializedObject(moon.GetComponent<CloudShadows>());
+            cs.FindProperty("cookieSize").floatValue = 30f; // manchas de luz entre copas, del tamaño de una sala
+            cs.FindProperty("velocity").vector2Value = new Vector2(0.25f, 0.1f);
+            cs.ApplyModifiedPropertiesWithoutUndo();
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.26f, 0.32f, 0.44f); // copas y lomas del fondo legibles
-            RenderSettings.ambientEquatorColor = new Color(0.11f, 0.13f, 0.16f);
+            RenderSettings.ambientSkyColor = new Color(0.19f, 0.24f, 0.33f); // sombras oscuras: la luz de luna recorta manchas claras
+            RenderSettings.ambientEquatorColor = new Color(0.07f, 0.085f, 0.11f);
             RenderSettings.ambientGroundColor = new Color(0.035f, 0.04f, 0.045f);
             // Sin skybox, los reflejos usaban un cubemap viejo y brillante: charcos y superficies mojadas
             // reflejan ahora un cielo nocturno tenue con el halo de la luna.
@@ -380,7 +385,7 @@ namespace ProjectRidge.EditorTools
             Get<Tonemapping>().mode.Override(TonemappingMode.ACES);
             var ca = Get<ColorAdjustments>();
             // Oscuridad legible: medios tonos visibles (media de luminancia ~0.2 medida en captura), negros solo en los bordes.
-            ca.postExposure.Override(2.15f); ca.contrast.Override(12f); ca.saturation.Override(-14f);
+            ca.postExposure.Override(2.55f); ca.contrast.Override(14f); ca.saturation.Override(-8f);
             var smh = Get<ShadowsMidtonesHighlights>();
             smh.shadows.Override(new Vector4(0.86f, 0.99f, 1.06f, 0f));     // sombras verde-azuladas
             smh.midtones.Override(new Vector4(0.97f, 1f, 1f, 0f));
@@ -393,7 +398,7 @@ namespace ProjectRidge.EditorTools
             var vig = Get<Vignette>();
             vig.intensity.Override(0.36f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
             var bloom = Get<Bloom>();
-            bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f));
+            bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.clamp.Override(6f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f)); // clamp: sin tope, la linterna a medio metro de una pared se volvía un disco blanco gigante
             var dof = Get<DepthOfField>(); // reemplazado por el tilt-shift (pase propio)
             dof.mode.Override(DepthOfFieldMode.Off);
             dof.gaussianStart.Override(17f); dof.gaussianEnd.Override(34f); dof.gaussianMaxRadius.Override(1.2f);
@@ -435,9 +440,9 @@ namespace ProjectRidge.EditorTools
             if (t == null) return;
             var l = t.GetComponent<Light>();
             // Linterna de mano: haz con anillo (cookie), alcance medio, sombras suaves (una de las dos luces con sombra).
-            l.intensity = 16f;
-            l.range = 18f;
-            l.spotAngle = 52f;
+            l.intensity = 6f; // con la exposición actual, 16 era un cono gigante que aplanaba la escena
+            l.range = 11f;
+            l.spotAngle = 42f;
             l.innerSpotAngle = 22f;
             l.color = new Color(1f, 0.93f, 0.82f);
             l.cookie = BeamCookie();
@@ -477,7 +482,7 @@ namespace ProjectRidge.EditorTools
                 n++;
             }
             // El arroyo exhala niebla.
-            for (float z = -20f; z <= 20f; z += 4.5f) Card(new Vector3(RavineX(z), -1.4f, z), 7f, z * 13f);
+            // (El arroyo ya no lleva niebla encima: se leía como neblina en vez de agua.)
             // Niebla que se arrastra desde el bosque hasta el borde de cada sala, nunca encima del escenario:
             // el sendero y los escondites siempre se leen; la oscuridad y la niebla los rodean.
             var rng = new System.Random(31);

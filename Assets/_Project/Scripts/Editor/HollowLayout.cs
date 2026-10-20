@@ -32,7 +32,7 @@ namespace ProjectRidge.EditorTools
         {
             new Room("Cabin", -62f, 0f, 7f, 5.5f),
             new Room("FirstLight", -38f, 0f, 9f, 6f),
-            new Room("Creek", -14f, 0f, 9f, 6.5f),
+            new Room("Creek", -12f, 0f, 11f, 6.5f),
             new Room("TwoLights", 11f, 1f, 10f, 6.5f),
             new Room("Thicket", 36f, -1f, 9f, 6f),
             new Room("Camp", 61f, 0f, 11f, 7f),
@@ -42,7 +42,7 @@ namespace ProjectRidge.EditorTools
         {
             new Vector4(-55.5f, 0f, -46.5f, 0f),
             new Vector4(-29.5f, 0f, -22.5f, 0f),
-            new Vector4(-5.5f, 0f, 1.5f, 1f),
+            new Vector4(-1.5f, 0.2f, 1.5f, 1f),
             new Vector4(20.5f, 1f, 27.5f, -1f),
             new Vector4(44.5f, -1f, 50.5f, 0f),
         };
@@ -62,7 +62,7 @@ namespace ProjectRidge.EditorTools
         static readonly Vector3[] MainTrail =
         {
             new Vector3(-62, 0, 0), new Vector3(-55, 0, 0), new Vector3(-47, 0, 0), new Vector3(-38, 0, 0), new Vector3(-29, 0, 0),
-            new Vector3(-22.5f, 0, 0), new Vector3(-19.5f, 0, -1), new Vector3(-8.5f, 0, -1), new Vector3(-5.5f, 0, 0),
+            new Vector3(-22.5f, 0, 0), new Vector3(-19.5f, 0, -1), new Vector3(-8.5f, 0, -1), new Vector3(-1.5f, 0, 0.2f),
             new Vector3(1.5f, 0, 1), new Vector3(11, 0, 1), new Vector3(20.5f, 0, 1), new Vector3(27.5f, 0, -1),
             new Vector3(31, 0, -4.5f), new Vector3(41, 0, -4.5f), new Vector3(44.5f, 0, -1), new Vector3(50.5f, 0, 0),
             new Vector3(56, 0, -1.5f), new Vector3(65.5f, 0, -1.2f)
@@ -78,22 +78,23 @@ namespace ProjectRidge.EditorTools
             new Vector3(-57.2f, -2.4f, 1.5f),
             // Sala 1 (un reflector en lazo rectangular): sobre la primera línea, isla central, sobre la segunda.
             new Vector3(-42f, -0.4f, 1.9f), new Vector3(-38f, 1.4f, 1.6f), new Vector3(-34f, -0.8f, 1.9f),
-            // Sala 2 (arroyo + Lurker en la otra orilla): mirador antes del puente, a medio patrullaje, salida.
-            new Vector3(-20.6f, -3.3f, 1.8f), new Vector3(-7f, -4.1f, 1.5f), new Vector3(-6.6f, 3.4f, 1.5f),
+            // Sala 2 (arroyo + Lurker que va y viene por la otra orilla): mirador antes del puente; en la otra orilla, a
+            // ambos lados de su ruta (cerca, nunca encima) y junto a la salida.
+            new Vector3(-20.6f, -3.3f, 1.8f), new Vector3(-8.4f, -4.4f, 1.3f), new Vector3(-8.4f, 3.9f, 1.3f), new Vector3(-2.2f, -4.5f, 1.1f),
             // Sala 3 (dos reflectores cruzados): islas en zigzag a lo largo del camino.
             new Vector3(4.2f, 0.6f, 1.6f), new Vector3(8f, -2.7f, 1.6f), new Vector3(11.2f, 3.6f, 1.5f),
             new Vector3(14.4f, -2.5f, 1.6f), new Vector3(17.8f, 2.8f, 1.6f), new Vector3(20.6f, 0.4f, 1.4f),
             // Sala 4 (Lurker en lazo + reflector en la salida).
-            new Vector3(28.6f, -2.6f, 1.5f), new Vector3(36f, 1.3f, 1.3f), new Vector3(43f, 1.4f, 1.5f),
+            new Vector3(28.6f, -2.6f, 1.5f), new Vector3(36f, 0.7f, 1.2f), new Vector3(43f, 1.4f, 1.5f),
             // Sala 5 (campamento, camino, camioneta y clímax).
             new Vector3(52f, -4.6f, 1.7f), new Vector3(57.4f, -3.3f, 1.5f), new Vector3(62.4f, -0.7f, 1.5f),
-            new Vector3(64.6f, 4.4f, 1.5f), new Vector3(60.3f, -5.7f, 1.4f), new Vector3(53.2f, 1.5f, 1.4f),
+            new Vector3(64.6f, 4.4f, 1.5f), new Vector3(60.3f, -5.7f, 1.4f), new Vector3(52f, 1.6f, 1.4f),
         };
 
         /// <summary>Rocas de cobertura (tapan la vista de los Lurker agachado): x, z, escala.</summary>
         static readonly Vector3[] CoverRocks =
         {
-            new Vector3(-10.8f, 2.6f, 1.05f), new Vector3(-10.4f, -4.4f, 1f), new Vector3(-18.2f, 3.4f, 0.95f),
+            new Vector3(-7.2f, 1.4f, 1.05f), new Vector3(-2.6f, 2.6f, 1f), new Vector3(-18.2f, 3.4f, 0.95f),
             new Vector3(35f, -1f, 1.15f), new Vector3(37.1f, -0.4f, 1.05f), new Vector3(36.2f, -2.4f, 1.1f),
             new Vector3(29.6f, 2.6f, 0.95f), new Vector3(42.4f, -2.6f, 1f),
             new Vector3(50.8f, 4.6f, 1f), new Vector3(58.6f, -1.6f, 0.95f),
@@ -103,7 +104,7 @@ namespace ProjectRidge.EditorTools
         static readonly Vector4[] CoverLogs =
         {
             new Vector4(-50.5f, 1.2f, 80f, 3.2f), new Vector4(-45.6f, 3.4f, 20f, 3.6f), new Vector4(-30.8f, -3.6f, -30f, 3.4f),
-            new Vector4(-6.85f, 0.6f, 80f, 2f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
+            new Vector4(-2.4f, -2f, 20f, 2f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
             new Vector4(32.6f, -1.2f, 85f, 3f), new Vector4(55f, -2.2f, 10f, 3.2f), new Vector4(65.6f, 2.4f, 80f, 3f),
         };
 
@@ -132,9 +133,9 @@ namespace ProjectRidge.EditorTools
         /// <summary>Patrullas: nombre del Lurker y puntos (x, z). Cada parada mira hacia afuera de su zona.</summary>
         static readonly (string name, Vector2[] pts)[] Patrols =
         {
-            ("Lurker", new[] { new Vector2(-8.3f, 4.4f), new Vector2(-8.3f, -4.6f), new Vector2(-6f, -4.6f), new Vector2(-6f, 4.4f) }),
+            ("Lurker", new[] { new Vector2(-4.6f, 5f), new Vector2(-4.6f, -5.2f) }),
             ("Lurker_B", new[] { new Vector2(31.4f, 2.9f), new Vector2(40.6f, 2.9f), new Vector2(40.6f, -4.9f), new Vector2(31.4f, -4.9f) }),
-            ("Lurker_C", new[] { new Vector2(52.4f, 5.4f), new Vector2(59.6f, 5.8f), new Vector2(60f, 0.4f), new Vector2(53f, -0.6f) }),
+            ("Lurker_C", new[] { new Vector2(54.5f, 5.6f), new Vector2(59.6f, 5.8f), new Vector2(60f, 0.4f), new Vector2(54.8f, 0.2f) }),
             ("Lurker_D", new[] { new Vector2(70.6f, 5f), new Vector2(70.6f, -5f) }),
         };
 
@@ -247,6 +248,15 @@ namespace ProjectRidge.EditorTools
             foreach (var l in CoverLogs) Check("log", l.x, l.y, 0.5f);
             foreach (var s in Searchlights) foreach (var p in s.route) Check("light " + s.name, p.x, p.y, 0.3f);
             foreach (var (name, pts) in Patrols) foreach (var p in pts) Check("patrol " + name, p.x, p.y, 0.6f);
+            // Escondites vs patrullas: si el Lurker pasa por encima del centro del pastizal, te nota (regla del pisotón).
+            // Cerca está bien (tensión), encima no: el centro debe quedar a más de 1.9 m de la ruta.
+            foreach (var h in HidePatches)
+                foreach (var (name, pts) in Patrols)
+                    for (int i = 0; i < pts.Length; i++)
+                    {
+                        float dist = Segment(new Vector2(h.x, h.y), pts[i], pts[(i + 1) % pts.Length]);
+                        if (dist < 1.9f) { bad++; sb.AppendLine("STEPPED patch (" + h.x + ", " + h.y + ") by " + name + " dist " + dist.ToString("0.0")); }
+                    }
             sb.Insert(0, "layout check: " + (bad == 0 ? "OK" : bad + " problems") + "\n");
             return sb.ToString();
         }

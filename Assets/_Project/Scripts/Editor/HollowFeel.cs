@@ -58,6 +58,13 @@ namespace ProjectRidge.EditorTools
                 enemies++;
             }
 
+            var fall = player.GetComponent<PlayerFallRecovery>();
+            if (fall == null) fall = player.gameObject.AddComponent<PlayerFallRecovery>();
+            var fso = new SerializedObject(fall);
+            fso.FindProperty("controller").objectReferenceValue = player;
+            fso.FindProperty("body").objectReferenceValue = player.GetComponent<CharacterController>();
+            fso.ApplyModifiedPropertiesWithoutUndo();
+
             var rig = Object.FindFirstObjectByType<IsoCameraRig>();
             if (rig != null && rig.GetComponent<CameraShake>() == null) rig.gameObject.AddComponent<CameraShake>();
 

@@ -49,7 +49,7 @@ Material:
     - _WindSpeed: 1.1
     - _WindStrength: 0.06
     m_Colors:
-    - _BaseColor: {r: 0.78, g: 0.86, b: 0.72, a: 1}
+    - _BaseColor: {r: 0.95, g: 1.08, b: 0.82, a: 1}
     - _RimColor: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
