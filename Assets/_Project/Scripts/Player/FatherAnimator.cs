@@ -23,6 +23,8 @@ namespace ProjectRidge.Player
         [Tooltip("Luz de la linterna: se coloca en la mano y apunta hacia adelante con suavizado.")]
         [SerializeField] private Transform flashlightLight;
         [SerializeField] private GameObject club;
+        [Tooltip("Funda del garrote en la mochila (el garrote se cuelga aquí cuando no está en la mano).")]
+        [SerializeField] private Transform clubSheath;
         [SerializeField] private GameObject flareGun;
         [SerializeField] private GameObject torchProp;
 
@@ -37,6 +39,8 @@ namespace ProjectRidge.Player
         [SerializeField] private float leanPerAccel = 0.9f;
         [SerializeField] private float maxLean = 9f;
         [SerializeField] private float leanSmoothing = 10f;
+        [Tooltip("Segundos sin moverse mientras recoge algo del suelo (dura lo que el gesto de agacharse y volver).")]
+        [SerializeField] private float pickUpLock = 1.3f;
 
         public event Action<bool> Footstep;
 
@@ -50,12 +54,15 @@ namespace ProjectRidge.Player
         private float lookWeight;
         private float torchWeight;
         private Transform spine, chest;
+        private Transform handR;
+        private Vector3 clubHandPos;
+        private Quaternion clubHandRot;
+        private bool clubOnBack;
         private float lastSpeed, lean;
 
         private static readonly int SpeedId = Animator.StringToHash("Speed");
         private static readonly int CrouchId = Animator.StringToHash("Crouch");
         private static readonly int DeadId = Animator.StringToHash("Dead");
-        private static readonly int CraftingId = Animator.StringToHash("Crafting");
         private static readonly int AttackId = Animator.StringToHash("Attack");
         private static readonly int FireId = Animator.StringToHash("Fire");
         private static readonly int ThrowId = Animator.StringToHash("Throw");
@@ -74,6 +81,12 @@ namespace ProjectRidge.Player
             handL = animator.GetBoneTransform(HumanBodyBones.LeftHand);
             spine = animator.GetBoneTransform(HumanBodyBones.Spine);
             chest = animator.GetBoneTransform(HumanBodyBones.Chest);
+            handR = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            if (club != null)
+            {
+                clubHandPos = club.transform.localPosition;
+                clubHandRot = club.transform.localRotation;
+            }
         }
 
         private void OnEnable()
@@ -99,7 +112,7 @@ namespace ProjectRidge.Player
         public void PlayThrow() => animator.SetTrigger(ThrowId);
 
         /// <summary>Agacharse a dejar algo en el suelo (bengala de mano).</summary>
-        public void PlayPlace() => Lock(PickUpId, 0.7f);
+        public void PlayPlace() => Lock(PickUpId, pickUpLock);
 
         private void OnSwung() => animator.SetTrigger(AttackId);
         private void OnFired() { animator.SetTrigger(FireId); fireTimer = 0f; }
@@ -109,7 +122,7 @@ namespace ProjectRidge.Player
         private void OnInteracted(Interactable used)
         {
             if (used is SearchableContainer) Lock(SearchId, 1.2f);
-            else if (used is Pickup || used is ClubPickup) Lock(PickUpId, 0.75f);
+            else if (used is Pickup || used is ClubPickup) Lock(PickUpId, pickUpLock);
             else Lock(InteractId, 0.9f);
         }
 
@@ -130,7 +143,6 @@ namespace ProjectRidge.Player
                          && combat.Phase == PlayerCombat.SwingPhase.None && fireTimer > 0.8f && !health.IsDead;
             torchWeight = Mathf.MoveTowards(torchWeight, torch ? 1f : 0f, dt * 4f);
             animator.SetLayerWeight(1, torchWeight);
-            animator.SetBool(CraftingId, combat.Phase == PlayerCombat.SwingPhase.Crafting);
             animator.SetBool(DeadId, health.IsDead);
             if (wasDead && !health.IsDead) animator.SetTrigger(ReviveId);
             wasDead = health.IsDead;
@@ -138,8 +150,31 @@ namespace ProjectRidge.Player
 
             fireTimer += dt;
             if (flareGun != null) flareGun.SetActive(fireTimer < 0.8f);
-            if (club != null) club.SetActive(combat.HasClub && fireTimer >= 0.8f);
+            UpdateClub();
             if (torchProp != null) torchProp.SetActive(flashlight != null && flashlight.IsOn);
+        }
+
+        /// <summary>
+        /// Garrote: en la funda de la mochila o en la mano derecha según PlayerCombat.DrawProgress. Cambia de padre a
+        /// mitad del gesto, cuando la mano (IK) llega a la espalda.
+        /// </summary>
+        private void UpdateClub()
+        {
+            if (club == null) return;
+            club.SetActive(combat.HasClub);
+            bool back = clubSheath != null && combat.DrawProgress < 0.5f;
+            if (back == clubOnBack && club.transform.parent != null) return;
+            clubOnBack = back;
+            if (back)
+            {
+                club.transform.SetParent(clubSheath, false);
+                club.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            }
+            else
+            {
+                club.transform.SetParent(handR, false);
+                club.transform.SetLocalPositionAndRotation(clubHandPos, clubHandRot);
+            }
         }
 
         private void LateUpdate()
@@ -193,6 +228,12 @@ namespace ProjectRidge.Player
             lookWeight = Mathf.MoveTowards(lookWeight, want, Time.deltaTime * 2f);
             animator.SetLookAtWeight(lookWeight, 0.15f, 0.8f, 0f, 0.6f);
             animator.SetLookAtPosition(lookTarget);
+
+            // Desenfundar / enfundar: la mano derecha va a la funda y vuelve (arco de seno sobre el progreso).
+            float p = combat.DrawProgress;
+            float reach = clubSheath != null && combat.HasClub && p > 0f && p < 1f ? Mathf.Sin(p * Mathf.PI) : 0f;
+            animator.SetIKPositionWeight(AvatarIKGoal.RightHand, reach);
+            if (reach > 0f) animator.SetIKPosition(AvatarIKGoal.RightHand, clubSheath.position);
         }
     }
 }

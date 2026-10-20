@@ -43,7 +43,10 @@ namespace ProjectRidge.EditorTools
         };
 
         const int MaxFailures = 8;
-        const float JogSpeed = 3.2f, WalkSpeed = 1.2f, Margin = 0.7f, MaxWait = 75f;
+        const float Margin = 0.7f, MaxWait = 75f;
+        static PlayerMovementConfig Movement => AssetDatabase.LoadAssetAtPath<PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
+        static float JogSpeed => Movement.jogSpeed;
+        static float WalkSpeed => Movement.walkSpeed;
 
         static int index;
         static bool needResync;

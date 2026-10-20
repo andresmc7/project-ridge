@@ -110,6 +110,7 @@ namespace ProjectRidge.Core
             Show(pausePanel, false);
             Show(cluePanel, false);
             Show(endPanel, false);
+            Show(endButtons, false); // D14: nunca en el título (solo al final de la demo)
             Show(gameplayHud, false);
             Show(titlePanel, true);
             fade.alpha = 1f;

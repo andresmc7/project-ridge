@@ -34,10 +34,12 @@ namespace ProjectRidge.Items
         [Min(0f)] public float clubHitReaction = 1.3f;
         [Tooltip("Golpe de cámara al conectar.")]
         [Min(0f)] public float clubCameraKick = 0.7f;
-        [Tooltip("Con el garrote roto, Attack fabrica uno nuevo con chatarra.")]
-        [Min(1)] public int craftScrapCost = 2;
-        [Min(0f)] public float craftTime = 1.2f;
-        [Min(0f)] public float craftNoise = 3f;
+        [Tooltip("Segundos para sacar el garrote de la mochila (o guardarlo).")]
+        [Min(0.05f)] public float clubDrawTime = 0.35f;
+        [Tooltip("Un Lurker cazando a esta distancia (m) hace que el papá desenfunde solo.")]
+        [Min(0f)] public float clubDrawThreatRadius = 6f;
+        [Tooltip("Segundos sin amenaza ni golpes antes de volver a enfundar.")]
+        [Min(0f)] public float clubSheathDelay = 3f;
         [Tooltip("Velocidad del jugador mientras golpea (multiplicador).")]
         [Range(0f, 1f)] public float swingMoveFactor = 0.35f;
 

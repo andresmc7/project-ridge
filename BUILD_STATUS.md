@@ -2,6 +2,22 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-20 — POLISH PASS P0: arreglos rápidos (D1–D4, D14, sin chatarra)
+Máquina: Windows 11 (RTX 4070), Unity 6000.3.26f1, editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P0")` → **8/8 PASS**. Capturas: `docs/progress/P0_before.png`, `P0_after.png` (corriendo, garrote en la espalda), `P0_after_pickup.png`.
+
+- Compila: 0 errores, 0 warnings propios (se corrigió el `compressLightmaps` obsoleto). Consola en play: 0 errores.
+- **D1 velocidades de los clips**: medidas por la zancada (el pie apoyado se desliza hacia atrás a la velocidad del cuerpo; `CharacterBuilder.MeasureNaturalSpeed`): caminar 0.93, trote 2.60, sprint 3.62, agachado 0.69 m/s; Lurker (escala 1.3) caminar 1.15, trote 3.34, sprint 4.60. Config: agachado 0.72, caminar 1.0, trote 2.6, sprint 3.6. Escala de los clips en los blend trees: 0.99–1.10x (antes 1.26–1.47x). Persecución del Lurker 4.4 → 3.9 m/s para mantener la proporción con el sprint nuevo (1.08x; antes 1.05x).
+- **D2 giro**: 540°/s; media vuelta medida en 0.32 s (antes 0.1 s).
+- **D3 recoger**: clip de agacharse al suelo (Farm_Harvest, UAL2) en lugar de PickUp_Table. Probado: entra en el estado PickUp y la cadera baja 0.20 m. `UNVERIFIED`: la mano no llega al objeto por IK ni el objeto se pega a la mano (queda para P7).
+- **D4 garrote enfundado**: va cruzado en la mochila; se desenfunda solo con un Lurker cazando a ≤ 6 m o al golpear (la mano va a la funda por IK, 0.35 s) y se enfunda 3 s después. Probado: corriendo → en la funda; Lurker en Chase → en la mano; 4.5 s después → en la funda. El golpe sigue usando Sword_Regular_A (se cambia en P7).
+- **D14**: los botones de fin nunca se ven en el título (alfa 0 desde el generador y al arrancar).
+- **Chatarra y fabricación eliminadas** (item, recogibles, cajas, HUD, animación). Sin garrote, ATTACK no hace nada (P1 añade empujar/esquivar).
+- 100STYLE (CC BY 4.0) descargado y verificado (md5) en `_incoming/100style/` (fuera del repo). Aún no entra a `Assets/` (ver DECISIONS.md).
+
+## 2026-10-20 — Pase de feedback anterior (estilo salvaje, bengala de mano, peso del combate)
+Commits `1ba7a37` y `46a1a43`. Pruebas `FeelTests` 12/12 PASS antes de los últimos cambios de luz y agua.
+- `UNVERIFIED`: el aspecto del agua en movimiento; el arreglo del disco blanco en la toma exacta del usuario (verificado solo cerca de la caja del refugio); justicia de la sala del arroyo (el `LoopBot` muere en (-10.5, -4.3)); cómo suenan las pisadas Kenney y la voz grave del Lurker; rendimiento en dispositivo.
+
 ## 2026-10-19 — Nivel compacto, personajes Quaternius, eventos con guion, atmósfera y perfil iPhone (A18+)
 Máquina: Windows 11 (RTX 4070), Unity 6000.3.26f1, editor (play mode vía Unity MCP). Escena: `TheHollow.unity`, regenerable con `Project Ridge/The Hollow/Build All`.
 

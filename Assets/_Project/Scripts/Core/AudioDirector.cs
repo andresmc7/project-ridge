@@ -60,7 +60,7 @@ namespace ProjectRidge.Core
             combat.Swung += () => PlayerSfx(bank.clubSwing, bank.weapons * 0.6f, 0.08f);
             combat.ClubHit += pos => { At(bank.clubHit, pos, bank.weapons * 0.8f, 0.06f); AtPitch(Pick(bank.bodyHits), pos, bank.weapons, Random.Range(0.8f, 0.92f)); };
             combat.ClubBroke += () => PlayerSfx(bank.clubBreak, bank.weapons, 0.04f);
-            combat.Crafted += () => PlayerSfx(bank.craft, bank.player, 0.05f);
+            combat.ClubRestored += () => PlayerSfx(bank.craft, bank.player, 0.05f);
             combat.Fired += () => PlayerSfx(bank.flareShot, bank.weapons, 0.04f);
             combat.DryFire += () => PlayerSfx(bank.dryFire, bank.weapons * 0.7f, 0.05f);
             health.Damaged += _ => { PlayerSfx(bank.hurt, bank.player, 0.08f); At(Pick(bank.bodyHits), player.transform.position + Vector3.up, bank.weapons, 0.08f); };

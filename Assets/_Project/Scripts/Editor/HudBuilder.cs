@@ -209,6 +209,10 @@ namespace ProjectRidge.EditorTools
             var endButtonsRt = Rect("Buttons", end, new Vector2(0.5f, 0f), new Vector2(0f, 120f), 0f);
             endButtonsRt.sizeDelta = new Vector2(600f, 80f);
             var endButtons = endButtonsRt.gameObject.AddComponent<CanvasGroup>();
+            endGroup.alpha = 0f;
+            endButtons.alpha = 0f;
+            endButtons.interactable = false;
+            endButtons.blocksRaycasts = false;
             var playAgain = MenuButton(endButtonsRt, "Play again", new Vector2(-150f, 0f), white);
             var endQuit = MenuButton(endButtonsRt, "Quit", new Vector2(150f, 0f), white);
 
@@ -370,7 +374,7 @@ namespace ProjectRidge.EditorTools
             return rt;
         }
 
-        static readonly string[] ShownItems = { "Medkit", "Flare", "Stone", "Scrap" };
+        static readonly string[] ShownItems = { "Medkit", "Flare", "Stone" };
 
         static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pos)
         {

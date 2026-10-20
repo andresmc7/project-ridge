@@ -856,7 +856,7 @@ namespace ProjectRidge.EditorTools
             ls.maxBounces = 2;
             ls.ao = true;
             ls.aoMaxDistance = 1.2f;
-            ls.compressLightmaps = true;
+            ls.lightmapCompression = LightmapCompression.NormalQuality;
             Lightmapping.lightingSettings = ls;
         }
 

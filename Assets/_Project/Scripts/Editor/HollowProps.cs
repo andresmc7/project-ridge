@@ -558,13 +558,11 @@ namespace ProjectRidge.EditorTools
             var config = ItemsSetupBuilder.LoadConfig();
             var med = ItemsSetupBuilder.LoadItem("Medkit");
             var flare = ItemsSetupBuilder.LoadItem("Flare");
-            var scrap = ItemsSetupBuilder.LoadItem("Scrap");
             var wood = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_weathered_brown_planks.mat");
 
             // Refugio: suministros.
             ItemsSetupBuilder.Crate(root, "Crate_Shelter", Cabin(2.3f, -1.4f), CabinYaw + 15f, config, wood,
-                new SearchableContainer.Entry { item = med, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
-            ItemsSetupBuilder.PickupObject(root, "Scrap", Cabin(-1.2f, -1.5f), 40f);
+                new SearchableContainer.Entry { item = med, amount = 1 });
 
             // Pasillo antes del arroyo: la primera bengala de mano, justo antes del primer Lurker.
             ItemsSetupBuilder.PickupObject(root, "Flare", At(-26.2f, -1.3f), 20f);
@@ -576,7 +574,7 @@ namespace ProjectRidge.EditorTools
                 new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = med, amount = 1 });
             // Campamento.
             ItemsSetupBuilder.Crate(root, "Crate_Camp", OnGround(t, Camp.x - 2.6f, Camp.z - 2.2f), 70f, config, wood,
-                new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
+                new SearchableContainer.Entry { item = flare, amount = 1 });
             ItemsSetupBuilder.PickupObject(root, "Medkit", At(Camp.x + 3.6f, Camp.z + 2.2f), 15f);
 
             // Piedras para distraer, justo antes de cada sala con Lurker.

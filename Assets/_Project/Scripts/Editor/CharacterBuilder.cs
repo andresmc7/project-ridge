@@ -286,6 +286,14 @@ namespace ProjectRidge.EditorTools
             // En la pose de enlace el modelo mira hacia -Z del Visual: la espalda queda hacia +Z.
             backpack.transform.position = spine3.position + body.transform.forward * 0.19f - Vector3.up * 0.2f;
             backpack.transform.rotation = body.transform.rotation;
+            // Funda del garrote: cruzado sobre la mochila, el mango asoma por encima del hombro derecho (se alcanza
+            // por encima del hombro) y la punta baja hacia la cadera izquierda. El modelo mira a -Z: su derecha es -X.
+            Vector3 back = body.transform.forward, right = -body.transform.right;
+            var sheath = new GameObject("ClubSheath").transform;
+            sheath.SetParent(spine3, false);
+            sheath.position = spine3.position + back * 0.3f + right * 0.16f + Vector3.up * 0.16f;
+            sheath.rotation = Quaternion.LookRotation(back, Vector3.up) * Quaternion.FromToRotation(Vector3.down, new Vector3(-0.45f, -1f, 0f).normalized);
+            sheath.gameObject.layer = spine3.gameObject.layer;
 
             // Linterna: la luz existente pasa a seguir la mano.
             var flash = player.transform.Find("Flashlight");
@@ -301,6 +309,7 @@ namespace ProjectRidge.EditorTools
             so.FindProperty("flashlight").objectReferenceValue = player.GetComponent<ProjectRidge.Player.FlashlightController>();
             so.FindProperty("flashlightLight").objectReferenceValue = flash;
             so.FindProperty("club").objectReferenceValue = club;
+            so.FindProperty("clubSheath").objectReferenceValue = sheath;
             so.FindProperty("flareGun").objectReferenceValue = gun;
             so.FindProperty("torchProp").objectReferenceValue = torch;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -644,22 +653,103 @@ namespace ProjectRidge.EditorTools
             t.duration = duration;
         }
 
+        /// <summary>
+        /// Velocidad natural (m/s) de los clips de locomoción del cuerpo base (1.80 m), medida por la zancada de los
+        /// pies con MeasureNaturalSpeed (2026-10-20): los clips de Quaternius vienen "in place", sin raíz que leer.
+        /// </summary>
+        public static readonly Dictionary<string, float> NaturalSpeed = new Dictionary<string, float>
+        {
+            { "Walk_Loop", 0.93f }, { "Jog_Fwd_Loop", 2.6f }, { "Sprint_Loop", 3.62f }, { "Crouch_Fwd_Loop", 0.69f },
+            // Lurker (cuerpo a escala 1.3, misma medición).
+            { "Lurker:Zombie_Walk_Fwd_Loop", 1.15f }, { "Lurker:Jog_Fwd_Loop", 3.34f }, { "Lurker:Sprint_Loop", 4.6f },
+        };
+
+        /// <summary>Límites de escala de tiempo de un clip de locomoción (POLISH_PASS 3.7).</summary>
+        public const float MinClipRate = 0.85f, MaxClipRate = 1.1f;
+
+        /// <summary>
+        /// Mide la velocidad natural de un clip "in place": mientras un pie está apoyado (el más bajo), se desliza hacia
+        /// atrás a la velocidad a la que el cuerpo avanzaría. Se promedia esa velocidad en todo el ciclo. QA de P0.
+        /// </summary>
+        public static float MeasureNaturalSpeed(GameObject body, AnimationClip clip, int samples = 120)
+        {
+            var copy = Object.Instantiate(body);
+            copy.transform.SetPositionAndRotation(new Vector3(0f, 400f, 0f), Quaternion.identity);
+            foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>()) mb.enabled = false;
+            var anim = copy.GetComponent<Animator>();
+            // La punta (ball) es el punto que apoya más tiempo: el tobillo baja más en el vuelo del trote que al pisar.
+            Transform fl = anim.GetBoneTransform(HumanBodyBones.LeftToes) ?? anim.GetBoneTransform(HumanBodyBones.LeftFoot);
+            Transform fr = anim.GetBoneTransform(HumanBodyBones.RightToes) ?? anim.GetBoneTransform(HumanBodyBones.RightFoot);
+            var graph = UnityEngine.Playables.PlayableGraph.Create("Measure");
+            var output = UnityEngine.Animations.AnimationPlayableOutput.Create(graph, "out", anim);
+            var playable = UnityEngine.Animations.AnimationClipPlayable.Create(graph, clip);
+            UnityEngine.Playables.PlayableOutputExtensions.SetSourcePlayable(output, playable);
+            float dt = clip.length / samples, sum = 0f;
+            int count = 0;
+            var ls = new Vector3[samples + 1];
+            var rs = new Vector3[samples + 1];
+            float floorL = float.MaxValue, floorR = float.MaxValue;
+            for (int i = 0; i <= samples; i++)
+            {
+                UnityEngine.Playables.PlayableExtensions.SetTime(playable, i * dt);
+                graph.Evaluate();
+                ls[i] = copy.transform.InverseTransformPoint(fl.position);
+                rs[i] = copy.transform.InverseTransformPoint(fr.position);
+                floorL = Mathf.Min(floorL, ls[i].y);
+                floorR = Mathf.Min(floorR, rs[i].y);
+            }
+            // Un pie apoyado se desliza hacia atrás (+Z: el modelo mira a -Z) a la velocidad del cuerpo; en el vuelo vuelve
+            // hacia adelante. Velocidad = recorrido hacia atrás / tiempo yendo hacia atrás (robusto en el sprint).
+            // Por si el eje está invertido: la fase de apoyo es siempre la más lenta de las dos direcciones.
+            float back = 0f, backT = 0f, fwd = 0f, fwdT = 0f;
+            for (int i = 1; i <= samples; i++)
+                foreach (float d in new[] { ls[i].z - ls[i - 1].z, rs[i].z - rs[i - 1].z })
+                {
+                    if (d > 0f) { back += d; backT += dt; }
+                    else { fwd -= d; fwdT += dt; }
+                }
+            count = backT > 0f && fwdT > 0f ? 1 : 0;
+            sum = count > 0 ? Mathf.Min(back / backT, fwd / fwdT) : 0f;
+            float scale = body.transform.lossyScale.x;
+            graph.Destroy();
+            Object.DestroyImmediate(copy);
+            return count > 0 ? sum / count * scale : 0f;
+        }
+
+        static float ClipRate(string clip, float speed)
+        {
+            float rate = speed / NaturalSpeed[clip];
+            if (rate < MinClipRate || rate > MaxClipRate)
+                Debug.LogError(clip + " a " + speed + " m/s necesita " + rate.ToString("0.00") + "x (fuera de " + MinClipRate + "–" + MaxClipRate + "): ajusta PlayerMovementConfig");
+            return rate;
+        }
+
+        /// <summary>Velocidad del clip de recoger del suelo (Farm_Harvest dura 2.5 s: queda en ~1.6 s).</summary>
+        public const float PickUpClipSpeed = 1.6f;
+
         static AnimatorController FatherController()
         {
             var clips = QuaterniusImport.Clips();
             var c = NewController("Father");
             foreach (var p in new[] { "Speed" }) c.AddParameter(p, AnimatorControllerParameterType.Float);
-            foreach (var p in new[] { "Crouch", "Dead", "Crafting" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
+            foreach (var p in new[] { "Crouch", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
             foreach (var p in new[] { "Attack", "Fire", "Throw", "Hit", "PickUp", "Search", "Interact", "Heal", "Revive" }) c.AddParameter(p, AnimatorControllerParameterType.Trigger);
             var layers = c.layers;
             layers[0].iKPass = true;
             c.layers = layers;
             var sm = c.layers[0].stateMachine;
 
-            // Velocidades naturales medidas de los clips: caminar 0.95, trote 2.46, sprint 3.19, agachado 0.74 m/s. Trote a 3.2 m/s
-            // (x1.3): más cadencia, menos tiempo en el aire: se siente pegado al suelo.
-            var loco = Tree(c, "Locomotion", "Speed", new[] { ("Idle_Loop", 0f, 1f), ("Walk_Loop", 1.2f, 1.26f), ("Jog_Fwd_Loop", 3.2f, 1.3f), ("Sprint_Loop", 4.2f, 1.32f) }, clips);
-            var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", 0.95f, 1.28f) }, clips);
+            // Las velocidades del papá salen de los clips (POLISH_PASS 3.7): el tiempo de cada clip se escala solo por
+            // velocidad de config / velocidad natural, y eso tiene que quedar entre 0.85x y 1.1x (si no, patina).
+            var mv = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
+            var loco = Tree(c, "Locomotion", "Speed", new[]
+            {
+                ("Idle_Loop", 0f, 1f),
+                ("Walk_Loop", mv.walkSpeed, ClipRate("Walk_Loop", mv.walkSpeed)),
+                ("Jog_Fwd_Loop", mv.jogSpeed, ClipRate("Jog_Fwd_Loop", mv.jogSpeed)),
+                ("Sprint_Loop", mv.sprintSpeed, ClipRate("Sprint_Loop", mv.sprintSpeed)),
+            }, clips);
+            var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", mv.crouchSpeed, ClipRate("Crouch_Fwd_Loop", mv.crouchSpeed)) }, clips);
             sm.defaultState = loco;
             var toCrouch = loco.AddTransition(crouch); toCrouch.AddCondition(AnimatorConditionMode.If, 0, "Crouch"); toCrouch.duration = 0.25f; toCrouch.hasExitTime = false;
             var toStand = crouch.AddTransition(loco); toStand.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouch"); toStand.duration = 0.25f; toStand.hasExitTime = false;
@@ -672,13 +762,11 @@ namespace ProjectRidge.EditorTools
             var fire = Action(sm, "Fire", clips["Pistol_Shoot"], 1f); FromAny(sm, fire, "Fire"); Back(fire, loco, 0.9f);
             var thr = Action(sm, "Throw", clips["OverhandThrow"], 1.3f); FromAny(sm, thr, "Throw"); Back(thr, loco, 0.85f);
             var hit = Action(sm, "Hit", clips["Hit_Chest"], 1f); FromAny(sm, hit, "Hit", duration: 0.04f); Back(hit, loco, 0.9f, 0.15f);
-            var pick = Action(sm, "PickUp", clips["PickUp_Table"], 1.1f); FromAny(sm, pick, "PickUp", duration: 0.12f); Back(pick, loco, 0.9f);
+            // Recoger del suelo: se agacha flexionando las rodillas hasta el suelo y vuelve (no el de recoger de una mesa).
+            var pick = Action(sm, "PickUp", clips["Farm_Harvest"], PickUpClipSpeed); FromAny(sm, pick, "PickUp", duration: 0.12f); Back(pick, loco, 0.86f, 0.25f);
             var search = Action(sm, "Search", clips["Chest_Open"], 1.2f); FromAny(sm, search, "Search", duration: 0.15f); Back(search, loco, 0.9f);
             var inter = Action(sm, "Interact", clips["Interact"], 2f); FromAny(sm, inter, "Interact", duration: 0.15f); Back(inter, loco, 0.9f);
             var heal = Action(sm, "Heal", clips["Consume"], 1.2f); FromAny(sm, heal, "Heal", duration: 0.15f); Back(heal, loco, 0.9f);
-            var craft = Action(sm, "Craft", clips["Fixing_Kneeling"], 2f);
-            FromAny(sm, craft, "Crafting", duration: 0.2f);
-            var craftOut = craft.AddTransition(loco); craftOut.AddCondition(AnimatorConditionMode.IfNot, 0, "Crafting"); craftOut.duration = 0.25f; craftOut.hasExitTime = false;
             var death = Action(sm, "Death", clips["Death01"], 1f); FromAny(sm, death, "Dead", duration: 0.1f);
             var revive = Action(sm, "Revive", clips["LayToIdle"], 1f);
             var rv = death.AddTransition(revive); rv.AddCondition(AnimatorConditionMode.If, 0, "Revive"); rv.hasExitTime = false; rv.duration = 0.1f;
@@ -711,8 +799,9 @@ namespace ProjectRidge.EditorTools
             foreach (var p in new[] { "Hunting", "Stunned", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
             c.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
             var sm = c.layers[0].stateMachine;
-            var prowl = Tree(c, "Prowl", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 0.8f), ("Zombie_Walk_Fwd_Loop", 0.95f, 1f), ("Zombie_Walk_Fwd_Loop", 1.4f, 1.47f) }, clips);
-            var hunt = Tree(c, "Hunt", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 1.6f), ("Jog_Fwd_Loop", 2.5f, 1.02f), ("Sprint_Loop", 4.4f, 1.38f) }, clips);
+            // Locomoción a su velocidad natural (cuerpo a escala 1.3): los umbrales son las velocidades medidas, sin escalar.
+            var prowl = Tree(c, "Prowl", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 0.8f), ("Zombie_Walk_Fwd_Loop", NaturalSpeed["Lurker:Zombie_Walk_Fwd_Loop"], 1f), ("Zombie_Walk_Fwd_Loop", NaturalSpeed["Lurker:Zombie_Walk_Fwd_Loop"] * MaxClipRate, MaxClipRate) }, clips);
+            var hunt = Tree(c, "Hunt", "Speed", new[] { ("Zombie_Idle_Loop", 0f, 1.6f), ("Jog_Fwd_Loop", NaturalSpeed["Lurker:Jog_Fwd_Loop"], 1f), ("Sprint_Loop", NaturalSpeed["Lurker:Sprint_Loop"], 1f) }, clips);
             sm.defaultState = prowl;
             var toHunt = prowl.AddTransition(hunt); toHunt.AddCondition(AnimatorConditionMode.If, 0, "Hunting"); toHunt.duration = 0.2f; toHunt.hasExitTime = false;
             var toProwl = hunt.AddTransition(prowl); toProwl.AddCondition(AnimatorConditionMode.IfNot, 0, "Hunting"); toProwl.duration = 0.35f; toProwl.hasExitTime = false;

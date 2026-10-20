@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0089dbdc489abd34a82806b8c52af4f1, type: 3}
   m_Name: PlayerMovementConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Player.PlayerMovementConfig
-  crouchSpeed: 0.95
-  walkSpeed: 1.2
-  jogSpeed: 3.2
-  sprintSpeed: 4.2
+  crouchSpeed: 0.72
+  walkSpeed: 1
+  jogSpeed: 2.6
+  sprintSpeed: 3.6
   acceleration: 24
   deceleration: 32
-  turnSpeed: 1800
+  turnSpeed: 540
   alignmentSharpness: 2
   stickDeadzone: 0.15
   jogThreshold: 0.7

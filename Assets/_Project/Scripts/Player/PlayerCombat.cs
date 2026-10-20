@@ -12,12 +12,13 @@ namespace ProjectRidge.Player
 {
     /// <summary>
     /// Garrote (Attack): arranque → ventana activa → recuperación, un golpe por enemigo por swing, durabilidad y rotura.
-    /// Sin garrote, Attack fabrica uno con chatarra. Pistola de bengalas (Fire, o Aim + Attack): a quemarropa aturde;
-    /// si no, dispara una bengala que arde con luz y ruido y atrae a los enemigos.
+    /// El garrote va enfundado en la mochila: se desenfunda solo ante un Lurker cazando cerca o al golpear, y se
+    /// enfunda unos segundos después de que pasa la amenaza. Pistola de bengalas (Fire, o Aim + Attack): a quemarropa
+    /// aturde; si no, dispara una bengala que arde con luz y ruido y atrae a los enemigos.
     /// </summary>
     public class PlayerCombat : MonoBehaviour
     {
-        public enum SwingPhase { None, Windup, Active, Recovery, Crafting }
+        public enum SwingPhase { None, Windup, Active, Recovery }
 
         [SerializeField] private CombatConfig config;
         [SerializeField] private PlayerInputHandler input;
@@ -26,7 +27,6 @@ namespace ProjectRidge.Player
         [SerializeField] private PlayerInventory inventory;
         [SerializeField] private PlayerInteractor interactor;
         [SerializeField] private ItemDefinition flareItem;
-        [SerializeField] private ItemDefinition scrapItem;
         [SerializeField] private FlareProjectile flarePrefab;
         [Tooltip("Desde dónde sale la bengala (mano).")]
         [SerializeField] private Transform muzzle;
@@ -39,8 +39,16 @@ namespace ProjectRidge.Player
         private float phaseEnd;
         private float phaseDuration;
         private float nextFire;
+        private float drawProgress;
+        private float lastThreat = -99f;
+        private bool swingQueued;
 
         public SwingPhase Phase { get; private set; }
+        /// <summary>0 = enfundado en la mochila, 1 = en la mano. Avanza en clubDrawTime segundos.</summary>
+        public float DrawProgress => drawProgress;
+        /// <summary>Quiere el garrote en la mano (amenaza cerca, golpeando o recién golpeado).</summary>
+        public bool WantsClubDrawn { get; private set; }
+        public bool ClubInHand => HasClub && drawProgress >= 1f;
         /// <summary>Avance 0–1 dentro de la fase actual (para la animación).</summary>
         public float PhaseT => phaseDuration > 0f ? Mathf.Clamp01(1f - (phaseEnd - Time.time) / phaseDuration) : 0f;
         public int ClubDurability { get; private set; }
@@ -51,7 +59,10 @@ namespace ProjectRidge.Player
         public event Action Swung;
         public event Action<Vector3> ClubHit;
         public event Action ClubBroke;
-        public event Action Crafted;
+        /// <summary>Garrote nuevo (recogido del suelo).</summary>
+        public event Action ClubRestored;
+        /// <summary>Empieza a desenfundar (true) o a enfundar (false).</summary>
+        public event Action<bool> ClubDrawStarted;
         public event Action Fired;
         public event Action DryFire;
 
@@ -76,9 +87,15 @@ namespace ProjectRidge.Player
         {
             if (controller.InputLocked) return;
             if (input.AimHeld && config.flareGun) { TryFire(); return; }
-            if (health.IsDead || IsBusy) return;
-            if (!HasClub) { TryCraft(); return; }
+            if (health.IsDead || IsBusy || !HasClub) return;
+            lastThreat = Time.time;
+            if (!ClubInHand) { swingQueued = true; return; } // golpea en cuanto termina de desenfundar
+            StartSwing();
+        }
 
+        private void StartSwing()
+        {
+            swingQueued = false;
             var target = NearestEnemy(config.clubRange + 1.2f, config.clubArc + 60f);
             if (target != null) controller.FaceTowards(target.transform.position);
             hitThisSwing.Clear();
@@ -90,6 +107,7 @@ namespace ProjectRidge.Player
 
         private void Update()
         {
+            UpdateSheath();
             switch (Phase)
             {
                 case SwingPhase.Windup:
@@ -107,10 +125,21 @@ namespace ProjectRidge.Player
                 case SwingPhase.Recovery:
                     if (Time.time >= phaseEnd) EndAction();
                     break;
-                case SwingPhase.Crafting:
-                    if (Time.time >= phaseEnd) FinishCraft();
-                    break;
             }
+        }
+
+        /// <summary>Desenfunda ante un Lurker cazando cerca; enfunda cuando pasa un rato sin amenaza.</summary>
+        private void UpdateSheath()
+        {
+            if (!HasClub || health.IsDead) { drawProgress = 0f; WantsClubDrawn = false; swingQueued = false; return; }
+            float r2 = config.clubDrawThreatRadius * config.clubDrawThreatRadius;
+            foreach (var e in EnemyController.Active)
+                if (e.IsHunting && (e.transform.position - transform.position).sqrMagnitude < r2) { lastThreat = Time.time; break; }
+            if (IsBusy) lastThreat = Time.time;
+            bool want = Time.time - lastThreat < config.clubSheathDelay;
+            if (want != WantsClubDrawn) { WantsClubDrawn = want; ClubDrawStarted?.Invoke(want); }
+            drawProgress = Mathf.MoveTowards(drawProgress, want ? 1f : 0f, Time.deltaTime / Mathf.Max(0.01f, config.clubDrawTime));
+            if (swingQueued && ClubInHand && !IsBusy && !controller.InputLocked) StartSwing();
         }
 
         private void EndAction()
@@ -164,34 +193,12 @@ namespace ProjectRidge.Player
             }
         }
 
-        private void TryCraft()
-        {
-            if (inventory.Count(scrapItem) < config.craftScrapCost)
-            {
-                interactor.Notify("Need " + config.craftScrapCost + " scrap to make a club");
-                return;
-            }
-            Phase = SwingPhase.Crafting;
-            phaseEnd = Time.time + (phaseDuration = config.craftTime);
-            controller.InputLocked = true;
-            NoiseSystem.Emit(transform.position, config.craftNoise, NoiseType.Interaction, gameObject);
-            interactor.Notify("Making a club...");
-        }
-
-        private void FinishCraft()
-        {
-            EndAction();
-            if (!inventory.TryRemove(scrapItem, config.craftScrapCost)) return;
-            ClubDurability = config.clubDurability;
-            interactor.Notify("New club  (-" + config.craftScrapCost + " Scrap)");
-            Crafted?.Invoke();
-        }
-
-        /// <summary>Repone el garrote (p. ej. al recoger uno nuevo).</summary>
+        /// <summary>Repone el garrote (p. ej. al recoger uno nuevo). Va directo a la funda.</summary>
         public void RestoreClub()
         {
             ClubDurability = config.clubDurability;
-            Crafted?.Invoke();
+            drawProgress = 0f;
+            ClubRestored?.Invoke();
         }
 
         // ---------- Pistola de bengalas

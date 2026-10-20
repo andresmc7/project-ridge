@@ -27,12 +27,9 @@ namespace ProjectRidge.EditorTools
         // Repartidos para premiar la exploración: el claro del Lurker tiene lo mejor.
         static readonly Spot[] Pickups =
         {
-            new Spot("Scrap", -10.5f, -9.5f),
             new Spot("Medkit", -6f, -14f),
-            new Spot("Scrap", -2f, -4f),
             new Spot("Flare", 7.5f, 9f),
             new Spot("Medkit", 13f, -6f),
-            new Spot("Scrap", 11f, 14f),
         };
 
         [MenuItem("Project Ridge/Items/Setup Items in Active Scene")]
@@ -43,7 +40,6 @@ namespace ProjectRidge.EditorTools
             var config = Asset<InteractionConfig>(DataDir + "/InteractionConfig.asset", c => { });
             var medkit = Item("Medkit", "Medkit", "MED", 3);
             var flare = Item("Flare", "Flare", "FLARE", 3);
-            var scrap = Item("Scrap", "Scrap", "SCRAP", 9);
 
             // --- Jugador
             var health = Object.FindFirstObjectByType<PlayerHealth>();
@@ -86,9 +82,9 @@ namespace ProjectRidge.EditorTools
             }
 
             Crate(root, "Crate_Start", Ground(new Vector3(-12f, 0f, -7.5f)), 25f, config, matWood,
-                new SearchableContainer.Entry { item = medkit, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 2 });
+                new SearchableContainer.Entry { item = medkit, amount = 1 });
             Crate(root, "Crate_Clearing", Ground(new Vector3(1.5f, 0f, 9.5f)), -40f, config, matWood,
-                new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
+                new SearchableContainer.Entry { item = flare, amount = 1 });
 
             var scene = EditorSceneManager.GetActiveScene();
             EditorSceneManager.MarkSceneDirty(scene);
@@ -101,7 +97,7 @@ namespace ProjectRidge.EditorTools
         internal static InteractionConfig LoadConfig() => AssetDatabase.LoadAssetAtPath<InteractionConfig>(DataDir + "/InteractionConfig.asset");
         internal static Material CrateWood() => Mat("Item_CrateWood", new Color(0.36f, 0.26f, 0.17f), Color.black);
 
-        /// <summary>Objeto recogible ("Medkit", "Flare", "Scrap") en una posición del mundo.</summary>
+        /// <summary>Objeto recogible ("Medkit", "Flare", "Stone") en una posición del mundo.</summary>
         internal static GameObject PickupObject(Transform root, string itemName, Vector3 position, float yaw)
         {
             var config = LoadConfig();
@@ -109,7 +105,6 @@ namespace ProjectRidge.EditorTools
             var matMed = Mat("Item_Medkit", new Color(0.75f, 0.72f, 0.66f), new Color(0.35f, 0.05f, 0.04f));
             var matCross = Mat("Item_MedkitCross", new Color(0.55f, 0.06f, 0.05f), new Color(0.4f, 0.02f, 0.02f));
             var matFlare = Mat("Item_Flare", new Color(0.8f, 0.3f, 0.06f), new Color(0.5f, 0.12f, 0.02f));
-            var matScrap = Mat("Item_Scrap", new Color(0.42f, 0.4f, 0.37f), new Color(0.08f, 0.08f, 0.07f));
             {
                 var s = new Spot(itemName, position.x, position.z);
                 var go = new GameObject("Pickup_" + itemName);
@@ -137,11 +132,7 @@ namespace ProjectRidge.EditorTools
                     MeshPart(go.transform, rock, rm, new Vector3(0f, 0.04f, 0f), Vector3.one * 0.9f);
                     MeshPart(go.transform, rock, rm, new Vector3(0.08f, 0.03f, 0.05f), Vector3.one * 0.65f);
                 }
-                else
-                {
-                    Part(go.transform, PrimitiveType.Cube, new Vector3(0f, 0.04f, 0f), new Vector3(0.34f, 0.04f, 0.16f), matScrap).localRotation = Quaternion.Euler(0f, 20f, 8f);
-                    Part(go.transform, PrimitiveType.Cylinder, new Vector3(0.08f, 0.05f, 0.1f), new Vector3(0.05f, 0.18f, 0.05f), matScrap).localRotation = Quaternion.Euler(80f, 0f, 0f);
-                }
+                else Debug.LogError("Objeto sin modelo: " + itemName);
                 var p = go.AddComponent<Pickup>();
                 var pso = new SerializedObject(p);
                 pso.FindProperty("config").objectReferenceValue = config;
@@ -160,7 +151,6 @@ namespace ProjectRidge.EditorTools
             PolyHavenMaterialBuilder.EnsureFolder(MatDir);
             var combatConfig = Asset<CombatConfig>(DataDir + "/CombatConfig.asset", c => { });
             var flare = AssetDatabase.LoadAssetAtPath<ItemDefinition>(ItemsDir + "/Flare.asset");
-            var scrap = AssetDatabase.LoadAssetAtPath<ItemDefinition>(ItemsDir + "/Scrap.asset");
             var prefab = BuildFlarePrefab(combatConfig);
 
             var health = Object.FindFirstObjectByType<PlayerHealth>();
@@ -187,7 +177,6 @@ namespace ProjectRidge.EditorTools
             so.FindProperty("inventory").objectReferenceValue = player.GetComponent<PlayerInventory>();
             so.FindProperty("interactor").objectReferenceValue = player.GetComponent<PlayerInteractor>();
             so.FindProperty("flareItem").objectReferenceValue = flare;
-            so.FindProperty("scrapItem").objectReferenceValue = scrap;
             so.FindProperty("flarePrefab").objectReferenceValue = prefab;
             so.FindProperty("muzzle").objectReferenceValue = muzzle;
             so.ApplyModifiedPropertiesWithoutUndo();

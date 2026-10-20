@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: EnemyConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.AI.EnemyConfig
   patrolSpeed: 1.15
-  investigateSpeed: 1.4
+  investigateSpeed: 1.25
   searchSpeed: 1.15
-  chaseSpeed: 4.4
+  chaseSpeed: 3.9
   viewDistance: 9
   viewAngle: 80
   proximityRadius: 1.8
