@@ -53,3 +53,13 @@ Fuente: Quaternius (https://quaternius.com), descargados por el usuario desde it
 | `fabric_pattern_07` (variante de color `col_1`, guardada como `_diff_1k.jpg`) | Textura | Rob Tuytel | https://polyhaven.com/a/fabric_pattern_07 |
 
 Los pinos/abetos son mallas procedurales propias (generador en `Assets/_Project/Scripts/Editor/`); sus ramas usan el atlas `twig` de `fir_tree_01`. El modelo de `fir_tree_01` (7.8M polígonos) no se descargó.
+
+## Kenney (audio)
+
+Fuente: Kenney "Impact Sounds" 1.0 (https://kenney.nl/assets/impact-sounds), descargado el 2026-10-20 desde kenney.nl. Licencia: **CC0 1.0** (dominio público), según `License.txt` incluido y copiado junto a los archivos. Sin modificar, en `Assets/ThirdParty/Kenney/ImpactSounds/` (solo los archivos usados; el zip queda fuera del repo en `_incoming/`). Uso: pisadas del papá y del Lurker (pasto, madera, piedra), golpes de cuerpo en combate y escombros que salen volando (madera, metal).
+
+| Archivos | Uso |
+|---|---|
+| `footstep_grass_000–004`, `footstep_wood_000–004`, `footstep_concrete_000–004` | Pisadas |
+| `impactPunch_heavy_000–004`, `impactSoft_heavy_000–004` | Golpes de cuerpo |
+| `impactWood_light_000–004`, `impactPlank_medium_000–004`, `impactMetal_light_000–004` | Escombros |
