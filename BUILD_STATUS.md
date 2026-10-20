@@ -2,6 +2,18 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-20 — POLISH PASS P1: controles táctiles, sigilo automático, armas de supervivencia
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P1")` → **13/13 PASS**. Recorrido: `LoopBot.Run(24)` (salas 1–3 solo con joystick + ACCIÓN + OBJETO virtuales) → llegó al final de la sala 3 en 136 s con **3 muertes** (salida del puente (-8.8, -0.6), pasillo del arroyo (-1.7, -0.2) y final de la sala 3 (21.5, -0.5)); 3 pulsaciones de ACCIÓN y 2 de OBJETO. Capturas: `P1_before.png`, `P1_after.png` (HUD táctil), `P1_after_hidden.png`.
+
+- **Táctil (3.1)**: joystick flotante en el 45% izquierdo (solo un anillo tenue; arrastrar más allá del anillo fija el sprint y el anillo se ilumina), botón ACCIÓN (110 pt) y OBJETO (84 pt), linterna y pausa arriba a la derecha, curar manteniendo 0.6 s el indicador de vida. 0 botones de agacharse o sprint (probado sobre los OnScreenButton de la escena).
+- **Inclinación del stick** (probado): 0.25 → sigiloso de pie 0.80 m/s; 0.6 → caminar 1.78 m/s (mezcla continua caminar→trotar); 0.9 → trote 2.60 m/s; al borde 0.25 s → sprint 3.60 m/s; al aflojar se suelta. Teclado: WASD trota (no fija sprint), Shift esprinta.
+- **Sigilo automático (3.2)** (probado): en el pastizal se agacha solo y queda oculto; fuera, sigue agachado 0.2 s y se levanta antes de 0.8 s (histéresis 0.4 s); junto a un tronco con un Lurker cerca se agacha tras la cobertura; con amenaza y el stick apenas inclinado camina agachado; al trotar se levanta. Oculto = viñeta, paso bajo en el audio y silueta oscura del papá (sin texto). `UNVERIFIED`: cómo se siente la viñeta y el filtro de audio.
+- **ACCIÓN contextual** (probado): inspeccionar › usar › recoger › registrar › derribo › golpe › empujar. Derribo por la espalda agachado: el Lurker cae (estado Down, 20 s) y se levanta buscando; gasta 1 de durabilidad (4 → 3). Golpe: aturde 2.5 s y empuja. Ningún Lurker muere (la vida no baja de 1).
+- **OBJETO** (probado): piedra al objetivo inteligente (cae 3 m más allá del Lurker); Tab cambia a la bengala; la pistola de bengalas dispara (arde 8 s, ruido 18 m). Topes: piedras 3, bengalas 2, botiquines 2. En el nivel: 3 bengalas y 3 botiquines.
+- Ruido: sigiloso/agachado 1 m, caminar 3.5, trotar 7, correr 12.
+- `UNVERIFIED`: apuntar arrastrando y deslizar para cambiar de objeto en una pantalla táctil real (solo se probó el toque por teclado/control virtual); tamaños de botón en un iPhone real; hápticos (pasan a P8).
+- Las muertes del bot en el arroyo vienen de antes (ver la sección del pase anterior); se revisan en P9.
+
 ## 2026-10-20 — POLISH PASS P0: arreglos rápidos (D1–D4, D14, sin chatarra)
 Máquina: Windows 11 (RTX 4070), Unity 6000.3.26f1, editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P0")` → **8/8 PASS**. Capturas: `docs/progress/P0_before.png`, `P0_after.png` (corriendo, garrote en la espalda), `P0_after_pickup.png`.
 

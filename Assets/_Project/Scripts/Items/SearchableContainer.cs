@@ -8,6 +8,7 @@ namespace ProjectRidge.Items
     /// <summary>Caja/mochila que se registra una vez con Interact. Más ruidosa que recoger un objeto.</summary>
     public class SearchableContainer : Interactable
     {
+        public override Kind ActionKind => Kind.Search;
         [Serializable]
         public struct Entry
         {

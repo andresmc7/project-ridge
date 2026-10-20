@@ -55,7 +55,6 @@ namespace ProjectRidge.EditorTools
 
             so = new SerializedObject(interactor);
             so.FindProperty("config").objectReferenceValue = config;
-            so.FindProperty("input").objectReferenceValue = input;
             so.FindProperty("inventory").objectReferenceValue = inventory;
             so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -157,7 +156,7 @@ namespace ProjectRidge.EditorTools
             var player = health.gameObject;
             var input = player.GetComponent<PlayerInputHandler>();
             var so = new SerializedObject(input);
-            so.FindProperty("fire").objectReferenceValue = ActionRef("Fire");
+            so.FindProperty("useObject").objectReferenceValue = ActionRef("Object");
             so.ApplyModifiedPropertiesWithoutUndo();
 
             var muzzle = player.transform.Find("Muzzle");

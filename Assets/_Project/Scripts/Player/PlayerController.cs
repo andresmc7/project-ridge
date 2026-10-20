@@ -18,11 +18,13 @@ namespace ProjectRidge.Player
         [SerializeField] private Transform visualRoot;
         [Tooltip("Capas que impiden levantarse si hay algo encima (no incluir Player ni TallGrass).")]
         [SerializeField] private LayerMask standUpBlockers = ~0;
+        [Tooltip("Decide cuándo agacharse (vegetación, cobertura, sigilo con amenaza cerca).")]
+        [SerializeField] private AutoStance stance;
 
         private CharacterController controller;
         private Vector3 horizontalVelocity;
         private float verticalVelocity;
-        private bool crouchRequested;
+        private float edgeSince = -1f;
         private Vector3 externalVelocity;
 
         public MovementMode Mode { get; private set; } = MovementMode.Idle;
@@ -66,11 +68,6 @@ namespace ProjectRidge.Player
             ApplyHeight(config.standHeight);
         }
 
-        private void OnEnable() => input.CrouchPressed += OnCrouchPressed;
-        private void OnDisable() => input.CrouchPressed -= OnCrouchPressed;
-
-        private void OnCrouchPressed() => crouchRequested = !crouchRequested;
-
         private void Update()
         {
             // Desactivado durante la captura o el reposicionamiento: no hay nada que mover.
@@ -81,8 +78,7 @@ namespace ProjectRidge.Player
             bool hasInput = tilt >= config.stickDeadzone;
 
             UpdateCrouch(dt);
-            if (!hasInput || IsCrouching)
-                input.CancelSprintLatch();
+            UpdateSprintLatch(tilt, hasInput);
 
             MovementMode mode = ResolveMode(hasInput, tilt);
             Vector3 desiredDirection = hasInput ? CameraRelative(stick / tilt) : Vector3.zero;
@@ -98,7 +94,7 @@ namespace ProjectRidge.Player
 
             // Se avanza siempre hacia donde mira el cuerpo, escalado por lo alineado que está con el input:
             // nunca se desliza de lado ni camina de espaldas al cambiar de dirección (pivote limpio).
-            float targetSpeed = hasInput ? SpeedFor(mode) * SpeedMultiplier : 0f;
+            float targetSpeed = hasInput ? SpeedFor(mode, tilt) * SpeedMultiplier : 0f;
             float alignment = hasInput ? Mathf.Clamp01(Vector3.Dot(transform.forward, desiredDirection)) : 0f;
             alignment = Mathf.Pow(alignment, config.alignmentSharpness);
             Vector3 targetVelocity = transform.forward * targetSpeed * alignment;
@@ -127,19 +123,46 @@ namespace ProjectRidge.Player
             if (IsCrouching) return MovementMode.Crouch;
             if (!hasInput) return MovementMode.Idle;
             if (input.SprintRequested) return MovementMode.Sprint;
+            if (tilt < config.sneakThreshold) return MovementMode.Sneak;
             return tilt >= config.jogThreshold ? MovementMode.Jog : MovementMode.Walk;
         }
 
-        private float SpeedFor(MovementMode mode)
+        /// <summary>
+        /// Sigiloso por debajo de sneakThreshold; entre sneakThreshold y jogThreshold la velocidad sube de caminar a
+        /// trotar de forma continua (el blend tree de locomoción acompaña con la velocidad real).
+        /// </summary>
+        private float SpeedFor(MovementMode mode, float tilt)
         {
             switch (mode)
             {
                 case MovementMode.Crouch: return config.crouchSpeed;
-                case MovementMode.Walk: return config.walkSpeed;
+                case MovementMode.Sneak: return config.sneakSpeed;
+                case MovementMode.Walk:
+                    return Mathf.Lerp(config.walkSpeed, config.jogSpeed, Mathf.InverseLerp(config.sneakThreshold, config.jogThreshold, tilt));
                 case MovementMode.Jog: return config.jogSpeed;
                 case MovementMode.Sprint: return config.sprintSpeed;
                 default: return 0f;
             }
+        }
+
+        /// <summary>
+        /// Sprint fijado (POLISH_PASS 3.1): joystick al borde durante sprintHoldTime (no con teclado, que siempre está
+        /// al borde: ahí manda Shift). Se suelta al soltar el stick, frenar por debajo del trote o agacharse.
+        /// </summary>
+        private void UpdateSprintLatch(float tilt, bool hasInput)
+        {
+            if (!hasInput || IsCrouching || tilt < config.jogThreshold)
+            {
+                input.CancelSprintLatch();
+                edgeSince = -1f;
+                return;
+            }
+            if (tilt >= config.sprintEdge && !input.MoveFromKeyboard)
+            {
+                if (edgeSince < 0f) edgeSince = Time.time;
+                if (Time.time - edgeSince >= config.sprintHoldTime) input.LatchSprint();
+            }
+            else edgeSince = -1f;
         }
 
         private Vector3 CameraRelative(Vector2 direction)
@@ -157,10 +180,9 @@ namespace ProjectRidge.Player
 
         private void UpdateCrouch(float dt)
         {
-            if (!crouchRequested && IsCrouching && !CanStandUp())
-                crouchRequested = true;
-
-            IsCrouching = crouchRequested;
+            bool want = stance != null && stance.WantsCrouch;
+            // No se levanta si hay algo encima (bajo un tronco, una rama baja).
+            IsCrouching = want || (IsCrouching && !CanStandUp());
             float targetHeight = IsCrouching ? config.crouchHeight : config.standHeight;
             if (!Mathf.Approximately(controller.height, targetHeight))
                 ApplyHeight(Mathf.MoveTowards(controller.height, targetHeight, config.crouchTransitionSpeed * dt));

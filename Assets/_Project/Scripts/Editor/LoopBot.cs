@@ -10,15 +10,16 @@ using UnityEngine.InputSystem.LowLevel;
 namespace ProjectRidge.EditorTools
 {
     /// <summary>
-    /// Playtest automático del loop de The Hollow (solo en play mode, desde el editor). Juega como debe jugarse:
-    /// se agacha en cada pastizal, predice el patrón de los reflectores (exacto) y la orientación de los Lurker,
+    /// Playtest automático del loop de The Hollow (solo en play mode, desde el editor). Juega como debe jugarse y solo
+    /// con los controles de POLISH_PASS 3.1 (joystick, ACCIÓN y OBJETO; el agachado es automático): se detiene en cada
+    /// pastizal (allí se agacha solo), predice el patrón de los reflectores (exacto) y la orientación de los Lurker,
     /// y avanza al siguiente escondite solo cuando la ventana es segura. Si una sala es imposible, injusta o tiene
     /// la ruta bloqueada, el bot se atasca o muere y lo reporta con la posición. Termina usando la radio y
     /// aguantando el clímax escondido.
     /// </summary>
     public static class LoopBot
     {
-        enum Kind { Pass, Hide, Radio, Survive }
+        enum Kind { Pass, Hide, Radio, Survive, Take, Throw }
 
         struct Step
         {
@@ -31,7 +32,7 @@ namespace ProjectRidge.EditorTools
         {
             new Step(Kind.Pass, -61.2f, 0.8f), new Step(Kind.Pass, -58.2f, 0.8f), new Step(Kind.Pass, -55f, 0f), new Step(Kind.Pass, -48.5f, 0f),
             new Step(Kind.Hide, -42f, -0.4f), new Step(Kind.Hide, -38f, 1.4f), new Step(Kind.Hide, -34f, -0.8f),
-            new Step(Kind.Pass, -29f, 0f), new Step(Kind.Pass, -24f, 0f),
+            new Step(Kind.Pass, -29f, 0f), new Step(Kind.Take, -26.2f, -1.3f), new Step(Kind.Take, -25.5f, 1.1f), new Step(Kind.Throw, -24f, 0f),
             new Step(Kind.Hide, -20.6f, -3.3f, true), new Step(Kind.Pass, -19.6f, -1f, true), new Step(Kind.Pass, -8.7f, -1f, true), // fin del puente (las barandas llegan a x = -9.1)
             new Step(Kind.Hide, -8.4f, -4.4f, true), new Step(Kind.Pass, -1.5f, 0.2f, true), new Step(Kind.Pass, 0.2f, 0.7f, true),
             new Step(Kind.Hide, 4.2f, 0.6f), new Step(Kind.Hide, 8f, -2.7f), new Step(Kind.Hide, 11.2f, 3.6f), new Step(Kind.Hide, 14.4f, -2.5f),
@@ -46,7 +47,13 @@ namespace ProjectRidge.EditorTools
         const float Margin = 0.7f, MaxWait = 75f;
         static PlayerMovementConfig Movement => AssetDatabase.LoadAssetAtPath<PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
         static float JogSpeed => Movement.jogSpeed;
-        static float WalkSpeed => Movement.walkSpeed;
+        /// <summary>Inclinación del stick al ir "con cuidado": caminar (no sigiloso, que es demasiado lento para el bot).</summary>
+        const float CarefulTilt = 0.45f;
+        /// <summary>Trote: por debajo del borde (al borde el joystick fija el sprint, que hace mucho ruido).</summary>
+        const float JogTilt = 0.85f;
+        static float WalkSpeed => Mathf.Lerp(Movement.walkSpeed, Movement.jogSpeed, Mathf.InverseLerp(Movement.sneakThreshold, Movement.jogThreshold, CarefulTilt));
+        static float stopAtX = float.MaxValue;
+        static int actions, objects;
 
         static int index;
         static bool needResync;
@@ -61,8 +68,13 @@ namespace ProjectRidge.EditorTools
         static readonly List<string> report = new List<string>();
 
         [MenuItem("Project Ridge/QA/Run Loop Bot (play mode)")]
-        public static void Run()
+        public static void Run() => Run(float.MaxValue);
+
+        /// <summary>Corre el bot y termina con éxito al pasar x = stopX (p. ej. el final de la sala 3).</summary>
+        public static void Run(float stopX)
         {
+            stopAtX = stopX;
+            actions = objects = 0;
             if (!EditorApplication.isPlaying) { Debug.LogWarning("BOT: entra en play mode primero"); return; }
             pad = InputSystem.AddDevice<Gamepad>("BotPad");
             keyboard = null;
@@ -126,20 +138,12 @@ namespace ProjectRidge.EditorTools
         static void Stick(Vector2 v)
         {
             InputSystem.QueueStateEvent(pad, new GamepadState { leftStick = v });
-            InputSystem.Update();
         }
 
         static void Tap(Key k)
         {
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(k));
-            InputSystem.Update();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-            InputSystem.Update();
-        }
-
-        static void SetCrouch(bool on)
-        {
-            if (player.IsCrouching != on) Tap(Key.C);
         }
 
         static void Finish(bool ok)
@@ -149,7 +153,7 @@ namespace ProjectRidge.EditorTools
             if (player != null) player.GetComponent<PlayerHealth>().Died -= OnDied;
             Stick(Vector2.zero);
             if (pad != null) InputSystem.RemoveDevice(pad);
-            Debug.Log("BOT: " + (ok ? "FINISHED" : "FAILED") + " in " + (Time.time - startTime).ToString("0") + " s, deaths " + deaths + ", captures " + captures);
+            Debug.Log("BOT: " + (ok ? "FINISHED" : "FAILED") + " in " + (Time.time - startTime).ToString("0") + " s, deaths " + deaths + ", captures " + captures + ", ACTION presses " + actions + ", OBJECT presses " + objects);
         }
 
         /// <summary>¿Se puede ir de a hasta b ahora mismo sin pisar luz ni entrar en el cono de un Lurker?</summary>
@@ -187,7 +191,8 @@ namespace ProjectRidge.EditorTools
             if (!EditorApplication.isPlaying) { Finish(false); return; }
             var flow = GameFlow.Instance;
             if (flow != null && flow.Current == GameFlow.State.Ending) { Log("ENDING reached"); Finish(true); return; }
-            if (flow != null && flow.Current == GameFlow.State.Clue) { Tap(Key.E); return; }
+            if (flow != null && flow.Current == GameFlow.State.Clue) { Tap(Key.E); actions++; return; }
+            if (player.transform.position.x > stopAtX) { Log("reached x " + stopAtX); Finish(true); return; }
             if (flow != null && flow.Current != GameFlow.State.Playing) return;
             if (Time.time < stateSince) return;
             if (needResync)
@@ -218,10 +223,12 @@ namespace ProjectRidge.EditorTools
                     moving = false;
                     Stick(Vector2.zero);
                     stateSince = Time.time + 0.15f;
-                    if (step.kind == Kind.Hide || step.kind == Kind.Survive) SetCrouch(true);
+                    if (step.kind == Kind.Take) { Tap(Key.E); actions++; Log("ACTION (take) at " + step.at); stateSince = Time.time + 1.6f; }
+                    if (step.kind == Kind.Throw) { Tap(Key.Q); objects++; Log("OBJECT (throw) at " + step.at); stateSince = Time.time + 1.2f; }
                     if (step.kind == Kind.Radio)
                     {
                         Tap(Key.E);
+                        actions++;
                         Log("RADIO used");
                     }
                     if (step.kind == Kind.Survive)
@@ -233,7 +240,7 @@ namespace ProjectRidge.EditorTools
                     index++;
                     return;
                 }
-                float speed = step.sneak ? 0.62f : 1f;
+                float speed = step.sneak ? CarefulTilt : JogTilt;
                 Vector2 dir = new Vector2(to.x, to.z).normalized * speed;
                 Stick(dir);
                 return;
@@ -241,12 +248,7 @@ namespace ProjectRidge.EditorTools
 
             // Escondido (o de paso): esperar una ventana segura para el siguiente tramo.
             float v = step.sneak ? WalkSpeed : JogSpeed;
-            if (!LegIsSafe(pos, step.at, v))
-            {
-                if (index > 0 && Route[index - 1].kind == Kind.Hide) SetCrouch(true);
-                return;
-            }
-            SetCrouch(false);
+            if (!LegIsSafe(pos, step.at, v)) return; // quieto en el pastizal: el papá ya está agachado y oculto
             moving = true;
         }
     }

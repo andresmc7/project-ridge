@@ -12,7 +12,7 @@ namespace ProjectRidge.EditorTools
     /// </summary>
     public static class Shots
     {
-        public static string Capture(string file, Vector3 focus, int width = 1600, int height = 900)
+        public static string Capture(string file, Vector3 focus, int width = 1600, int height = 900, bool includeUI = false)
         {
             var cam = Camera.main;
             var config = AssetDatabase.LoadAssetAtPath<IsoCameraConfig>("Assets/_Project/Data/IsoCameraConfig.asset");
@@ -28,7 +28,20 @@ namespace ProjectRidge.EditorTools
             var rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
             var previous = cam.targetTexture;
             cam.targetTexture = rt;
+            // Con includeUI, el HUD (overlay) pasa un momento a "screen space camera" para salir en la captura.
+            var canvases = new System.Collections.Generic.List<(Canvas c, RenderMode mode)>();
+            if (includeUI)
+                foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+                    if (c.isRootCanvas && c.renderMode == RenderMode.ScreenSpaceOverlay)
+                    {
+                        canvases.Add((c, c.renderMode));
+                        c.renderMode = RenderMode.ScreenSpaceCamera;
+                        c.worldCamera = cam;
+                        c.planeDistance = cam.nearClipPlane + 0.05f;
+                        Canvas.ForceUpdateCanvases();
+                    }
             cam.Render();
+            foreach (var (c, mode) in canvases) c.renderMode = mode;
             cam.targetTexture = previous;
             var active = RenderTexture.active;
             RenderTexture.active = rt;

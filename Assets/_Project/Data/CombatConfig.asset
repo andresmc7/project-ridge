@@ -19,8 +19,8 @@ MonoBehaviour:
   clubWindup: 0.16
   clubActive: 0.12
   clubRecovery: 0.42
-  clubDurability: 6
-  clubStagger: 0.8
+  clubDurability: 4
+  clubStagger: 2.5
   clubHitNoise: 5
   clubBreakNoise: 12
   hitStop: 0.06
@@ -33,6 +33,19 @@ MonoBehaviour:
   clubDrawThreatRadius: 6
   clubSheathDelay: 3
   swingMoveFactor: 0.35
+  strikeContextRange: 2.2
+  takedownRange: 1.8
+  takedownBehindDot: -0.25
+  takedownStun: 20
+  shoveStun: 0.6
+  shoveKnockback: 3.5
+  shoveRecoil: 2.5
+  objectMaxRange: 12
+  objectDefaultRange: 8
+  objectAheadAngle: 140
+  stoneOvershoot: 3
+  aimDragForMaxRange: 220
+  aimMinRange: 2
   flareGun: 0
   handFlareFuse: 3
   handFlareBurn: 16
@@ -53,9 +66,9 @@ MonoBehaviour:
   pointBlankDamage: 40
   directHitStun: 2.5
   directHitDamage: 25
-  burnTime: 14
+  burnTime: 8
   burnNoiseInterval: 2
-  burnNoiseRadius: 20
+  burnNoiseRadius: 18
   lightIntensity: 7
   lightRange: 11
   lightColor: {r: 1, g: 0.28, b: 0.16, a: 1}

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Items.ItemDefinition
   displayName: Medkit
   shortLabel: MED
-  maxCarry: 3
+  maxCarry: 2

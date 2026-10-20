@@ -6,6 +6,7 @@ namespace ProjectRidge.Items
     /// <summary>Pista narrativa que se inspecciona con Interact: texto breve, sin resolver el misterio.</summary>
     public class Clue : Interactable
     {
+        public override Kind ActionKind => Kind.Inspect;
         [SerializeField] private string displayName = "Photograph";
         [SerializeField] private string title = "A PHOTOGRAPH";
         [TextArea(2, 6)] [SerializeField] private string body = "";

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: PlayerMovementConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Player.PlayerMovementConfig
   crouchSpeed: 0.72
+  sneakSpeed: 0.8
   walkSpeed: 1
   jogSpeed: 2.6
   sprintSpeed: 3.6
@@ -21,7 +22,10 @@ MonoBehaviour:
   turnSpeed: 540
   alignmentSharpness: 2
   stickDeadzone: 0.15
-  jogThreshold: 0.7
+  sneakThreshold: 0.35
+  jogThreshold: 0.85
+  sprintEdge: 0.98
+  sprintHoldTime: 0.25
   standHeight: 1.8
   crouchHeight: 1.1
   crouchTransitionSpeed: 6

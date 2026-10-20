@@ -24,6 +24,7 @@ namespace ProjectRidge.EditorTools
 
         static readonly List<string> results = new List<string>();
         static IEnumerator routine;
+        static readonly Stack<IEnumerator> stack = new Stack<IEnumerator>();
         static float waitUntil;
         static Gamepad pad;
         static Keyboard keyboard;
@@ -40,11 +41,14 @@ namespace ProjectRidge.EditorTools
             player = Object.FindFirstObjectByType<PlayerController>();
             results.Clear();
             phase = which;
+            stack.Clear();
             routine = which switch
             {
                 "P0" => P0(),
+                "P1" => P1(),
                 _ => Unknown(),
             };
+            stack.Push(routine);
             waitUntil = 0f;
             Running = true;
             EditorApplication.update += Tick;
@@ -63,8 +67,20 @@ namespace ProjectRidge.EditorTools
             if (Time.time < waitUntil) return;
             try
             {
-                if (!routine.MoveNext()) { Finish(); return; }
-                if (routine.Current is float s) waitUntil = Time.time + s;
+                // Pila de rutinas: "yield return OtraRutina()" se ejecuta anidada.
+                while (true)
+                {
+                    var top = stack.Peek();
+                    if (!top.MoveNext())
+                    {
+                        stack.Pop();
+                        if (stack.Count == 0) { Finish(); return; }
+                        continue;
+                    }
+                    if (top.Current is IEnumerator nested) { stack.Push(nested); continue; }
+                    if (top.Current is float s) waitUntil = Time.time + s;
+                    return;
+                }
             }
             catch (System.Exception e)
             {
@@ -101,15 +117,12 @@ namespace ProjectRidge.EditorTools
         static void Tap(Key k)
         {
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(k));
-            InputSystem.Update();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-            InputSystem.Update();
         }
 
         static void Stick(Vector2 v)
         {
             InputSystem.QueueStateEvent(pad, new GamepadState { leftStick = v });
-            InputSystem.Update();
         }
 
         static void Teleport(Vector3 p)
@@ -138,6 +151,8 @@ namespace ProjectRidge.EditorTools
             Tap(Key.Space);
             yield return 1.5f;
             if (GameFlow.Instance != null && GameFlow.Instance.Current != GameFlow.State.Playing) { Tap(Key.Space); yield return 1f; }
+            float limit = Time.time + 10f;
+            while (player.InputLocked && Time.time < limit) yield return 0.1f; // el fundido del título bloquea la entrada
         }
 
         static void Calm()
@@ -271,10 +286,183 @@ namespace ProjectRidge.EditorTools
             yield return 4.5f;
             Check("D4 sheathes after threat", !combat.ClubInHand && !club.IsChildOf(handR), "draw " + combat.DrawProgress.ToString("0.00") + ", parent " + club.parent.name);
 
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+
             // Sin chatarra ni fabricación.
             bool noScrap = AssetDatabase.LoadAssetAtPath<ItemDefinition>("Assets/_Project/Data/Items/Scrap.asset") == null
                            && GameObject.Find("Pickup_Scrap") == null;
             Check("scrap and crafting removed", noScrap, "scrap asset/pickups gone " + noScrap);
         }
+
+        // ------------------------------------------------------------------ P1
+
+        static IEnumerator Hold(Vector2 stick, float seconds)
+        {
+            Stick(stick);
+            yield return seconds;
+        }
+
+        static IEnumerator P1()
+        {
+            yield return PassTitle();
+            var stance = player.GetComponent<AutoStance>();
+            var vis = player.GetComponent<PlayerVisibility>();
+            var input = player.GetComponent<PlayerInputHandler>();
+
+            // Sin botones de agacharse ni de sprint en táctil; solo joystick + ACCIÓN + OBJETO (+ linterna y pausa).
+            var touch = GameObject.Find("TouchControls");
+            var paths = new List<string>();
+            if (touch != null)
+                foreach (var b in touch.GetComponentsInChildren<UnityEngine.InputSystem.OnScreen.OnScreenButton>(true)) paths.Add(b.controlPath);
+            bool noCrouchSprint = touch != null && !paths.Contains("<Gamepad>/buttonEast") && !paths.Contains("<Gamepad>/leftStickPress")
+                                  && touch.GetComponentInChildren<UI.ActionButton>(true) != null && touch.GetComponentInChildren<UI.ObjectButton>(true) != null
+                                  && touch.GetComponentInChildren<UI.FloatingStick>(true) != null;
+            Check("touch: no crouch/sprint buttons", noCrouchSprint, "on-screen buttons: " + string.Join(", ", paths));
+
+            // Sin amenazas: sigiloso de pie (lento), caminar y trotar por inclinación.
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            Teleport(Ground(-54f, 0f));
+            yield return 0.5f;
+            yield return Hold(new Vector2(0.25f, 0f), 1.2f);
+            var sneakMode = player.Mode; float sneakSpeed = player.CurrentSpeed; bool sneakCrouch = player.IsCrouching;
+            yield return Hold(new Vector2(0.6f, 0f), 1.2f);
+            var walkMode = player.Mode; float walkSpeed = player.CurrentSpeed;
+            yield return Hold(new Vector2(0.9f, 0f), 1.2f);
+            var jogMode = player.Mode; float jogSpeed = player.CurrentSpeed;
+            Check("stick tilt: sneak / walk / jog", sneakMode == MovementMode.Sneak && !sneakCrouch && walkMode == MovementMode.Walk && jogMode == MovementMode.Jog
+                  && sneakSpeed < walkSpeed && walkSpeed < jogSpeed,
+                  "0.25 → " + sneakMode + " " + sneakSpeed.ToString("0.00") + " m/s (crouch " + sneakCrouch + "), 0.6 → " + walkMode + " " + walkSpeed.ToString("0.00") + ", 0.9 → " + jogMode + " " + jogSpeed.ToString("0.00"));
+
+            // Sprint por empuje al borde (0.25 s); se suelta al frenar.
+            yield return Hold(new Vector2(1f, 0f), 0.15f);
+            bool earlySprint = player.Mode == MovementMode.Sprint;
+            yield return 0.4f;
+            bool sprinting = player.Mode == MovementMode.Sprint;
+            float sprintSpeed = player.CurrentSpeed;
+            yield return Hold(new Vector2(0.6f, 0f), 0.4f);
+            bool released = player.Mode != MovementMode.Sprint;
+            Stick(Vector2.zero);
+            Check("sprint by pushing to the edge", !earlySprint && sprinting && released, "at 0.15 s " + earlySprint + ", at 0.55 s " + sprinting + " (" + sprintSpeed.ToString("0.00") + " m/s), after easing off " + !released);
+
+            // Teclado: W siempre al borde, no fija sprint; Shift sí.
+            Teleport(Ground(-54f, 0f));
+            yield return 0.3f;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.D));
+            yield return 1f;
+            bool kbJog = player.Mode == MovementMode.Jog;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.D, Key.LeftShift));
+            yield return 0.5f;
+            bool kbSprint = player.Mode == MovementMode.Sprint;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            Check("keyboard: W jogs, Shift sprints", kbJog && kbSprint, "D → jog " + kbJog + ", D+Shift → sprint " + kbSprint);
+            yield return 0.5f;
+
+            // Vegetación densa: se agacha solo y queda oculto; un paso fuera, se levanta (con histéresis).
+            Teleport(Ground(-20.6f, -3.3f));
+            yield return 0.8f;
+            bool inGrassCrouch = player.IsCrouching && stance.Why == AutoStance.Reason.Vegetation && vis.IsHidden;
+            Shot("P1_after_hidden");
+            Teleport(Ground(-24f, 0f));
+            yield return 0.2f;
+            bool stillCrouchedBriefly = player.IsCrouching;
+            yield return 0.6f;
+            bool stoodUp = !player.IsCrouching;
+            Check("auto crouch in vegetation", inGrassCrouch && stillCrouchedBriefly && stoodUp,
+                  "in grass: crouch " + inGrassCrouch + " (hidden " + vis.IsHidden + "), 0.2 s out still crouched " + stillCrouchedBriefly + ", 0.8 s out standing " + stoodUp);
+
+            // Amenaza cerca: tras cobertura baja se agacha; con el stick apenas inclinado camina agachado.
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(e.name == "Lurker");
+            EnemyController lurker = null;
+            foreach (var e in EnemyController.Active) lurker = e;
+            lurker.Perception.Suppress(9999f);
+            Vector3 coverPos = Vector3.zero; string coverName = "none";
+            foreach (var go in new[] { "CoverRock", "FallenLog", "CoverLog" })
+            {
+                var c = GameObject.Find(go);
+                if (c != null) { coverPos = c.GetComponentInChildren<Collider>().bounds.center; coverName = go; break; }
+            }
+            bool coverCrouch = false;
+            AutoStance.Reason coverWhy = AutoStance.Reason.None;
+            if (coverName != "none")
+            {
+                // Al lado de la cobertura (a ~0.7 m de su borde, del lado del papá).
+                var col = GameObject.Find(coverName).GetComponentInChildren<Collider>();
+                Vector3 probe = coverPos + Vector3.right * 3f;
+                Vector3 edge = col.ClosestPoint(new Vector3(probe.x, coverPos.y, probe.z));
+                Vector3 stand = edge + (probe - edge).normalized * 0.6f;
+                Teleport(Ground(stand.x, stand.z));
+                lurker.GetComponent<NavMeshAgent>().Warp(Ground(stand.x + 9f, stand.z));
+                yield return 1f;
+                coverCrouch = player.IsCrouching;
+                coverWhy = stance.Why;
+            }
+            Check("auto crouch behind cover with a threat", coverCrouch && coverWhy == AutoStance.Reason.Cover, coverName + ": crouch " + coverCrouch + " (" + coverWhy + "), threat " + stance.ThreatNear);
+
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-5f, 0f));
+            Teleport(Ground(-13f, 0f));
+            yield return 0.6f;
+            yield return Hold(new Vector2(0.25f, 0f), 1f);
+            bool sneakCrouched = player.IsCrouching && stance.Why == AutoStance.Reason.Sneak;
+            yield return Hold(new Vector2(0.9f, 0f), 0.6f);
+            bool upToJog = !player.IsCrouching;
+            Stick(Vector2.zero);
+            Check("sneak crouched with a threat, stand to jog", sneakCrouched && upToJog, "sneak crouch " + sneakCrouched + " (" + stance.Why + "), jog stands " + upToJog);
+
+            // ACCIÓN contextual: golpe con el Lurker delante; derribo agachado por la espalda (y no muere).
+            var actions = player.GetComponent<PlayerActions>();
+            var combat = player.GetComponent<PlayerCombat>();
+            combat.RestoreClub();
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
+            yield return 0.5f;
+            Vector3 lp = lurker.transform.position;
+            Vector3 behind = lp - lurker.transform.forward * 1.2f;
+            Teleport(Ground(behind.x, behind.z));
+            player.FaceTowards(lp);
+            Tap(Key.C); // forzar agachado (solo pruebas) para el derribo
+            yield return 0.15f;
+            var ctxBehind = actions.Current;
+            int durBefore = combat.ClubDurability;
+            Tap(Key.E);
+            yield return 0.6f;
+            bool down = lurker.IsDown;
+            Tap(Key.C); // soltar el agachado forzado
+            Check("ACTION = takedown from behind", ctxBehind == PlayerActions.Context.Takedown && down && combat.ClubDurability == durBefore - 1,
+                  "context " + ctxBehind + ", lurker down " + down + " (" + lurker.State + "), durability " + durBefore + "→" + combat.ClubDurability);
+            yield return 2f;
+            Check("lurker never dies", !lurker.IsDead && lurker.GetComponent<EnemyHealth>().Current >= 1f, "state " + lurker.State + ", hp " + lurker.GetComponent<EnemyHealth>().Current);
+
+            // OBJETO: piedra al objetivo inteligente (más allá del Lurker), luego la bengala.
+            var inv = player.GetComponent<PlayerInventory>();
+            var items = player.GetComponent<PlayerItems>();
+            var stone = ItemsSetupBuilder.LoadItem("Stone");
+            var flare = ItemsSetupBuilder.LoadItem("Flare");
+            int added = inv.Add(stone, 5);
+            Check("inventory caps (stone 3)", inv.Count(stone) == 3, "added " + added + " of 5, carrying " + inv.Count(stone));
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
+            Teleport(Ground(-13f, 0f));
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-6f, 0f));
+            yield return 0.6f;
+            player.FaceTowards(lurker.transform.position);
+            if (items.Active != stone) Tap(Key.Tab);
+            Vector3 aim = items.SmartTarget();
+            int stonesBefore = inv.Count(stone);
+            Tap(Key.Q);
+            yield return 1.5f;
+            float beyond = Vector3.Distance(Flat(aim), Flat(player.transform.position)) - Vector3.Distance(Flat(lurker.transform.position), Flat(player.transform.position));
+            Check("OBJECT: stone to smart target", inv.Count(stone) == stonesBefore - 1 && beyond > 1f, "stones " + stonesBefore + "→" + inv.Count(stone) + ", lands " + beyond.ToString("0.0") + " m beyond the lurker");
+            inv.Add(flare, 1);
+            Tap(Key.Tab);
+            yield return 0.2f;
+            bool flareActive = items.Active == flare;
+            Tap(Key.Q);
+            yield return 1.5f;
+            Check("OBJECT: cycle + flare gun", flareActive && inv.Count(flare) == 0 && Object.FindObjectsByType<FlareProjectile>(FindObjectsSortMode.None).Length > 0,
+                  "flare active " + flareActive + ", flares left " + inv.Count(flare));
+            Shot("P1_after");
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
     }
 }

@@ -15,9 +15,9 @@ namespace ProjectRidge.Items
         [Min(0f)] public float clubWindup = 0.16f;
         [Min(0f)] public float clubActive = 0.12f;
         [Min(0f)] public float clubRecovery = 0.42f;
-        [Tooltip("Golpes que aguanta antes de romperse.")]
+        [Tooltip("Golpes (y derribos) que aguanta antes de romperse.")]
         [Min(1)] public int clubDurability = 6;
-        [Tooltip("Segundos que el enemigo queda tambaleándose tras un golpe.")]
+        [Tooltip("Segundos que el Lurker queda aturdido tras un golpe (la ventana para escapar). Nunca muere.")]
         [Min(0f)] public float clubStagger = 0.8f;
         [Tooltip("Ruido del impacto (el swing al aire es silencioso).")]
         [Min(0f)] public float clubHitNoise = 5f;
@@ -42,6 +42,34 @@ namespace ProjectRidge.Items
         [Min(0f)] public float clubSheathDelay = 3f;
         [Tooltip("Velocidad del jugador mientras golpea (multiplicador).")]
         [Range(0f, 1f)] public float swingMoveFactor = 0.35f;
+
+        [Header("ACCIÓN contextual (POLISH_PASS 3.3)")]
+        [Tooltip("Lurker a esta distancia (m): el botón ACCIÓN golpea (con garrote) o empuja (sin él).")]
+        [Min(0f)] public float strikeContextRange = 2.2f;
+        [Tooltip("Derribo por la espalda: distancia máxima (m).")]
+        [Min(0f)] public float takedownRange = 1.8f;
+        [Tooltip("Por la espalda = el papá está detrás del Lurker (producto escalar de su frente con la dirección al papá menor que esto).")]
+        [Range(-1f, 1f)] public float takedownBehindDot = -0.25f;
+        [Tooltip("Segundos que el Lurker queda en el suelo tras un derribo (luego se levanta buscando).")]
+        [Min(0f)] public float takedownStun = 20f;
+        [Tooltip("Empujón sin garrote: aturdimiento corto, retroceso del Lurker y del papá (m/s).")]
+        [Min(0f)] public float shoveStun = 0.6f;
+        [Min(0f)] public float shoveKnockback = 3.5f;
+        [Min(0f)] public float shoveRecoil = 2.5f;
+
+        [Header("Botón OBJETO (POLISH_PASS 3.1)")]
+        [Tooltip("Alcance máximo del lanzamiento (m).")]
+        [Min(1f)] public float objectMaxRange = 12f;
+        [Tooltip("Sin objetivo: distancia del lanzamiento hacia donde mira el papá.")]
+        [Min(1f)] public float objectDefaultRange = 8f;
+        [Tooltip("Ángulo (°) delante del papá en el que se busca un Lurker como objetivo.")]
+        [Range(10f, 180f)] public float objectAheadAngle = 140f;
+        [Tooltip("La piedra cae esta distancia (m) más allá del Lurker: lo aleja del papá.")]
+        [Min(0f)] public float stoneOvershoot = 3f;
+        [Tooltip("Arrastre (pt) que corresponde al alcance máximo al apuntar en táctil.")]
+        [Min(10f)] public float aimDragForMaxRange = 220f;
+        [Tooltip("Alcance mínimo al apuntar (m).")]
+        [Min(0f)] public float aimMinRange = 2f;
 
         [Header("Bengala de mano (reemplaza a la pistola, 2026-10-20)")]
         [Tooltip("La pistola de bengalas queda desactivada: Fire usa la bengala de mano.")]

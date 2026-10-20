@@ -7,6 +7,8 @@ namespace ProjectRidge.Player
         Crouch,
         Walk,
         Jog,
-        Sprint
+        Sprint,
+        /// <summary>Caminar sigiloso de pie (joystick apenas inclinado, sin amenaza cerca): lento y casi mudo.</summary>
+        Sneak
     }
 }

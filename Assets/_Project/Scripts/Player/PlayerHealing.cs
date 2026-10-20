@@ -18,6 +18,9 @@ namespace ProjectRidge.Player
         private void OnEnable() => input.HealPressed += OnHeal;
         private void OnDisable() => input.HealPressed -= OnHeal;
 
+        /// <summary>Usa un botiquín (H, cruceta arriba o mantener el indicador de vida en táctil).</summary>
+        public void TryHeal() => OnHeal();
+
         private void OnHeal()
         {
             if (health.IsDead || GetComponent<PlayerController>().InputLocked) return;

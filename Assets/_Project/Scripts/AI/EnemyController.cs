@@ -35,6 +35,7 @@ namespace ProjectRidge.AI
         private float zigzagSeed;
         private float nextRepath;
         private float stunEnd;
+        private bool down;
         private Vector3 knockbackVelocity;
         private HandFlare lure;
         private Vector3 lurePoint;
@@ -53,6 +54,7 @@ namespace ProjectRidge.AI
         /// </summary>
         public void ResetAfterPlayerRespawn(Vector3 spawn, float clearRadius, float graceSeconds = 0f)
         {
+            down = false;
             perception.ResetAwareness();
             perception.Suppress(graceSeconds);
             if (patrolPoints.Length > 0 && Vector3.Distance(transform.position, spawn) < clearRadius)
@@ -90,6 +92,23 @@ namespace ProjectRidge.AI
             Vector3 away = transform.position - attackerPosition;
             away.y = 0f;
             knockbackVelocity = away.sqrMagnitude > 0.001f ? away.normalized * knockback : Vector3.zero;
+            SetState(EnemyState.Stunned);
+            agent.isStopped = true;
+            agent.ResetPath();
+        }
+
+        /// <summary>En el suelo tras un derribo por la espalda (cae y convulsiona).</summary>
+        public bool IsDown => State == EnemyState.Stunned && down;
+
+        /// <summary>
+        /// Derribo por la espalda: cae y queda en el suelo, sin enterarse de quién fue. Al levantarse busca alrededor.
+        /// </summary>
+        public void Incapacitate(float seconds)
+        {
+            if (IsDead) return;
+            down = true;
+            stunEnd = Time.time + seconds;
+            knockbackVelocity = Vector3.zero;
             SetState(EnemyState.Stunned);
             agent.isStopped = true;
             agent.ResetPath();
@@ -445,6 +464,7 @@ namespace ProjectRidge.AI
             }
             if (Time.time < stunEnd) return;
             agent.isStopped = false;
+            if (down) { down = false; EnterSearch(transform.position); return; }
             if (perception.CanSeeTarget) EnterChase();
             else EnterInvestigate(perception.LastKnownPosition);
         }

@@ -14,8 +14,14 @@ namespace ProjectRidge.Player
         public Vector3 ChestPoint => transform.position + Vector3.up * (body.height * 0.7f);
         public Vector3 HeadPoint => transform.position + Vector3.up * (body.height * 0.95f);
 
-        /// <summary>Agachado dentro del pasto alto: invisible para Lurkers y reflectores.</summary>
-        public bool IsHidden => config.crouchInGrassHides && player.IsCrouching && tallGrass.IsInTallGrass;
+        /// <summary>
+        /// Densidad de escondite (0–1) en la posición del papá. Hoy: 1 dentro de un volumen de pasto alto; en P4 sale
+        /// del mapa de densidad de la vegetación.
+        /// </summary>
+        public float HideDensity => tallGrass.IsInTallGrass ? 1f : 0f;
+
+        /// <summary>Agachado en vegetación densa: invisible para Lurkers y reflectores.</summary>
+        public bool IsHidden => config.crouchInGrassHides && player.IsCrouching && HideDensity >= config.hideDensity;
 
         public float VisibilityMultiplier
         {

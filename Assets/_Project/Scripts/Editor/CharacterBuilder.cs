@@ -322,7 +322,6 @@ namespace ProjectRidge.EditorTools
             // Lanzar piedras (distracción).
             if (!player.TryGetComponent(out ProjectRidge.Player.PlayerThrow thrower)) thrower = player.AddComponent<ProjectRidge.Player.PlayerThrow>();
             var tso = new SerializedObject(thrower);
-            tso.FindProperty("input").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInputHandler>();
             tso.FindProperty("controller").objectReferenceValue = pc;
             tso.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
             tso.FindProperty("health").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerHealth>();
@@ -334,7 +333,7 @@ namespace ProjectRidge.EditorTools
             tso.FindProperty("hand").objectReferenceValue = handR;
             tso.ApplyModifiedPropertiesWithoutUndo();
             var iso = new SerializedObject(player.GetComponent<ProjectRidge.Player.PlayerInputHandler>());
-            iso.FindProperty("throwStone").objectReferenceValue = ItemsSetupBuilder.ActionRef("Throw");
+            iso.FindProperty("cycleObject").objectReferenceValue = ItemsSetupBuilder.ActionRef("CycleObject");
             iso.ApplyModifiedPropertiesWithoutUndo();
 
             // Capa de render 2: solo el papá recibe la luz de relleno que lo mantiene legible en la oscuridad.
@@ -796,7 +795,7 @@ namespace ProjectRidge.EditorTools
             var clips = QuaterniusImport.Clips();
             var c = NewController("Lurker");
             c.AddParameter("Speed", AnimatorControllerParameterType.Float);
-            foreach (var p in new[] { "Hunting", "Stunned", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
+            foreach (var p in new[] { "Hunting", "Stunned", "Dead", "Down" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
             c.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
             var sm = c.layers[0].stateMachine;
             // Locomoción a su velocidad natural (cuerpo a escala 1.3): los umbrales son las velocidades medidas, sin escalar.
@@ -816,6 +815,13 @@ namespace ProjectRidge.EditorTools
             var outK = knock.AddTransition(hunt); outK.AddCondition(AnimatorConditionMode.IfNot, 0, "Stunned"); outK.duration = 0.15f; outK.hasExitTime = false;
             var death = Action(sm, "Death", clips["Death01"], 0.85f);
             FromAny(sm, death, "Dead", duration: 0.08f);
+            // Derribo por la espalda: cae (el clip de muerte, que queda en su último cuadro) y, al pasar el tiempo, se
+            // levanta. Encima, la capa procedural convulsiona.
+            var down = Action(sm, "Down", clips["Death01"], 1f);
+            FromAny(sm, down, "Down", duration: 0.08f);
+            var getUp = Action(sm, "GetUp", clips["LayToIdle"], 0.9f);
+            var up = down.AddTransition(getUp); up.AddCondition(AnimatorConditionMode.IfNot, 0, "Down"); up.duration = 0.15f; up.hasExitTime = false;
+            Back(getUp, prowl, 0.9f, 0.25f);
             EditorUtility.SetDirty(c);
             return c;
         }

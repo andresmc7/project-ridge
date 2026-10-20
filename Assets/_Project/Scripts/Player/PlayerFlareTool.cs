@@ -4,7 +4,7 @@ using UnityEngine;
 namespace ProjectRidge.Player
 {
     /// <summary>
-    /// Usar bengala (Q / RB / botón FLARE): el papá se agacha y la deja en el suelo delante de él. Arde a los pocos
+    /// Bengala de mano: el papá se agacha y la deja en el suelo delante de él. Arde a los pocos
     /// segundos y atrae a los Lurker del área: tiempo para llegar a un escondite y pasar mientras la miran.
     /// </summary>
     public class PlayerFlareTool : MonoBehaviour
@@ -24,10 +24,11 @@ namespace ProjectRidge.Player
 
         private float placeAt = -1f;
 
-        private void OnEnable() => input.FirePressed += OnUse;
-        private void OnDisable() => input.FirePressed -= OnUse;
-
-        private void OnUse()
+        /// <summary>
+        /// Deja la bengala de mano en el suelo. Desde POLISH_PASS 3.3 el botón OBJETO dispara la pistola de bengalas;
+        /// esta herramienta queda sin botón (ver docs/DECISIONS.md) y se puede volver a conectar desde PlayerItems.
+        /// </summary>
+        public void Place()
         {
             if (controller.InputLocked || controller.ActionLocked || health.IsDead || combat.IsBusy || placeAt > 0f) return;
             if (!inventory.TryRemove(flareItem))

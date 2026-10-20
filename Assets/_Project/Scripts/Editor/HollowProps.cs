@@ -564,18 +564,18 @@ namespace ProjectRidge.EditorTools
             ItemsSetupBuilder.Crate(root, "Crate_Shelter", Cabin(2.3f, -1.4f), CabinYaw + 15f, config, wood,
                 new SearchableContainer.Entry { item = med, amount = 1 });
 
-            // Pasillo antes del arroyo: la primera bengala de mano, justo antes del primer Lurker.
+            // Pasillo antes del arroyo: la primera bengala, justo antes del primer Lurker. En todo el nivel: 3 bengalas y 3
+            // botiquines (POLISH_PASS 3.3).
             ItemsSetupBuilder.PickupObject(root, "Flare", At(-26.2f, -1.3f), 20f);
             // Sala 3: la bengala está justo en el cruce de los dos reflectores (recompensa con riesgo).
             ItemsSetupBuilder.PickupObject(root, "Flare", At(11.2f, 0.6f), 70f);
             ItemsSetupBuilder.PickupObject(root, "Medkit", At(16.4f, 5.6f), 200f);
             // Sala 4: caja escondida en el centro, entre las rocas.
             ItemsSetupBuilder.Crate(root, "Crate_Thicket", OnGround(t, 34.4f, 0.6f), 160f, config, wood,
-                new SearchableContainer.Entry { item = flare, amount = 1 }, new SearchableContainer.Entry { item = med, amount = 1 });
+                new SearchableContainer.Entry { item = flare, amount = 1 });
             // Campamento.
             ItemsSetupBuilder.Crate(root, "Crate_Camp", OnGround(t, Camp.x - 2.6f, Camp.z - 2.2f), 70f, config, wood,
-                new SearchableContainer.Entry { item = flare, amount = 1 });
-            ItemsSetupBuilder.PickupObject(root, "Medkit", At(Camp.x + 3.6f, Camp.z + 2.2f), 15f);
+                new SearchableContainer.Entry { item = med, amount = 1 });
 
             // Piedras para distraer, justo antes de cada sala con Lurker.
             ItemsSetupBuilder.EnsureItem("Stone", "Stone", "STONE", 4);

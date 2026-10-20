@@ -78,8 +78,7 @@ namespace ProjectRidge.Core
         {
             health.Died += OnDied;
             input.PausePressed += OnPausePressed;
-            input.InteractPressed += OnDismiss;
-            input.AttackPressed += OnDismiss;
+            input.ActionPressed += OnDismiss;
             if (ufoExposure != null) ufoExposure.Captured += OnCaptured;
             Searchlight.PlayerCaught += OnSearchlightCaught;
         }
@@ -88,8 +87,7 @@ namespace ProjectRidge.Core
         {
             health.Died -= OnDied;
             input.PausePressed -= OnPausePressed;
-            input.InteractPressed -= OnDismiss;
-            input.AttackPressed -= OnDismiss;
+            input.ActionPressed -= OnDismiss;
             if (ufoExposure != null) ufoExposure.Captured -= OnCaptured;
             Searchlight.PlayerCaught -= OnSearchlightCaught;
             Time.timeScale = 1f;

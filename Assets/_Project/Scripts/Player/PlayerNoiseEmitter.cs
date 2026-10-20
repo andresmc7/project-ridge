@@ -28,7 +28,8 @@ namespace ProjectRidge.Player
         {
             switch (mode)
             {
-                case MovementMode.Crouch: return config.crouchStride;
+                case MovementMode.Crouch:
+                case MovementMode.Sneak: return config.crouchStride;
                 case MovementMode.Jog: return config.jogStride;
                 case MovementMode.Sprint: return config.sprintStride;
                 default: return config.walkStride;
@@ -39,7 +40,8 @@ namespace ProjectRidge.Player
         {
             switch (mode)
             {
-                case MovementMode.Crouch: return config.crouchStepRadius;
+                case MovementMode.Crouch:
+                case MovementMode.Sneak: return config.crouchStepRadius;
                 case MovementMode.Jog: return config.jogStepRadius;
                 case MovementMode.Sprint: return config.sprintStepRadius;
                 default: return config.walkStepRadius;

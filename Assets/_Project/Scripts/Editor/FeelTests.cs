@@ -81,15 +81,12 @@ namespace ProjectRidge.EditorTools
         static void Tap(Key k)
         {
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(k));
-            InputSystem.Update();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-            InputSystem.Update();
         }
 
         static void Stick(Vector2 v, float trigger = 0f)
         {
             InputSystem.QueueStateEvent(pad, new GamepadState { leftStick = v, rightTrigger = trigger });
-            InputSystem.Update();
         }
 
         static void Teleport(Vector3 p)
@@ -222,7 +219,7 @@ namespace ProjectRidge.EditorTools
             yield return 0.3f;
             Teleport(Ground(-19.6f, -1.4f));
             yield return 0.3f;
-            Tap(Key.Q);
+            player.GetComponent<PlayerFlareTool>().Place(); // la bengala de mano ya no tiene botón (POLISH_PASS 3.3)
             yield return 1.2f;
             bool burningEarly = HandFlare.Burning.Count > 0;
             var flares = Object.FindObjectsByType<HandFlare>(FindObjectsSortMode.None);
@@ -290,9 +287,7 @@ namespace ProjectRidge.EditorTools
             var reaction = lurker.GetComponentInChildren<HitReaction>();
             Vector3 lurkerBefore = lurker.transform.position;
             Vector3 dadBefore = player.transform.position;
-            Stick(Vector2.zero, 1f);
-            yield return 0.05f;
-            Stick(Vector2.zero, 0f);
+            Tap(Key.E); // ACCIÓN contextual: golpe con el Lurker cerca
             float maxBend = 0f;
             end = Time.time + 0.8f;
             while (Time.time < end) { if (reaction != null) maxBend = Mathf.Max(maxBend, reaction.Magnitude); yield return null; }

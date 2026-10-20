@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Items.ItemDefinition
   displayName: Stone
   shortLabel: STONE
-  maxCarry: 4
+  maxCarry: 3

@@ -9,14 +9,12 @@
                 { "name": "Move", "type": "Value", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1101", "expectedControlType": "Vector2", "processors": "", "interactions": "", "initialStateCheck": true },
                 { "name": "Sprint", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1102", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Crouch", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1103", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Interact", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1104", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Attack", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1105", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Aim", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1106", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Action", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1104", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "Object", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
+                { "name": "CycleObject", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110b", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Flashlight", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1107", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
                 { "name": "Pause", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1108", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Heal", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1109", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Fire", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110a", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false },
-                { "name": "Throw", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c110b", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
+                { "name": "Heal", "type": "Button", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c1109", "expectedControlType": "Button", "processors": "", "interactions": "", "initialStateCheck": false }
             ],
             "bindings": [
                 { "name": "WASD", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2001", "path": "2DVector", "interactions": "", "processors": "", "groups": "", "action": "Move", "isComposite": true, "isPartOfComposite": false },
@@ -35,16 +33,16 @@
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2102", "path": "<Gamepad>/leftStickPress", "interactions": "", "processors": "", "groups": "", "action": "Sprint", "isComposite": false, "isPartOfComposite": false },
 
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2201", "path": "<Keyboard>/c", "interactions": "", "processors": "", "groups": "", "action": "Crouch", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2202", "path": "<Gamepad>/buttonEast", "interactions": "", "processors": "", "groups": "", "action": "Crouch", "isComposite": false, "isPartOfComposite": false },
 
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2301", "path": "<Keyboard>/e", "interactions": "", "processors": "", "groups": "", "action": "Interact", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2302", "path": "<Gamepad>/buttonSouth", "interactions": "", "processors": "", "groups": "", "action": "Interact", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2301", "path": "<Keyboard>/e", "interactions": "", "processors": "", "groups": "", "action": "Action", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2302", "path": "<Gamepad>/buttonSouth", "interactions": "", "processors": "", "groups": "", "action": "Action", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2303", "path": "<Mouse>/leftButton", "interactions": "", "processors": "", "groups": "", "action": "Action", "isComposite": false, "isPartOfComposite": false },
 
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2401", "path": "<Mouse>/leftButton", "interactions": "", "processors": "", "groups": "", "action": "Attack", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2402", "path": "<Gamepad>/rightTrigger", "interactions": "", "processors": "", "groups": "", "action": "Attack", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2901", "path": "<Keyboard>/q", "interactions": "", "processors": "", "groups": "", "action": "Object", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2902", "path": "<Gamepad>/rightShoulder", "interactions": "", "processors": "", "groups": "", "action": "Object", "isComposite": false, "isPartOfComposite": false },
 
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2501", "path": "<Mouse>/rightButton", "interactions": "", "processors": "", "groups": "", "action": "Aim", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2502", "path": "<Gamepad>/leftTrigger", "interactions": "", "processors": "", "groups": "", "action": "Aim", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a01", "path": "<Keyboard>/tab", "interactions": "", "processors": "", "groups": "", "action": "CycleObject", "isComposite": false, "isPartOfComposite": false },
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a02", "path": "<Gamepad>/leftShoulder", "interactions": "", "processors": "", "groups": "", "action": "CycleObject", "isComposite": false, "isPartOfComposite": false },
 
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2601", "path": "<Keyboard>/f", "interactions": "", "processors": "", "groups": "", "action": "Flashlight", "isComposite": false, "isPartOfComposite": false },
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2602", "path": "<Gamepad>/buttonNorth", "interactions": "", "processors": "", "groups": "", "action": "Flashlight", "isComposite": false, "isPartOfComposite": false },
@@ -53,13 +51,7 @@
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2702", "path": "<Gamepad>/start", "interactions": "", "processors": "", "groups": "", "action": "Pause", "isComposite": false, "isPartOfComposite": false },
 
                 { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2801", "path": "<Keyboard>/h", "interactions": "", "processors": "", "groups": "", "action": "Heal", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2802", "path": "<Gamepad>/dpad/up", "interactions": "", "processors": "", "groups": "", "action": "Heal", "isComposite": false, "isPartOfComposite": false },
-
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2901", "path": "<Keyboard>/q", "interactions": "", "processors": "", "groups": "", "action": "Fire", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2902", "path": "<Gamepad>/rightShoulder", "interactions": "", "processors": "", "groups": "", "action": "Fire", "isComposite": false, "isPartOfComposite": false },
-
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a01", "path": "<Keyboard>/g", "interactions": "", "processors": "", "groups": "", "action": "Throw", "isComposite": false, "isPartOfComposite": false },
-                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2a02", "path": "<Gamepad>/leftShoulder", "interactions": "", "processors": "", "groups": "", "action": "Throw", "isComposite": false, "isPartOfComposite": false }
+                { "name": "", "id": "a1d0c3e2-1b7f-4c51-9a0e-5f0b7d2c2802", "path": "<Gamepad>/dpad/up", "interactions": "", "processors": "", "groups": "", "action": "Heal", "isComposite": false, "isPartOfComposite": false }
             ]
         }
     ],

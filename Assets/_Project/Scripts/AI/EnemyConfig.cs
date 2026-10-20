@@ -103,6 +103,8 @@ namespace ProjectRidge.AI
 
         [Header("Vida")]
         [Min(1f)] public float maxHealth = 100f;
+        [Tooltip("PoC (POLISH_PASS 3.3): ningún enemigo muere; siempre vuelve a levantarse. Eso mantiene el horror.")]
+        public bool canDie = false;
 
         [Header("Feedback (ojos)")]
         [ColorUsage(false, true)] public Color eyesCalm = new Color(0.6f, 0.02f, 0.02f);

@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace ProjectRidge.Player
 {
-    /// <summary>Elige el interactuable más cercano en rango y lo usa con la acción Interact.</summary>
+    /// <summary>
+    /// Elige el interactuable en rango por prioridad (inspeccionar › usar › recoger › registrar) y, a igual prioridad,
+    /// el más cercano. Lo usa el botón ACCIÓN a través de PlayerActions.
+    /// </summary>
     public class PlayerInteractor : MonoBehaviour
     {
         [SerializeField] private InteractionConfig config;
-        [SerializeField] private PlayerInputHandler input;
         [SerializeField] private PlayerInventory inventory;
 
         public PlayerInventory Inventory => inventory;
@@ -23,15 +25,12 @@ namespace ProjectRidge.Player
 
         public void Notify(string message) => Notified?.Invoke(message);
 
-        private void OnEnable() => input.InteractPressed += OnInteract;
-        private void OnDisable() => input.InteractPressed -= OnInteract;
+        private void Update() => Current = FindBest();
 
-        private void Update() => Current = FindNearest();
-
-        private Interactable FindNearest()
+        private Interactable FindBest()
         {
             Interactable best = null;
-            float bestSqr = config.radius * config.radius;
+            float radiusSqr = config.radius * config.radius, bestSqr = float.MaxValue;
             Vector3 p = transform.position;
             foreach (var it in Interactable.All)
             {
@@ -39,21 +38,30 @@ namespace ProjectRidge.Player
                 Vector3 d = it.FocusPosition - p;
                 d.y = 0f;
                 float sqr = d.sqrMagnitude;
-                if (sqr < bestSqr) { bestSqr = sqr; best = it; }
+                if (sqr > radiusSqr) continue;
+                if (best == null || it.ActionKind < best.ActionKind || (it.ActionKind == best.ActionKind && sqr < bestSqr))
+                {
+                    best = it;
+                    bestSqr = sqr;
+                }
             }
             return best;
         }
 
-        // Se recalcula al pulsar: el input se procesa antes del Update de este frame.
-        private void OnInteract()
+        /// <summary>Usa el interactuable actual (se recalcula: el input llega antes del Update de este frame).</summary>
+        public bool UseCurrent()
         {
             if (controller == null) controller = GetComponent<PlayerController>();
-            if (controller != null && controller.InputLocked) return;
-            Current = FindNearest();
-            if (Current == null) return;
+            if (controller != null && controller.InputLocked) return false;
+            Current = FindBest();
+            if (Current == null) return false;
             var used = Current;
             used.Interact(this);
             Interacted?.Invoke(used);
+            return true;
         }
+
+        /// <summary>El interactuable que ganaría ahora mismo (para el ícono del botón ACCIÓN).</summary>
+        public Interactable Peek() => FindBest();
     }
 }

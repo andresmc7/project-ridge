@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b19f01d11c675894e9a11e27596a6b62, type: 3}
   m_Name: NoiseConfig
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Noise.NoiseConfig
-  crouchStepRadius: 1.2
+  crouchStepRadius: 1
   walkStepRadius: 3.5
   jogStepRadius: 7
   sprintStepRadius: 12

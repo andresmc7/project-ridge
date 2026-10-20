@@ -4,12 +4,11 @@ using UnityEngine;
 namespace ProjectRidge.Player
 {
     /// <summary>
-    /// Lanzar una piedra (G / LB / botón THROW): distracción. Cae ~9 m adelante (o donde mira el stick) y su ruido
-    /// atrae a los Lurker a ese punto, lejos del papá. La piedra sale de la mano tras el arranque de la animación.
+    /// Lanzar una piedra (botón OBJETO con la piedra activa): distracción. Cae en el punto pedido y su ruido atrae a los
+    /// Lurker allí, lejos del papá. La piedra sale de la mano tras el arranque de la animación.
     /// </summary>
     public class PlayerThrow : MonoBehaviour
     {
-        [SerializeField] private PlayerInputHandler input;
         [SerializeField] private PlayerController controller;
         [SerializeField] private PlayerCombat combat;
         [SerializeField] private PlayerHealth health;
@@ -19,7 +18,6 @@ namespace ProjectRidge.Player
         [SerializeField] private ItemDefinition stoneItem;
         [SerializeField] private StoneProjectile stonePrefab;
         [SerializeField] private Transform hand;
-        [Min(1f)] [SerializeField] private float distance = 9f;
         [Tooltip("Altura de la parábola sobre el punto más alto (mano o destino): salva bordes y matorrales.")]
         [Min(0.5f)] [SerializeField] private float arcHeight = 2.4f;
         [Min(0f)] [SerializeField] private float releaseDelay = 0.42f;
@@ -29,27 +27,27 @@ namespace ProjectRidge.Player
         private float releaseAt = -1f;
         private Vector3 target;
 
-        private void OnEnable() => input.ThrowPressed += OnThrow;
-        private void OnDisable() => input.ThrowPressed -= OnThrow;
+        public ItemDefinition StoneItem => stoneItem;
 
-        private void OnThrow()
+        /// <summary>Lanza una piedra hacia el punto (se corrige al suelo real). Devuelve false si no se pudo.</summary>
+        public bool ThrowAt(Vector3 point)
         {
-            if (controller.InputLocked || health.IsDead || combat.IsBusy || Time.time < nextThrow || releaseAt > 0f) return;
+            if (controller.InputLocked || health.IsDead || combat.IsBusy || Time.time < nextThrow || releaseAt > 0f) return false;
             if (!inventory.TryRemove(stoneItem))
             {
                 interactor.Notify("No stones");
-                return;
+                return false;
             }
             nextThrow = Time.time + cooldown;
-            Vector3 dir = controller.DesiredDirection.sqrMagnitude > 0.1f ? controller.DesiredDirection : transform.forward;
-            controller.FaceTowards(transform.position + dir);
-            target = transform.position + dir * distance;
+            controller.FaceTowards(point);
+            target = point;
             // Apunta al suelo real del punto de caída (pendientes, la meseta), no a la altura del papá.
             if (Physics.Raycast(target + Vector3.up * 20f, Vector3.down, out RaycastHit ground, 40f, 1, QueryTriggerInteraction.Ignore))
                 target = ground.point;
             releaseAt = Time.time + releaseDelay;
             controller.ActionLocked = true;
             if (animator != null) animator.PlayThrow();
+            return true;
         }
 
         private void Update()

@@ -18,6 +18,7 @@ namespace ProjectRidge.EditorTools
             log.AppendLine(CharacterBuilder.BuildApparition(OnGround(tr, -47.5f, 0f), new[] { OnGround(tr, -29f, 8.6f), OnGround(tr, -36f, 8.3f), OnGround(tr, -43f, 8.7f), OnGround(tr, -46.5f, 14f) }));
             log.AppendLine(ItemsSetupBuilder.BuildHandFlare());
             log.AppendLine(SetupFeel());
+            log.AppendLine(ControlsBuilder.Setup());
             log.Append(BuildAtmosphere(UnityEngine.Terrain.activeTerrain, UnityEngine.GameObject.Find("Player")));
             log.AppendLine(HudBuilder.Build());
             log.AppendLine(HudBuilder.BuildFlow());

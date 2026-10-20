@@ -26,7 +26,7 @@ namespace ProjectRidge.EditorTools
 
             var canvas = GameObject.Find("HUD");
             var safe = canvas.transform.Find("SafeArea");
-            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw" })
+            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StickArea", "Action", "Object", "Flashlight", "HealHold", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw" })
             {
                 var old = safe.Find(n);
                 if (old != null) Object.DestroyImmediate(old.gameObject);
@@ -45,27 +45,81 @@ namespace ProjectRidge.EditorTools
             var touch = Stretch("TouchControls", safe);
             touch.gameObject.AddComponent<ProjectRidge.UI.TouchControlsVisibility>();
 
-            var stickBase = Rect("StickBase", touch, new Vector2(0f, 0f), new Vector2(200f, 200f), 230f);
-            Img(stickBase, disc, new Color(0f, 0f, 0f, 0.18f), false);
-            var stickRing = Rect("Ring", stickBase, new Vector2(0.5f, 0.5f), Vector2.zero, 230f);
-            Img(stickRing, ring, new Color(1f, 1f, 1f, 0.35f), false);
-            var knob = Rect("Stick", stickBase, new Vector2(0.5f, 0.5f), Vector2.zero, 92f);
-            Img(knob, disc, new Color(1f, 1f, 1f, 0.28f), true);
-            var knobRing = Rect("Ring", knob, new Vector2(0.5f, 0.5f), Vector2.zero, 92f);
-            Img(knobRing, ring, new Color(1f, 1f, 1f, 0.6f), false);
-            var stick = knob.gameObject.AddComponent<OnScreenStick>();
-            stick.controlPath = "<Gamepad>/leftStick";
-            stick.movementRange = 70f;
+            // POLISH_PASS 3.1: un pulgar mueve (joystick flotante en el 45% izquierdo), el otro decide (ACCIÓN + OBJETO).
+            // Sin botones de agacharse ni de sprint. Tamaños en pt de iPhone convertidos a unidades del canvas.
+            var playerGo = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerController>().gameObject;
+            var stickArea = Rect("StickArea", touch, Vector2.zero, Vector2.zero, 0f);
+            stickArea.anchorMin = Vector2.zero; stickArea.anchorMax = new Vector2(StickAreaWidth, 1f);
+            stickArea.offsetMin = stickArea.offsetMax = Vector2.zero;
+            Img(stickArea, white, new Color(0f, 0f, 0f, 0f), true); // invisible, recibe el toque
+            var stickRing = Rect("Ring", stickArea, new Vector2(0f, 0f), Vector2.zero, Pt(70f) * 2f);
+            stickRing.anchorMin = stickRing.anchorMax = new Vector2(0f, 0f);
+            var ringImg = Img(stickRing, ring, new Color(1f, 1f, 1f, 0.22f), false);
+            var knob = Rect("Knob", stickRing, new Vector2(0.5f, 0.5f), Vector2.zero, Pt(26f));
+            Img(knob, disc, new Color(1f, 1f, 1f, 0.25f), false);
+            // El anillo se posiciona en coordenadas locales del área: pivote en su esquina inferior izquierda.
+            stickArea.pivot = Vector2.zero;
+            var floating = stickArea.gameObject.AddComponent<ProjectRidge.UI.FloatingStick>();
+            var fso = new SerializedObject(floating);
+            fso.FindProperty("input").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerInputHandler>();
+            fso.FindProperty("ring").objectReferenceValue = stickRing;
+            fso.FindProperty("knob").objectReferenceValue = knob;
+            fso.FindProperty("ringImage").objectReferenceValue = ringImg;
+            fso.FindProperty("range").floatValue = Pt(70f);
+            fso.ApplyModifiedPropertiesWithoutUndo();
 
             Vector2 br = new Vector2(1f, 0f);
-            Button("Attack", touch, br, new Vector2(-150f, 165f), 124f, "ATTACK", "<Gamepad>/rightTrigger", disc, ring);
-            Button("Interact", touch, br, new Vector2(-300f, 120f), 98f, "USE", "<Gamepad>/buttonSouth", disc, ring);
-            Button("Crouch", touch, br, new Vector2(-150f, 320f), 98f, "CROUCH", "<Gamepad>/buttonEast", disc, ring);
-            Button("Sprint", touch, br, new Vector2(-300f, 272f), 98f, "SPRINT", "<Gamepad>/leftStickPress", disc, ring);
-            Button("Heal", touch, br, new Vector2(-430f, 110f), 80f, "HEAL", "<Gamepad>/dpad/up", disc, ring);
-            Button("Fire", touch, br, new Vector2(-150f, 460f), 86f, "FLARE", "<Gamepad>/rightShoulder", disc, ring);
-            Button("Throw", touch, br, new Vector2(-300f, 420f), 86f, "THROW", "<Gamepad>/leftShoulder", disc, ring);
-            Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-64f, -60f), 64f, "II", "<Gamepad>/start", disc, ring);
+            // ACCIÓN: grande, abajo a la derecha. El toque va al botón A del gamepad virtual.
+            float actionSize = Pt(110f);
+            var actionRt = Rect("Action", touch, br, new Vector2(-Pt(79f), Pt(79f)), actionSize);
+            Img(actionRt, disc, new Color(0f, 0f, 0f, 0.35f), true);
+            Img(Rect("Ring", actionRt, new Vector2(0.5f, 0.5f), Vector2.zero, actionSize), ring, new Color(1f, 1f, 1f, 0.55f), false);
+            actionRt.gameObject.AddComponent<OnScreenButton>().controlPath = "<Gamepad>/buttonSouth";
+            var actionGroup = actionRt.gameObject.AddComponent<CanvasGroup>();
+            var actionLabel = Label("Label", actionRt, Vector2.zero, new Vector2(actionSize, actionSize), "", 34, FontStyle.Bold);
+            var ab = actionRt.gameObject.AddComponent<ProjectRidge.UI.ActionButton>();
+            var abso = new SerializedObject(ab);
+            abso.FindProperty("actions").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerActions>();
+            abso.FindProperty("group").objectReferenceValue = actionGroup;
+            abso.FindProperty("label").objectReferenceValue = actionLabel;
+            abso.ApplyModifiedPropertiesWithoutUndo();
+
+            // OBJETO: mediano, encima y a la izquierda de ACCIÓN.
+            float objectSize = Pt(84f);
+            var objectRt = Rect("Object", touch, br, new Vector2(-Pt(178f), Pt(160f)), objectSize);
+            Img(objectRt, disc, new Color(0f, 0f, 0f, 0.35f), true);
+            Img(Rect("Ring", objectRt, new Vector2(0.5f, 0.5f), Vector2.zero, objectSize), ring, new Color(1f, 1f, 1f, 0.5f), false);
+            var objectGroup = objectRt.gameObject.AddComponent<CanvasGroup>();
+            var objectLabel = Label("Label", objectRt, new Vector2(0f, 14f), new Vector2(objectSize, 50f), "", 28, FontStyle.Bold);
+            var objectCount = Label("Count", objectRt, new Vector2(0f, -40f), new Vector2(objectSize, 50f), "", 36, FontStyle.Bold);
+            objectCount.color = new Color(1f, 0.86f, 0.6f, 0.95f);
+            var ob = objectRt.gameObject.AddComponent<ProjectRidge.UI.ObjectButton>();
+            var obso = new SerializedObject(ob);
+            obso.FindProperty("items").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerItems>();
+            obso.FindProperty("label").objectReferenceValue = objectLabel;
+            obso.FindProperty("count").objectReferenceValue = objectCount;
+            obso.FindProperty("group").objectReferenceValue = objectGroup;
+            obso.FindProperty("cancelRadius").floatValue = objectSize * 0.5f;
+            obso.FindProperty("aimDeadzone").floatValue = Pt(10f);
+            obso.FindProperty("swipeDistance").floatValue = Pt(24f);
+            obso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Íconos pequeños arriba a la derecha: linterna y pausa.
+            Button("Flashlight", touch, new Vector2(1f, 1f), new Vector2(-Pt(84f), -Pt(30f)), Pt(40f), "LIGHT", "<Gamepad>/buttonNorth", disc, ring);
+            Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-Pt(34f), -Pt(30f)), Pt(40f), "II", "<Gamepad>/start", disc, ring);
+
+            // Curarse: mantener el indicador de vida (arriba a la izquierda).
+            var healRt = Rect("HealHold", touch, new Vector2(0f, 1f), new Vector2(Pt(34f), -Pt(30f)), Pt(44f));
+            Img(healRt, disc, new Color(0f, 0f, 0f, 0.001f), true);
+            var healFill = Img(Rect("Progress", healRt, new Vector2(0.5f, 0.5f), Vector2.zero, Pt(44f)), ring, new Color(0.9f, 0.3f, 0.25f, 0.9f), false);
+            healFill.type = Image.Type.Filled;
+            healFill.fillMethod = Image.FillMethod.Radial360;
+            healFill.fillAmount = 0f;
+            var hh = healRt.gameObject.AddComponent<ProjectRidge.UI.HoldToHeal>();
+            var hso = new SerializedObject(hh);
+            hso.FindProperty("healing").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerHealing>();
+            hso.FindProperty("progress").objectReferenceValue = healFill;
+            hso.ApplyModifiedPropertiesWithoutUndo();
 
             // --- Vida y recursos (arriba a la izquierda), aviso de interacción y mensajes (abajo al centro)
             var survival = Stretch("SurvivalHud", safe);
@@ -373,6 +427,12 @@ namespace ProjectRidge.EditorTools
             rt.sizeDelta = new Vector2(size, size);
             return rt;
         }
+
+        /// <summary>Unidades del canvas (referencia 1920×1080, mezcla 0.5) por punto de iPhone en horizontal (852×393 pt a 3x).</summary>
+        const float CanvasUnitsPerPt = 2.49f;
+        static float Pt(float points) => points * CanvasUnitsPerPt;
+        /// <summary>Ancho de la zona del joystick flotante (fracción de la pantalla, desde la izquierda).</summary>
+        const float StickAreaWidth = 0.45f;
 
         static readonly string[] ShownItems = { "Medkit", "Flare", "Stone" };
 

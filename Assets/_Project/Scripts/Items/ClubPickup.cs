@@ -6,6 +6,7 @@ namespace ProjectRidge.Items
     /// <summary>Un garrote tirado en el suelo: lo repone con durabilidad completa.</summary>
     public class ClubPickup : Interactable
     {
+        public override Kind ActionKind => Kind.PickUp;
         [SerializeField] private InteractionConfig config;
 
         public override string Prompt => "Take the wooden club";

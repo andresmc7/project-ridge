@@ -44,6 +44,7 @@ namespace ProjectRidge.AI
         private static readonly int HuntingId = Animator.StringToHash("Hunting");
         private static readonly int StunnedId = Animator.StringToHash("Stunned");
         private static readonly int DeadId = Animator.StringToHash("Dead");
+        private static readonly int DownId = Animator.StringToHash("Down");
         private static readonly int AttackId = Animator.StringToHash("Attack");
 
         // Perezoso: sobrevive a una recarga de dominio en play mode (rng no se serializa).
@@ -94,7 +95,8 @@ namespace ProjectRidge.AI
             bool hunting = state == EnemyState.Chase || state == EnemyState.Attack;
             animator.SetFloat(SpeedId, speed, 0.1f, dt);
             animator.SetBool(HuntingId, hunting);
-            animator.SetBool(StunnedId, state == EnemyState.Stunned);
+            animator.SetBool(StunnedId, state == EnemyState.Stunned && !enemy.IsDown);
+            animator.SetBool(DownId, enemy.IsDown);
             animator.SetBool(DeadId, state == EnemyState.Dead);
             hunt = Mathf.MoveTowards(hunt, hunting ? 1f : 0f, dt * 3f);
             stun = Mathf.MoveTowards(stun, state == EnemyState.Stunned ? 1f : 0f, dt * 8f);

@@ -7,6 +7,8 @@ namespace ProjectRidge.Player
     {
         [Header("Velocidades (m/s)")]
         [Min(0f)] public float crouchSpeed = 1.5f;
+        [Tooltip("Caminar sigiloso de pie (joystick apenas inclinado). Usa el clip de caminar a su escala mínima.")]
+        [Min(0f)] public float sneakSpeed = 0.8f;
         [Min(0f)] public float walkSpeed = 2.5f;
         [Min(0f)] public float jogSpeed = 4.0f;
         [Min(0f)] public float sprintSpeed = 5.5f;
@@ -24,8 +26,14 @@ namespace ProjectRidge.Player
         [Header("Joystick")]
         [Tooltip("Inclinación mínima para moverse.")]
         [Range(0f, 1f)] public float stickDeadzone = 0.15f;
-        [Tooltip("Inclinación a partir de la cual se pasa de Walk a Jog.")]
-        [Range(0f, 1f)] public float jogThreshold = 0.7f;
+        [Tooltip("Por debajo: caminar sigiloso (lento y casi mudo).")]
+        [Range(0f, 1f)] public float sneakThreshold = 0.35f;
+        [Tooltip("Desde sneakThreshold hasta aquí la velocidad pasa de caminar a trotar de forma continua.")]
+        [Range(0f, 1f)] public float jogThreshold = 0.85f;
+        [Tooltip("Inclinación que cuenta como \"al borde\" para fijar el sprint (ya con la zona muerta del stick aplicada: 0.925 físico = 1).")]
+        [Range(0f, 1f)] public float sprintEdge = 0.98f;
+        [Tooltip("Segundos al borde para fijar el sprint (se suelta al soltar o frenar).")]
+        [Min(0f)] public float sprintHoldTime = 0.25f;
 
         [Header("Altura")]
         [Min(0.5f)] public float standHeight = 1.8f;

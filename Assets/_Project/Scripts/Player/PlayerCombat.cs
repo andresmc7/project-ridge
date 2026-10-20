@@ -63,30 +63,24 @@ namespace ProjectRidge.Player
         public event Action ClubRestored;
         /// <summary>Empieza a desenfundar (true) o a enfundar (false).</summary>
         public event Action<bool> ClubDrawStarted;
+        /// <summary>Empujón sin garrote (la animación usa el golpe de hombro).</summary>
+        public event Action Shoved;
         public event Action Fired;
         public event Action DryFire;
 
         private void Awake() => ClubDurability = config.clubDurability;
 
-        private void OnEnable()
-        {
-            input.AttackPressed += OnAttack;
-            if (config.flareGun) input.FirePressed += TryFire;
-        }
-
         private void OnDisable()
         {
-            input.AttackPressed -= OnAttack;
-            input.FirePressed -= TryFire;
             controller.SpeedMultiplier = 1f;
             controller.InputLocked = false;
             Phase = SwingPhase.None;
         }
 
-        private void OnAttack()
+        /// <summary>Golpe con garrote (ACCIÓN con un Lurker cerca). Si está enfundado, desenfunda y golpea al terminar.</summary>
+        public void Strike()
         {
             if (controller.InputLocked) return;
-            if (input.AimHeld && config.flareGun) { TryFire(); return; }
             if (health.IsDead || IsBusy || !HasClub) return;
             lastThreat = Time.time;
             if (!ClubInHand) { swingQueued = true; return; } // golpea en cuanto termina de desenfundar
@@ -193,6 +187,62 @@ namespace ProjectRidge.Player
             }
         }
 
+        /// <summary>¿Puede derribar a este Lurker? Agachado, por la espalda, cerca y sin que lo esté cazando.</summary>
+        public bool CanTakedown(EnemyController e)
+        {
+            if (e == null || e.IsDead || e.IsHunting || e.State == EnemyState.Stunned || !HasClub || !controller.IsCrouching) return false;
+            Vector3 toDad = transform.position - e.transform.position;
+            toDad.y = 0f;
+            if (toDad.magnitude > config.takedownRange) return false;
+            return Vector3.Dot(e.transform.forward, toDad.normalized) < config.takedownBehindDot;
+        }
+
+        /// <summary>Derribo por la espalda: el Lurker cae y convulsiona; se levanta buscando. Gasta 1 de durabilidad.</summary>
+        public bool Takedown(EnemyController e)
+        {
+            if (controller.InputLocked || health.IsDead || IsBusy || !CanTakedown(e)) return false;
+            controller.FaceTowards(e.transform.position);
+            lastThreat = Time.time;
+            drawProgress = 1f; // el golpe sale de la funda en un solo gesto
+            hitThisSwing.Clear();
+            Phase = SwingPhase.Windup;
+            phaseEnd = Time.time + (phaseDuration = config.clubWindup);
+            controller.SpeedMultiplier = 0f;
+            Swung?.Invoke();
+            e.Incapacitate(config.takedownStun);
+            var reaction = e.GetComponentInChildren<HitReaction>();
+            Vector3 dir = Flat(e.transform.position - transform.position).normalized;
+            if (reaction != null) reaction.Impulse(dir, config.clubHitReaction * config.sneakMultiplier);
+            CameraShake.Kick(dir, config.clubCameraKick * 1.4f);
+            HitStop.Trigger(config.hitStop, config.hitStopScale);
+            Vector3 impact = e.transform.position + Vector3.up * 1.3f;
+            NoiseSystem.Emit(impact, config.clubHitNoise, NoiseType.Impact, gameObject);
+            ClubHit?.Invoke(impact);
+            hitThisSwing.Add(e); // la ventana activa no lo vuelve a golpear
+            if (--ClubDurability <= 0)
+            {
+                NoiseSystem.Emit(transform.position, config.clubBreakNoise, NoiseType.Breakage, gameObject);
+                interactor.Notify("The club broke");
+                ClubBroke?.Invoke();
+            }
+            return true;
+        }
+
+        /// <summary>Sin garrote: empuja al Lurker (aturdimiento corto) y el papá se echa atrás para huir.</summary>
+        public bool Shove(EnemyController e)
+        {
+            if (controller.InputLocked || health.IsDead || IsBusy || e == null || e.IsDead) return false;
+            controller.FaceTowards(e.transform.position);
+            Vector3 dir = Flat(e.transform.position - transform.position).normalized;
+            e.Interrupt(config.shoveStun, transform.position, config.shoveKnockback);
+            controller.AddKnockback(-dir * config.shoveRecoil);
+            var reaction = e.GetComponentInChildren<HitReaction>();
+            if (reaction != null) reaction.Impulse(dir, config.clubHitReaction * 0.6f);
+            CameraShake.Kick(dir, config.clubCameraKick * 0.6f);
+            Shoved?.Invoke();
+            return true;
+        }
+
         /// <summary>Repone el garrote (p. ej. al recoger uno nuevo). Va directo a la funda.</summary>
         public void RestoreClub()
         {
@@ -203,19 +253,23 @@ namespace ProjectRidge.Player
 
         // ---------- Pistola de bengalas
 
-        private void TryFire()
+        /// <summary>
+        /// Dispara la pistola de bengalas (la saca de la cadera solo para disparar). Con un Lurker a quemarropa, lo aturde y
+        /// la bengala cae a sus pies; si no, la bengala vuela hasta el punto y arde con luz y ruido.
+        /// </summary>
+        public bool FireFlareAt(Vector3 point)
         {
-            if (controller.InputLocked) return;
-            if (health.IsDead || IsBusy || Time.time < nextFire) return;
+            if (controller.InputLocked) return false;
+            if (health.IsDead || IsBusy || Time.time < nextFire) return false;
             if (!inventory.TryRemove(flareItem))
             {
                 interactor.Notify("No flares");
                 DryFire?.Invoke();
-                return;
+                return false;
             }
             nextFire = Time.time + config.fireCooldown;
 
-            var target = NearestEnemy(config.autoAimRange, config.autoAimAngle);
+            var target = NearestEnemy(config.pointBlankRange, config.autoAimAngle);
             Vector3 origin = muzzle != null ? muzzle.position : transform.position + Vector3.up * 1.3f;
             NoiseSystem.Emit(transform.position, config.shotNoise, NoiseType.Flare, gameObject);
             Fired?.Invoke();
@@ -231,15 +285,13 @@ namespace ProjectRidge.Player
                     target.Interrupt(config.pointBlankStun, transform.position, 4f);
                     if (target.TryGetComponent(out EnemyHealth eh)) eh.TakeDamage(config.pointBlankDamage);
                     flare.Ignite(target.transform.position + Vector3.up * 0.05f, gameObject);
-                    return;
+                    return true;
                 }
-                flare.Launch(BallisticVelocity(origin, target.transform.position + Vector3.up * 1.2f), gameObject);
-                return;
             }
 
-            Vector3 forward = controller.DesiredDirection.sqrMagnitude > 0.1f ? controller.DesiredDirection : transform.forward;
-            controller.FaceTowards(transform.position + forward);
-            flare.Launch(BallisticVelocity(origin, transform.position + forward * config.freeShotDistance), gameObject);
+            controller.FaceTowards(point);
+            flare.Launch(BallisticVelocity(origin, point), gameObject);
+            return true;
         }
 
         /// <summary>Velocidad para llegar al punto con velocidad horizontal fija y la gravedad de la bengala.</summary>

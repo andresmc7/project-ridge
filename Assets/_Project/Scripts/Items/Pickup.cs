@@ -6,6 +6,7 @@ namespace ProjectRidge.Items
     /// <summary>Objeto visible que se recoge con Interact. Hace un poco de ruido.</summary>
     public class Pickup : Interactable
     {
+        public override Kind ActionKind => Kind.PickUp;
         [SerializeField] private InteractionConfig config;
         [SerializeField] private ItemDefinition item;
         [Min(1)] [SerializeField] private int amount = 1;

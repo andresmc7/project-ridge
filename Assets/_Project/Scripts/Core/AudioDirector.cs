@@ -255,7 +255,7 @@ namespace ProjectRidge.Core
             bool wood = Physics.Raycast(player.transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1.2f, ~0, QueryTriggerInteraction.Ignore)
                         && hit.collider.name.EndsWith("Walk");
             var clip = Pick(wood ? bank.stepsWood : bank.stepsGrass != null && bank.stepsGrass.Length > 0 ? bank.stepsGrass : bank.stepsDirt);
-            float v = player.Mode == MovementMode.Crouch ? 0.35f : player.Mode == MovementMode.Sprint ? 1f : player.Mode == MovementMode.Jog ? 0.8f : 0.6f;
+            float v = player.Mode == MovementMode.Crouch || player.Mode == MovementMode.Sneak ? 0.35f : player.Mode == MovementMode.Sprint ? 1f : player.Mode == MovementMode.Jog ? 0.8f : 0.6f;
             PlayerSfx(clip, bank.player * v, 0.08f);
         }
 

@@ -22,5 +22,24 @@ namespace ProjectRidge.Player
         [Header("Linterna")]
         [Tooltip("Llevar la linterna encendida te hace más visible.")]
         [Min(1f)] public float flashlightVisibility = 1.6f;
+
+        [Header("Agachado automático (POLISH_PASS 3.2)")]
+        [Tooltip("Densidad de escondite (0–1) a partir de la cual el papá se agacha y queda oculto.")]
+        [Range(0f, 1f)] public float hideDensity = 0.5f;
+        [Tooltip("Un Lurker despierto a esta distancia (m) cuenta como amenaza cercana.")]
+        [Min(0f)] public float threatRadius = 18f;
+        [Tooltip("Un haz del OVNI a esta distancia (m) cuenta como amenaza cercana.")]
+        [Min(0f)] public float beamThreatRadius = 12f;
+        [Tooltip("Distancia (m) a una cobertura baja para agacharse tras ella.")]
+        [Min(0f)] public float coverRadius = 1f;
+        [Tooltip("Altura (m) entre la que algo cuenta como cobertura baja (roca, tronco, muro bajo).")]
+        [Min(0f)] public float coverMinHeight = 0.45f;
+        [Min(0f)] public float coverMaxHeight = 1.4f;
+        [Tooltip("Capas de la cobertura baja.")]
+        public LayerMask coverMask = 1;
+        [Tooltip("Segundos seguidos fuera de las condiciones antes de levantarse (histéresis: no parpadea).")]
+        [Min(0f)] public float standUpDelay = 0.4f;
+        [Tooltip("Velocidad (°/s) con la que se gira de espaldas a la cobertura estando quieto.")]
+        [Min(0f)] public float coverTurnSpeed = 220f;
     }
 }
