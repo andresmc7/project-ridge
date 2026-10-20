@@ -267,7 +267,7 @@ namespace ProjectRidge.EditorTools
             if (!moon.TryGetComponent(out UniversalAdditionalLightData _)) moon.gameObject.AddComponent<UniversalAdditionalLightData>();
             if (!moon.TryGetComponent(out CloudShadows _)) moon.gameObject.AddComponent<CloudShadows>();
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.2f, 0.25f, 0.34f);
+            RenderSettings.ambientSkyColor = new Color(0.26f, 0.32f, 0.44f); // copas y lomas del fondo legibles
             RenderSettings.ambientEquatorColor = new Color(0.11f, 0.13f, 0.16f);
             RenderSettings.ambientGroundColor = new Color(0.035f, 0.04f, 0.045f);
             // Sin skybox, los reflejos usaban un cubemap viejo y brillante: charcos y superficies mojadas

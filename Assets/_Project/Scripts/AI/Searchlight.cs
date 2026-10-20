@@ -62,6 +62,9 @@ namespace ProjectRidge.AI
             if (beamVisual != null) beamVisual.enabled = on;
         }
 
+        /// <summary>Dónde estará el círculo dentro de unos segundos (el patrón es exacto: depende solo del reloj).</summary>
+        public Vector3 SpotAt(float secondsAhead) => overrideTarget ?? Evaluate(clock + secondsAhead * SpeedScale);
+
         /// <summary>Lleva el círculo a un punto fijo y lo deja ahí (final). null vuelve a la ruta.</summary>
         public void Override(Vector3? target) => overrideTarget = target;
 

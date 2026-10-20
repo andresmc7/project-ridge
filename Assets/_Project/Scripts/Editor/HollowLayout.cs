@@ -79,7 +79,7 @@ namespace ProjectRidge.EditorTools
             // Sala 1 (un reflector en lazo rectangular): sobre la primera línea, isla central, sobre la segunda.
             new Vector3(-42f, -0.4f, 1.9f), new Vector3(-38f, 1.4f, 1.6f), new Vector3(-34f, -0.8f, 1.9f),
             // Sala 2 (arroyo + Lurker en la otra orilla): mirador antes del puente, a medio patrullaje, salida.
-            new Vector3(-20.6f, -3.3f, 1.8f), new Vector3(-7f, -4.1f, 1.5f), new Vector3(-3.4f, 3.3f, 1.5f),
+            new Vector3(-20.6f, -3.3f, 1.8f), new Vector3(-7f, -4.1f, 1.5f), new Vector3(-6.6f, 3.4f, 1.5f),
             // Sala 3 (dos reflectores cruzados): islas en zigzag a lo largo del camino.
             new Vector3(4.2f, 0.6f, 1.6f), new Vector3(8f, -2.7f, 1.6f), new Vector3(11.2f, 3.6f, 1.5f),
             new Vector3(14.4f, -2.5f, 1.6f), new Vector3(17.8f, 2.8f, 1.6f), new Vector3(20.6f, 0.4f, 1.4f),
@@ -103,7 +103,7 @@ namespace ProjectRidge.EditorTools
         static readonly Vector4[] CoverLogs =
         {
             new Vector4(-50.5f, 1.2f, 80f, 3.2f), new Vector4(-45.6f, 3.4f, 20f, 3.6f), new Vector4(-30.8f, -3.6f, -30f, 3.4f),
-            new Vector4(-4.4f, -1.6f, 15f, 3f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
+            new Vector4(-6.85f, 0.6f, 80f, 2f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
             new Vector4(32.6f, -1.2f, 85f, 3f), new Vector4(55f, -2.2f, 10f, 3.2f), new Vector4(65.6f, 2.4f, 80f, 3f),
         };
 
@@ -132,10 +132,10 @@ namespace ProjectRidge.EditorTools
         /// <summary>Patrullas: nombre del Lurker y puntos (x, z). Cada parada mira hacia afuera de su zona.</summary>
         static readonly (string name, Vector2[] pts)[] Patrols =
         {
-            ("Lurker", new[] { new Vector2(-8.3f, 4.6f), new Vector2(-8.3f, -4.8f), new Vector2(-5.4f, -4.8f), new Vector2(-5.4f, 4.6f) }),
+            ("Lurker", new[] { new Vector2(-8.3f, 4.4f), new Vector2(-8.3f, -4.6f), new Vector2(-6f, -4.6f), new Vector2(-6f, 4.4f) }),
             ("Lurker_B", new[] { new Vector2(31.4f, 2.9f), new Vector2(40.6f, 2.9f), new Vector2(40.6f, -4.9f), new Vector2(31.4f, -4.9f) }),
             ("Lurker_C", new[] { new Vector2(52.4f, 5.4f), new Vector2(59.6f, 5.8f), new Vector2(60f, 0.4f), new Vector2(53f, -0.6f) }),
-            ("Lurker_D", new[] { new Vector2(71.4f, 5.6f), new Vector2(71.4f, -5.6f) }),
+            ("Lurker_D", new[] { new Vector2(70.6f, 5f), new Vector2(70.6f, -5f) }),
         };
 
         // ------------------------------------------------------------------ Campo de distancia
@@ -214,7 +214,8 @@ namespace ProjectRidge.EditorTools
                 {
                     // Lado de la cámara: cornisa baja y luego terrazas que suben solo lo que la regla permite.
                     float allowed = Mathf.Max(0.9f, OcclusionSlope * s - 0.8f);
-                    h = Mathf.Min(1.0f * wall + 2.2f * Smooth(4.5f, 6.5f, s) + 2.2f * Smooth(9f, 11f, s) + noise * 0.6f * Smooth(2f, 5f, d), allowed);
+                    // Una rampa suave (sin escalones que se lean como rayas) que sube solo lo que la regla permite.
+                    h = Mathf.Min(1.0f * wall + 0.42f * Mathf.Max(0f, s - 3f) + noise * 0.6f * Smooth(2f, 5f, d), allowed);
                 }
                 else
                 {
@@ -227,6 +228,29 @@ namespace ProjectRidge.EditorTools
             float dx = Mathf.Abs(w.x - RavineX(w.z));
             h = Mathf.Lerp(h, -2.7f, Smooth(3.7f, 2.2f, dx));
             return h;
+        }
+
+        /// <summary>
+        /// Valida el diseño contra el suelo caminable: escondites, rutas de reflectores, patrullas, rocas y troncos
+        /// de cobertura tienen que estar dentro (si no, el jugador no llega o la IA queda fuera de su sala).
+        /// </summary>
+        [UnityEditor.MenuItem("Project Ridge/QA/Validate Hollow Layout")]
+        public static string ValidateLayout()
+        {
+            var sb = new System.Text.StringBuilder();
+            int bad = 0;
+            void Check(string what, float x, float z, float needInside)
+            {
+                float d = Walk(new Vector3(x, 0f, z));
+                if (d > -needInside) { bad++; sb.AppendLine("OUT " + what + " (" + x + ", " + z + ") walk=" + d.ToString("0.00")); }
+            }
+            foreach (var h in HidePatches) Check("patch r" + h.z, h.x, h.y, h.z * 0.6f);
+            foreach (var r in CoverRocks) Check("rock", r.x, r.y, 0.5f);
+            foreach (var l in CoverLogs) Check("log", l.x, l.y, 0.5f);
+            foreach (var s in Searchlights) foreach (var p in s.route) Check("light " + s.name, p.x, p.y, 0.3f);
+            foreach (var (name, pts) in Patrols) foreach (var p in pts) Check("patrol " + name, p.x, p.y, 0.6f);
+            sb.Insert(0, "layout check: " + (bad == 0 ? "OK" : bad + " problems") + "\n");
+            return sb.ToString();
         }
 
         /// <summary>Lugares ocupados por el diseño: ahí no se dispersa nada.</summary>

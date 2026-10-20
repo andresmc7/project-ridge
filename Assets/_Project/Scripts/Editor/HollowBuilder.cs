@@ -62,6 +62,7 @@ namespace ProjectRidge.EditorTools
             log.AppendLine("bushes=" + bushes);
             int grass = PlaceGrass(root, terrain, rng);
             log.AppendLine("grass tufts=" + grass);
+            log.AppendLine("ground detail=" + GroundDetail(root, terrain, mats, rng));
             BuildBounds(root, terrain);
 
             LookDevForestCornerBuilder.SetupLighting(log);
@@ -594,6 +595,82 @@ namespace ProjectRidge.EditorTools
             foreach (var kv in chunks)
             {
                 var mesh = new Mesh { name = "GrassChunk_" + chunkIndex++, indexFormat = IndexFormat.UInt32 };
+                mesh.CombineMeshes(kv.Value.ToArray(), true, true);
+                mesh.RecalculateBounds();
+                mesh = ChunkyMeshGenerator.Save(mesh);
+                var go = new GameObject(mesh.name);
+                go.transform.SetParent(parent, false);
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = kv.Key.Item3;
+                mr.shadowCastingMode = ShadowCastingMode.Off;
+                mr.receiveGI = ReceiveGI.LightProbes;
+            }
+            return count;
+        }
+
+        // ------------------------------------------------------------------ Detalle del suelo
+
+        /// <summary>
+        /// Textura de diorama en el piso de las salas: piedritas, ramas caídas y helechos en el borde. Todo sin
+        /// colisión y combinado por parcelas de 12 m (pocas draw calls).
+        /// </summary>
+        static int GroundDetail(Transform root, Terrain t, Mats m, System.Random rng)
+        {
+            float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
+            bool InPatch(Vector3 p, float pad)
+            {
+                foreach (var h in HidePatches) if (new Vector2(p.x - h.x, p.z - h.y).magnitude < h.z + pad) return true;
+                return false;
+            }
+            var pebbleMeshes = new Mesh[4];
+            for (int i = 0; i < 4; i++) pebbleMeshes[i] = RockPrefab(i, false, m).GetComponent<MeshFilter>().sharedMesh;
+            var twig = LogMesh(0.9f, 0.035f);
+            var (leafA, leafN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Leaves, 23);
+            var fernMat = WindMaterial("Hollow_FernWind", leafA, leafN, new Color(0.62f, 0.78f, 0.55f), 0.18f, 0.08f, 1.6f, 0.03f, true, 0.4f);
+            fernMat.SetFloat("_UseVertexHeight", 1f);
+            var fern = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("Fern_0", 977, 0.55f, 9, 0.5f));
+
+            var chunks = new Dictionary<(int, int, Material), List<CombineInstance>>();
+            void Add(Material mat, Mesh mesh, Matrix4x4 trs, int sub = 0)
+            {
+                var key = (Mathf.FloorToInt(trs.m03 / 12f), Mathf.FloorToInt(trs.m23 / 12f), mat);
+                if (!chunks.TryGetValue(key, out var list)) chunks[key] = list = new List<CombineInstance>();
+                list.Add(new CombineInstance { mesh = mesh, subMeshIndex = sub, transform = trs });
+            }
+
+            int count = 0;
+            for (int tries = 0; tries < 20000 && count < 1400; tries++)
+            {
+                var p = new Vector3(R(TerrainMin.x, TerrainMin.x + SizeX), 0f, R(TerrainMin.y, TerrainMin.y + SizeZ));
+                float d = Walk(p);
+                if (d > 1.2f || Mathf.Abs(p.x - RavineX(p.z)) < 3.8f || InPatch(p, 0.3f)) continue;
+                p.y = GroundY(t, p);
+                bool trail = DistanceToTrails(p) < 1.1f;
+                double roll = rng.NextDouble();
+                if (d > -0.8f && roll < 0.55)
+                {
+                    // Helechos donde el piso se encuentra con la pared: el borde se lee mullido, no cortado.
+                    Add(fernMat, fern, Matrix4x4.TRS(p, Quaternion.Euler(0f, R(0f, 360f), 0f), Vector3.one * R(0.9f, 1.5f)));
+                }
+                else if (roll < 0.8 && !trail)
+                {
+                    float s = R(0.07f, 0.2f);
+                    Add(m.rock, pebbleMeshes[rng.Next(4)], Matrix4x4.TRS(p - Vector3.up * s * 0.3f, Quaternion.Euler(R(0f, 360f), R(0f, 360f), R(0f, 360f)), Vector3.one * s));
+                }
+                else if (!trail)
+                {
+                    Add(m.bark, twig, Matrix4x4.TRS(p + Vector3.up * 0.03f, Quaternion.Euler(0f, R(0f, 360f), 0f) * Quaternion.Euler(0f, 90f, R(-8f, 8f)), new Vector3(1f, 1f, R(0.6f, 1.4f))));
+                }
+                count++;
+            }
+
+            var parent = new GameObject("GroundDetail").transform;
+            parent.SetParent(root, false);
+            int k = 0;
+            foreach (var kv in chunks)
+            {
+                var mesh = new Mesh { name = "GroundDetail_" + k++, indexFormat = IndexFormat.UInt32 };
                 mesh.CombineMeshes(kv.Value.ToArray(), true, true);
                 mesh.RecalculateBounds();
                 mesh = ChunkyMeshGenerator.Save(mesh);
