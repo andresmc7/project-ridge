@@ -19,3 +19,6 @@ Registro de decisiones ambiguas resueltas en modo autónomo (ver `docs/POLISH_PA
 - 2026-10-20 — Derribo por la espalda a ≤ 1.8 m (el spec no da distancia; 1.6 m fallaba con el Lurker caminando). Requiere garrote y estar agachado; se fuerza agachado con C solo en pruebas (en juego se agacha en vegetación, cobertura o sigilo con amenaza).
 - 2026-10-20 — Objetivo inteligente: Lurker delante (140°) a ≤ 12 m, el que caza pesa el doble; la piedra cae 3 m más allá de él para alejarlo; sin Lurker, 8 m hacia donde mira. No hay "puntos de interés" marcados en el nivel todavía.
 - 2026-10-20 — Los arneses de prueba no llaman `InputSystem.Update()`: con el editor en primer plano esos eventos se procesaban en el búfer del editor y el juego no los veía.
+- 2026-10-20 — Pose de shock procedural (`ShockPose`) y crepitar eléctrico generado por código mientras no haya clip "Electrocuted" de Mixamo ni un sample CC0. — 3.4 lo permite ("o, mientras no exista, una pose procedural").
+- 2026-10-20 — El plugin de hápticos de iOS entra ya en P2 (no en P8). — La captura lo usa; sin el plugin, el build de iOS fallaría al enlazar `RidgeHapticContinuous`.
+- 2026-10-20 — El forcejeo cuenta cualquier tecla o botón y los toques de pantalla. — 3.4 pide "toques rápidos en cualquier parte"; en control y teclado, cualquier botón es lo equivalente.

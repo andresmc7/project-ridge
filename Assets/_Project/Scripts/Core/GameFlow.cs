@@ -28,6 +28,8 @@ namespace ProjectRidge.Core
         [SerializeField] private PlayerHealthConfig healthConfig;
         [SerializeField] private UFOExposure ufoExposure;
         [SerializeField] private Transform firstCheckpoint;
+        [Tooltip("Secuencia de captura del OVNI (bloqueo, parálisis, forcejeo, elevación).")]
+        [SerializeField] private CaptureSequence capture;
 
         [Header("UI")]
         [SerializeField] private CanvasGroup gameplayHud;
@@ -257,14 +259,44 @@ namespace ProjectRidge.Core
             StartCoroutine(DeathRoutine("YOU DIED", Color.black, lift: false));
         }
 
-        private void OnSearchlightCaught(Searchlight _) => OnCaptured();
+        private void OnSearchlightCaught(Searchlight beam) => OnCaptured(beam);
 
-        private void OnCaptured()
+        private void OnCaptured() => OnCaptured(null);
+
+        /// <summary>
+        /// La nave te atrapó (POLISH_PASS 3.4): bloqueo, parálisis, forcejeo y, si no te sueltas, elevación. Si el
+        /// forcejeo sale bien, se sigue jugando; si no, al último checkpoint.
+        /// </summary>
+        private void OnCaptured(Searchlight beam)
         {
             if (Current != State.Playing) return;
             Captured?.Invoke();
-            // La luz roja de la nave se lo lleva: el fundido toma su color.
-            StartCoroutine(DeathRoutine("TAKEN", new Color(0.95f, 0.32f, 0.26f), lift: true));
+            if (capture == null)
+            {
+                // Sin secuencia (escenas viejas): la luz se lo lleva con un fundido de su color.
+                StartCoroutine(DeathRoutine("TAKEN", new Color(0.95f, 0.32f, 0.26f), lift: true));
+                return;
+            }
+            StartCoroutine(CaptureRoutine(beam));
+        }
+
+        private IEnumerator CaptureRoutine(Searchlight beam)
+        {
+            SetState(State.Dying);
+            if (ufoExposure != null) ufoExposure.enabled = false;
+            bool freed = false;
+            yield return capture.Run(beam, ok => freed = ok);
+            if (freed)
+            {
+                if (ufoExposure != null) { ufoExposure.ResetExposure(); ufoExposure.enabled = true; }
+                SetState(State.Playing);
+                yield break;
+            }
+            // La elevación termina en blanco: de ahí a negro y al checkpoint.
+            fade.alpha = 1f;
+            fadeImage.color = Color.white;
+            yield return FadeTo(1f, 0.5f, Color.black);
+            yield return Respawn("TAKEN", Color.black, new Color(0.75f, 0.8f, 0.9f));
         }
 
         private IEnumerator DeathRoutine(string message, Color fadeColor, bool lift)
@@ -288,9 +320,16 @@ namespace ProjectRidge.Core
                 }
                 yield return null;
             }
+            yield return Respawn(message, fadeColor, lift ? new Color(0.1f, 0.15f, 0.2f) : new Color(0.75f, 0.1f, 0.08f));
+        }
+
+        /// <summary>Con la pantalla ya cubierta: mensaje, vuelta al checkpoint, enemigos y reflectores en gracia.</summary>
+        private IEnumerator Respawn(string message, Color fadeColor, Color messageColor)
+        {
             bigMessage.text = message;
-            bigMessage.color = lift ? new Color(0.1f, 0.15f, 0.2f) : new Color(0.75f, 0.1f, 0.08f);
+            bigMessage.color = messageColor;
             yield return new WaitForSeconds(healthConfig.respawnDelay);
+            if (capture != null) capture.ResetForNewLife();
 
             body.enabled = false;
             player.transform.SetPositionAndRotation(checkpointPos, checkpointRot);

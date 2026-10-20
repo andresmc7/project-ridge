@@ -30,11 +30,16 @@ namespace ProjectRidge.AI
             source.Play();
         }
 
+        /// <summary>Subida de tono extra (0 = ninguna). La pone la secuencia de captura según la exposición.</summary>
+        public static float ExposurePitch;
+
         private void Update()
         {
             trackBlend = Mathf.MoveTowards(trackBlend, ufo.IsTracking ? 1f : 0f, Time.deltaTime * 0.8f);
             source.volume = config.humVolume * Mathf.Lerp(1f, config.humTrackingVolumeBoost, trackBlend);
-            source.pitch = Mathf.Lerp(1f, config.humTrackingPitch, trackBlend);
+            // La exposición de un reflector sube el tono (aviso antes de la captura); atrapado, aún más.
+            source.pitch = Mathf.Lerp(1f, config.humTrackingPitch, trackBlend) * (1f + ExposurePitch);
+            source.volume *= 1f + ExposurePitch;
         }
 
         private AudioClip BuildClip()

@@ -17,6 +17,9 @@ namespace ProjectRidge.CameraRig
         private CinemachineCamera cinemachineCamera;
         private CinemachineFollow follow;
 
+        /// <summary>Multiplicador del campo de visión (1 = normal; la captura del OVNI lo baja para acercar la cámara).</summary>
+        public static float ZoomScale = 1f;
+
         private void OnEnable()
         {
             cinemachineCamera = GetComponent<CinemachineCamera>();
@@ -40,7 +43,7 @@ namespace ProjectRidge.CameraRig
             follow.TrackerSettings = tracker;
 
             var lens = cinemachineCamera.Lens;
-            lens.FieldOfView = config.fieldOfView;
+            lens.FieldOfView = config.fieldOfView * (Application.isPlaying ? ZoomScale : 1f);
             cinemachineCamera.Lens = lens;
         }
     }

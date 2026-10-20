@@ -51,7 +51,7 @@ namespace ProjectRidge.AI
             float half = Mathf.Atan(best.Radius / to.magnitude) * Mathf.Rad2Deg;
             spot.spotAngle = half * 2f * angleMargin;
             spot.innerSpotAngle = half * 1.4f;
-            spot.color = Color.Lerp(config.color, config.alarmColor, best.Exposure);
+            spot.color = best.CurrentColor;
             spot.intensity = config.lightIntensity * weight;
         }
     }

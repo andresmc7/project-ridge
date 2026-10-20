@@ -35,7 +35,11 @@ namespace ProjectRidge.AI
 
         public Vector3 Spot { get; private set; }
         public Vector3 Source => Spot + new Vector3(0f, config.beamHeight, config.beamBackOffset);
-        public float Radius => config.spotRadius;
+        public float Radius => config.spotRadius * radiusScale;
+        /// <summary>Color actual del haz (rojo, alarma al llenarse, blanco frío al atrapar).</summary>
+        public Color CurrentColor { get; private set; }
+        /// <summary>Bloqueado sobre el papá (captura en curso): no se mueve ni detecta.</summary>
+        public bool Locked { get; private set; }
         public float Exposure { get; private set; }
         public bool PlayerLit { get; private set; }
         public SearchlightConfig Config => config;
@@ -52,6 +56,9 @@ namespace ProjectRidge.AI
         private float[] moveTimes;
         private Vector3? overrideTarget;
         private MaterialPropertyBlock block;
+        private float radiusScale = 1f;
+        private Color? lockColor;
+        private float blindUntil;
 
         public void Activate(bool on)
         {
@@ -64,6 +71,37 @@ namespace ProjectRidge.AI
 
         /// <summary>Dónde estará el círculo dentro de unos segundos (el patrón es exacto: depende solo del reloj).</summary>
         public Vector3 SpotAt(float secondsAhead) => overrideTarget ?? Evaluate(clock + secondsAhead * SpeedScale);
+
+        /// <summary>
+        /// Captura (POLISH_PASS 3.4): el haz se detiene en seco sobre el papá, se estrecha y pasa a blanco frío.
+        /// </summary>
+        public void Lock(float narrow, Color color)
+        {
+            Locked = true;
+            overrideTarget = Spot;
+            radiusScale = narrow;
+            lockColor = color;
+        }
+
+        /// <summary>El papá se soltó: el haz retrocede y queda ciego unos segundos; luego vuelve a su ruta.</summary>
+        public void Recoil(Vector3 away, float distance, float blindSeconds)
+        {
+            Locked = false;
+            radiusScale = 1f;
+            lockColor = null;
+            blindUntil = Time.time + blindSeconds;
+            away.y = 0f;
+            overrideTarget = Spot + (away.sqrMagnitude > 0.0001f ? away.normalized : Vector3.forward) * distance;
+        }
+
+        /// <summary>Vuelve a la ruta sin efectos (respawn tras una captura).</summary>
+        public void Unlock()
+        {
+            Locked = false;
+            radiusScale = 1f;
+            lockColor = null;
+            overrideTarget = null;
+        }
 
         /// <summary>Lleva el círculo a un punto fijo y lo deja ahí (final). null vuelve a la ruta.</summary>
         public void Override(Vector3? target) => overrideTarget = target;
@@ -134,6 +172,8 @@ namespace ProjectRidge.AI
         {
             float dt = Time.deltaTime;
             clock += dt * SpeedScale;
+            // Tras cegarse, en cuanto pasa el tiempo vuelve a su ruta.
+            if (!Locked && blindUntil > 0f && Time.time >= blindUntil) { blindUntil = 0f; overrideTarget = null; }
             Vector3 target = overrideTarget ?? Evaluate(clock);
             Spot = overrideTarget.HasValue ? Vector3.MoveTowards(Spot, target, speed * 2f * dt) : target;
 
@@ -146,7 +186,7 @@ namespace ProjectRidge.AI
             var flow = GameFlow.Instance;
             bool playing = flow == null || flow.Current == GameFlow.State.Playing;
             if (player == null) player = FindFirstObjectByType<PlayerVisibility>();
-            if (!playing || player == null || overrideTarget.HasValue || Time.time < suppressedUntil)
+            if (!playing || player == null || overrideTarget.HasValue || Time.time < suppressedUntil || Time.time < blindUntil)
             {
                 PlayerLit = false;
                 Exposure = Mathf.Max(0f, Exposure - config.exposureDecay * dt);
@@ -180,7 +220,8 @@ namespace ProjectRidge.AI
             if (block == null) block = new MaterialPropertyBlock();
             // La alarma late mientras se llena: aviso claro de "sal de aquí ya".
             float alarm = Exposure > 0f ? Mathf.Clamp01(Exposure * 1.2f) * (0.75f + 0.25f * Mathf.Sin(Time.time * 30f)) : 0f;
-            Color c = Color.Lerp(config.color, config.alarmColor, alarm);
+            Color c = lockColor ?? Color.Lerp(config.color, config.alarmColor, alarm);
+            CurrentColor = c;
 
             if (spotVolume != null)
             {

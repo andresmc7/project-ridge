@@ -46,6 +46,7 @@ namespace ProjectRidge.EditorTools
             {
                 "P0" => P0(),
                 "P1" => P1(),
+                "P2" => P2(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -464,5 +465,116 @@ namespace ProjectRidge.EditorTools
         }
 
         static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
+
+        // ------------------------------------------------------------------ P2
+
+        static void ShotUI(string name) => Shots.Capture(ProgressDir + name + ".png", player.transform.position, 1600, 900, true);
+
+        /// <summary>Lleva al papá bajo el haz y lo mantiene ahí hasta que la secuencia de captura arranca.</summary>
+        static IEnumerator WalkIntoBeam(Searchlight beam, CaptureSequence seq, bool shotExposure)
+        {
+            bool shot = false;
+            float limit = Time.time + 6f;
+            while (seq.Current == CaptureSequence.Phase.None && Time.time < limit)
+            {
+                Teleport(beam.Spot + Vector3.up * 0.1f);
+                if (shotExposure && !shot && beam.Exposure > 0.5f) { ShotUI("P2_1_exposure"); shot = true; }
+                yield return null;
+            }
+        }
+
+        static IEnumerator PressKey(Key k)
+        {
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(k));
+            yield return null;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            yield return null;
+        }
+
+        static IEnumerator P2()
+        {
+            yield return PassTitle();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var seq = Object.FindFirstObjectByType<CaptureSequence>();
+            var flow = GameFlow.Instance;
+            Searchlight beam = null;
+            foreach (var s in Searchlight.Active) if (beam == null || s.Spot.x < beam.Spot.x) beam = s;
+            Searchlight.SuppressAll(0f);
+            var health = player.GetComponent<PlayerHealth>();
+
+            // ---- Vida 1: el forcejeo falla (pocos toques) → elevación → destello → checkpoint.
+            yield return WalkIntoBeam(beam, seq, true);
+            Check("capture starts on full exposure", seq.Current != CaptureSequence.Phase.None, "phase " + seq.Current + " beam " + beam.name);
+            Vector3 lockSpot = beam.Spot;
+            Vector3 lockPos = player.transform.position;
+            float beamDrift = 0f, playerDrift = 0f;
+            bool narrowed = beam.Radius < beam.Config.spotRadius * 0.95f;
+            yield return null;
+            ShotUI("P2_2_lock");
+            bool shotPar = false;
+            while (seq.Current == CaptureSequence.Phase.Lock || seq.Current == CaptureSequence.Phase.Paralysis)
+            {
+                beamDrift = Mathf.Max(beamDrift, Vector3.Distance(beam.Spot, lockSpot));
+                playerDrift = Mathf.Max(playerDrift, Vector3.Distance(Flat(player.transform.position), Flat(lockPos)));
+                if (!shotPar && seq.Current == CaptureSequence.Phase.Paralysis && flow != null) { yield return 1f; ShotUI("P2_3_paralysis"); shotPar = true; continue; }
+                yield return null;
+            }
+            Check("lock: beam and dad stop dead, beam narrows and goes cold", beamDrift < 0.01f && playerDrift < 0.05f && narrowed,
+                  "beam drift " + beamDrift.ToString("0.000") + " m, dad drift " + playerDrift.ToString("0.000") + " m, narrowed " + narrowed + ", color " + beam.CurrentColor);
+            bool sawStruggle = seq.Current == CaptureSequence.Phase.Struggle;
+            yield return PressKey(Key.E);
+            yield return PressKey(Key.E);
+            yield return 0.3f;
+            ShotUI("P2_4_struggle_fail");
+            float y0 = lockPos.y, maxY = y0;
+            bool shotLift = false, sawLift = false;
+            float limit = Time.time + 8f;
+            while (flow.Current != GameFlow.State.Playing && Time.time < limit)
+            {
+                if (seq.Current == CaptureSequence.Phase.Lift)
+                {
+                    sawLift = true;
+                    maxY = Mathf.Max(maxY, player.transform.position.y);
+                    if (!shotLift && player.transform.position.y > y0 + 1.5f) { ShotUI("P2_5_lift"); shotLift = true; }
+                }
+                yield return null;
+            }
+            Check("failed struggle → lift → checkpoint", sawStruggle && sawLift && maxY - y0 > 2.5f && flow.Current == GameFlow.State.Playing && !seq.StruggleUsed,
+                  "struggle shown " + sawStruggle + ", lifted " + (maxY - y0).ToString("0.0") + " m, flow " + flow.Current + ", struggle reset " + !seq.StruggleUsed);
+
+            // ---- Vida 2: el forcejeo sale bien → rueda y el haz retrocede ciego.
+            yield return 1f;
+            Searchlight.SuppressAll(0f);
+            yield return WalkIntoBeam(beam, seq, false);
+            while (seq.Current != CaptureSequence.Phase.Struggle && seq.Current != CaptureSequence.Phase.None) yield return null;
+            lockSpot = beam.Spot;
+            Vector3 heldAt = player.transform.position;
+            for (int i = 0; i < 6; i++) yield return PressKey(Key.E);
+            ShotUI("P2_6_struggle");
+            for (int i = 0; i < 8 && seq.Current == CaptureSequence.Phase.Struggle; i++) yield return PressKey(Key.E);
+            yield return 0.35f;
+            ShotUI("P2_7_freed");
+            yield return 0.8f;
+            float recoil = Vector3.Distance(Flat(beam.Spot), Flat(lockSpot));
+            float fled = Vector3.Distance(Flat(player.transform.position), Flat(heldAt));
+            Check("successful struggle → break free, beam recoils blind", flow.Current == GameFlow.State.Playing && !player.InputLocked && recoil > 2f && fled > 0.5f && beam.Exposure == 0f,
+                  "flow " + flow.Current + ", beam moved " + recoil.ToString("0.0") + " m, dad moved " + fled.ToString("0.0") + " m, hp " + health.Current);
+
+            // ---- Misma vida, otra captura: sin forcejeo, directo a la elevación.
+            yield return 2.5f;
+            Searchlight.SuppressAll(0f);
+            yield return WalkIntoBeam(beam, seq, false);
+            bool struggleAgain = false;
+            limit = Time.time + 8f;
+            bool flashShot = false;
+            while (flow.Current != GameFlow.State.Playing && Time.time < limit)
+            {
+                struggleAgain |= seq.Current == CaptureSequence.Phase.Struggle;
+                if (!flashShot && seq.Current == CaptureSequence.Phase.Lift && player.transform.position.y > y0 + 2.6f) { ShotUI("P2_8_flash"); flashShot = true; }
+                yield return null;
+            }
+            Check("struggle only once per life", !struggleAgain && flow.Current == GameFlow.State.Playing, "struggle offered again " + struggleAgain + ", flow " + flow.Current);
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
     }
 }

@@ -72,6 +72,7 @@ namespace ProjectRidge.Player
         private static readonly int InteractId = Animator.StringToHash("Interact");
         private static readonly int HealId = Animator.StringToHash("Heal");
         private static readonly int ReviveId = Animator.StringToHash("Revive");
+        private static readonly int RollId = Animator.StringToHash("Roll");
 
         private void Awake()
         {
@@ -110,6 +111,12 @@ namespace ProjectRidge.Player
 
         /// <summary>Lanzar (piedra): lo llama el sistema de lanzamiento.</summary>
         public void PlayThrow() => animator.SetTrigger(ThrowId);
+
+        /// <summary>Congela el cuerpo en la pose actual (parálisis de la captura). La capa procedural sigue encima.</summary>
+        public void Freeze(bool frozen) => animator.speed = frozen ? 0f : 1f;
+
+        /// <summary>Se suelta del haz: rueda por el suelo.</summary>
+        public void PlayRoll() => animator.SetTrigger(RollId);
 
         /// <summary>Agacharse a dejar algo en el suelo (bengala de mano).</summary>
         public void PlayPlace() => Lock(PickUpId, pickUpLock);

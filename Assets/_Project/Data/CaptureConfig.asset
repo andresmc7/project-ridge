@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e551aa803509228468a18af9fc2e580a, type: 3}
+  m_Name: CaptureConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Core.CaptureConfig
+  beamNarrow: 0.7
+  lockColor: {r: 0.82, g: 0.9, b: 1, a: 1}
+  paralysisTime: 1.6
+  tremorHzMin: 18
+  tremorHzMax: 25
+  tremorStart: 1.5
+  tremorEnd: 4
+  tremorLift: 6
+  cameraZoom: 0.12
+  struggleTime: 1.4
+  tapsNeeded: 10
+  breakFreeKnock: 4.5
+  beamRecoil: 4
+  beamBlind: 2.5
+  liftHeight: 3
+  liftTime: 1.5
+  flashTime: 0.35
+  exposureVignette: 0.4

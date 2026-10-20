@@ -2,6 +2,16 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-20 — POLISH PASS P2: captura del OVNI con peso (bloqueo, parálisis, forcejeo, elevación)
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P2")` → **5/5 PASS**. Secuencia en 8 capturas: `docs/progress/P2_1_exposure` … `P2_8_flash` (exposición, bloqueo, parálisis, forcejeo fallido, elevación, forcejeo con éxito, soltarse, destello).
+
+- **Bloqueo** (probado): el haz se detiene en seco (deriva medida 0.000 m durante bloqueo y parálisis), se estrecha al 70% y pasa a blanco frío; el papá no se mueve (0.000 m), CharacterController apagado, entrada ignorada.
+- **Parálisis** 1.6 s: pose de shock procedural (`ShockPose`: brazos separados, dedos abiertos, cabeza atrás) con temblor de 18–25 Hz que sube de 1.5° a 4°, cuerpo congelado, linterna que falla, aberración cromática + grano + saturación al 0.3 + viñeta fría, cámara que se acerca 12%, crepitar eléctrico procedural, latido cortado, zumbido más agudo.
+- **Forcejeo** (probado): anillo sobre el papá; 2 toques no bastan → elevación 3.0 m, destello blanco, negro y checkpoint; 14 toques → se suelta, rueda (clip Roll), el haz retrocede 4 m y queda ciego 2.5 s, se sigue jugando. Solo una vez por vida (la segunda captura en la misma vida va directo a la elevación; al reaparecer vuelve a estar disponible).
+- Mientras se llena la exposición: viñeta fría proporcional y zumbido que sube de tono.
+- Hápticos: API `Haptics` + plugin mínimo `Assets/Plugins/iOS/RidgeHaptics.mm` (UIImpactFeedbackGenerator, zumbido a 25 Hz durante la captura). `UNVERIFIED`: no hay iPhone ni Mac aquí; no se compiló para iOS.
+- `UNVERIFIED`: cómo suena el crepitar; que el forcejeo con toques sea cómodo en táctil real (en la prueba se usaron pulsaciones de teclado virtuales); el vaivén del joystick como alternativa no se probó.
+
 ## 2026-10-20 — POLISH PASS P1: controles táctiles, sigilo automático, armas de supervivencia
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P1")` → **13/13 PASS**. Recorrido: `LoopBot.Run(24)` (salas 1–3 solo con joystick + ACCIÓN + OBJETO virtuales) → llegó al final de la sala 3 en 136 s con **3 muertes** (salida del puente (-8.8, -0.6), pasillo del arroyo (-1.7, -0.2) y final de la sala 3 (21.5, -0.5)); 3 pulsaciones de ACCIÓN y 2 de OBJETO. Capturas: `P1_before.png`, `P1_after.png` (HUD táctil), `P1_after_hidden.png`.
 

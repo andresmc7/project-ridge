@@ -732,7 +732,7 @@ namespace ProjectRidge.EditorTools
             var c = NewController("Father");
             foreach (var p in new[] { "Speed" }) c.AddParameter(p, AnimatorControllerParameterType.Float);
             foreach (var p in new[] { "Crouch", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
-            foreach (var p in new[] { "Attack", "Fire", "Throw", "Hit", "PickUp", "Search", "Interact", "Heal", "Revive" }) c.AddParameter(p, AnimatorControllerParameterType.Trigger);
+            foreach (var p in new[] { "Attack", "Fire", "Throw", "Hit", "PickUp", "Search", "Interact", "Heal", "Revive", "Roll" }) c.AddParameter(p, AnimatorControllerParameterType.Trigger);
             var layers = c.layers;
             layers[0].iKPass = true;
             c.layers = layers;
@@ -766,6 +766,8 @@ namespace ProjectRidge.EditorTools
             var search = Action(sm, "Search", clips["Chest_Open"], 1.2f); FromAny(sm, search, "Search", duration: 0.15f); Back(search, loco, 0.9f);
             var inter = Action(sm, "Interact", clips["Interact"], 2f); FromAny(sm, inter, "Interact", duration: 0.15f); Back(inter, loco, 0.9f);
             var heal = Action(sm, "Heal", clips["Consume"], 1.2f); FromAny(sm, heal, "Heal", duration: 0.15f); Back(heal, loco, 0.9f);
+            // Se suelta del haz del OVNI: tirón y rueda por el suelo (POLISH_PASS 3.4).
+            var roll = Action(sm, "Roll", clips["Roll"], 1.15f); FromAny(sm, roll, "Roll", duration: 0.06f); Back(roll, loco, 0.88f, 0.2f);
             var death = Action(sm, "Death", clips["Death01"], 1f); FromAny(sm, death, "Dead", duration: 0.1f);
             var revive = Action(sm, "Revive", clips["LayToIdle"], 1f);
             var rv = death.AddTransition(revive); rv.AddCondition(AnimatorConditionMode.If, 0, "Revive"); rv.hasExitTime = false; rv.duration = 0.1f;

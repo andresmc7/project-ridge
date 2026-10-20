@@ -22,6 +22,7 @@ namespace ProjectRidge.EditorTools
             log.Append(BuildAtmosphere(UnityEngine.Terrain.activeTerrain, UnityEngine.GameObject.Find("Player")));
             log.AppendLine(HudBuilder.Build());
             log.AppendLine(HudBuilder.BuildFlow());
+            log.AppendLine(CaptureBuilder.Setup());
             if (AssetDatabase.LoadAssetAtPath<ProjectRidge.Core.AudioBank>("Assets/_Project/Data/AudioBank.asset") == null)
                 log.AppendLine(SoundSynth.Build());
             log.AppendLine(KenneyAudio.Assign());

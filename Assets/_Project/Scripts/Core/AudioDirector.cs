@@ -27,6 +27,8 @@ namespace ProjectRidge.Core
         [Range(0f, 1f)] [SerializeField] private float prowlGrowlVolume = 0.3f;
 
         private AudioSource musicCalm, musicChase, wind, forest, rain, heartbeat, ui, playerSfx;
+        /// <summary>Corta el latido de golpe (la captura del OVNI: el corazón "se detiene").</summary>
+        public static bool HeartbeatMuted;
         private AudioSource radio;
         private readonly List<(Searchlight light, AudioSource hum)> hums = new List<(Searchlight, AudioSource)>();
         private readonly List<AudioSource> pool = new List<AudioSource>();
@@ -228,7 +230,7 @@ namespace ProjectRidge.Core
             musicChase.volume = Mathf.MoveTowards(musicChase.volume, anyHunting && !ending ? bank.music : 0f, fade);
             musicCalm.volume = Mathf.MoveTowards(musicCalm.volume, anyHunting || ending ? 0f : bank.music, fade * 0.5f);
             bool danger = anyHunting || health.Current < health.Max * 0.35f;
-            heartbeat.volume = Mathf.MoveTowards(heartbeat.volume, danger && !health.IsDead ? bank.player * 0.7f : 0f, fade);
+            heartbeat.volume = HeartbeatMuted ? 0f : Mathf.MoveTowards(heartbeat.volume, danger && !health.IsDead ? bank.player * 0.7f : 0f, fade);
             heartbeat.pitch = anyHunting ? 1.25f : 1f;
 
             if (health.Current > lastHealth + 0.5f && lastHealth > 0f && !health.IsDead && lastHealth < health.Max)
