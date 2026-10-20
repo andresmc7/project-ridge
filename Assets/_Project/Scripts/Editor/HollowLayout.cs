@@ -14,12 +14,12 @@ namespace ProjectRidge.EditorTools
     public static partial class HollowBuilder
     {
         // Terreno: x ∈ [-76, 80], z ∈ [-26, 26].
-        const float SizeX = 156f, SizeZ = 52f, MaxHeight = 24f, Base = 3f;
+        const float SizeX = 156f, SizeZ = 52f, MaxHeight = 24f, Base = 5f;
         static readonly Vector2 TerrainMin = new Vector2(-76f, -26f);
         const int HeightRes = 513, AlphaRes = 512;
 
         /// <summary>tan(pitch de la cámara): cuánto puede medir algo por cada metro que está al sur de lo caminable.</summary>
-        const float OcclusionSlope = 1.43f;
+        const float OcclusionSlope = 1.19f; // tan(50°): inclinación de la cámara
 
         struct Room
         {
@@ -195,6 +195,13 @@ namespace ProjectRidge.EditorTools
 
         static float DistanceToTrails(Vector3 w) => DistanceToPath(w, MainTrail);
 
+        // Terrazas de diorama (Echoes of Wisdom): las salas son mesetas planas con muros de piedra. Al norte (fondo)
+        // el terreno sube en escalones con bosque encima; al sur (lado de la cámara) baja en escalones, y los árboles
+        // de abajo quedan en primer plano sin tapar nada (y desenfocados por el tilt-shift).
+        const float StepUp = 2.2f, StepUp2 = 1.8f, StepUp2At = 6.5f;
+        const float StepDown = 2.4f, StepDown2 = 1.6f, StepDown2At = 6f;
+        const float StepWidth = 0.35f;
+
         static float HeightAt(Vector3 w)
         {
             float d = Walk(w);
@@ -203,25 +210,16 @@ namespace ProjectRidge.EditorTools
             if (d <= 0f)
             {
                 // Piso de las salas casi plano; el sendero del todo plano.
-                h = noise * 0.35f * Smooth(1.2f, 3f, DistanceToTrails(w)) * Smooth(0f, -2f, d);
+                h = noise * 0.25f * Smooth(1.2f, 3f, DistanceToTrails(w)) * Smooth(0f, -2f, d);
             }
             else
             {
                 float s = SouthClearance(w, 0f);
-                bool south = !float.IsInfinity(s);
-                float wall = Smooth(0f, 0.9f, d);
-                if (south)
-                {
-                    // Lado de la cámara: cornisa baja y luego terrazas que suben solo lo que la regla permite.
-                    float allowed = Mathf.Max(0.9f, OcclusionSlope * s - 0.8f);
-                    // Una rampa suave (sin escalones que se lean como rayas) que sube solo lo que la regla permite.
-                    h = Mathf.Min(1.0f * wall + 0.42f * Mathf.Max(0f, s - 3f) + noise * 0.6f * Smooth(2f, 5f, d), allowed);
-                }
+                float terraceNoise = noise * 0.3f * Smooth(1f, 3f, d);
+                if (!float.IsInfinity(s))
+                    h = -StepDown * Smooth(0f, StepWidth, d) - StepDown2 * Smooth(StepDown2At, StepDown2At + StepWidth, d) + terraceNoise;
                 else
-                {
-                    // Fondo y laterales: acantilado alto con bosque encima.
-                    h = 4.6f * wall + 2.4f * Smooth(5f, 9f, d) + noise * 1.6f * Smooth(2f, 6f, d);
-                }
+                    h = StepUp * Smooth(0f, StepWidth, d) + StepUp2 * Smooth(StepUp2At, StepUp2At + StepWidth, d) + terraceNoise;
             }
 
             // Arroyo: barranco que atraviesa la sala 2 y sigue por las paredes.

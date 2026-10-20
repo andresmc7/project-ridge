@@ -24,10 +24,23 @@ MonoBehaviour:
   clubHitNoise: 5
   clubBreakNoise: 12
   hitStop: 0.06
+  hitStopScale: 0.04
+  clubLunge: 3.2
+  clubKnockback: 4
+  clubHitReaction: 1.3
+  clubCameraKick: 0.7
   craftScrapCost: 2
   craftTime: 1.2
   craftNoise: 3
   swingMoveFactor: 0.35
+  flareGun: 0
+  handFlareFuse: 3
+  handFlareBurn: 16
+  handFlareFadeTime: 1.5
+  handFlareNoiseInterval: 1.5
+  handFlareLureRadius: 16
+  handFlarePlaceDelay: 0.35
+  handFlarePlaceDistance: 0.7
   shotNoise: 22
   fireCooldown: 0.9
   flareSpeed: 15

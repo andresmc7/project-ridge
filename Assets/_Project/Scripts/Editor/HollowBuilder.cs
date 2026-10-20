@@ -44,11 +44,13 @@ namespace ProjectRidge.EditorTools
             PolyHavenMaterialBuilder.EnsureFolder(DataDir);
             PolyHavenMaterialBuilder.EnsureFolder(PrefabDir);
             var mats = BuildMaterials();
+            PaintedTerrainLayers(mats);
             log.AppendLine("materials ok");
 
             var root = new GameObject("Hollow").transform;
             var terrain = BuildTerrain(root, mats);
             log.AppendLine("terrain ok");
+            log.AppendLine("terrace wall blocks=" + TerraceWalls(root, terrain));
 
             var rng = new System.Random(Seed);
             var blockers = new List<Vector3>(); // posiciones ocupadas por props construidos (no poner árboles encima)
@@ -63,6 +65,8 @@ namespace ProjectRidge.EditorTools
             int grass = PlaceGrass(root, terrain, rng);
             log.AppendLine("grass tufts=" + grass);
             log.AppendLine("ground detail=" + GroundDetail(root, terrain, mats, rng));
+            log.AppendLine("debris=" + PlaceDebris(root, terrain, mats));
+            log.AppendLine("flowers=" + Flowers(root, terrain));
             BuildBounds(root, terrain);
 
             LookDevForestCornerBuilder.SetupLighting(log);
@@ -113,10 +117,11 @@ namespace ProjectRidge.EditorTools
             var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.CameraRig.IsoCameraConfig>("Assets/_Project/Data/IsoCameraConfig.asset");
             if (cfg == null) return;
             cfg.yaw = 0f;
-            cfg.pitch = 55f;
-            cfg.distance = 14f;
-            cfg.fieldOfView = 42f;
-            cfg.positionDamping = 0.25f;
+            cfg.pitch = 50f;
+            cfg.distance = 18.5f;
+            cfg.fieldOfView = 38f;
+            cfg.framingOffset = 2.2f;
+            cfg.positionDamping = 0.12f; // cámara pegada al papá: sin deriva flotante
             EditorUtility.SetDirty(cfg);
         }
 
@@ -229,7 +234,7 @@ namespace ProjectRidge.EditorTools
                     trail = Mathf.Max(trail, Smooth(5f, 2.5f, Vector3.Distance(Flat(w), Camp)) * 0.7f);
                     trail = Mathf.Max(trail, Smooth(1.5f, 0.6f, Mathf.Abs(w.x - RavineX(w.z))));
                     // Fuera de las salas, hojarasca oscura: el escenario jugable se lee como un claro.
-                    float leaves = Mathf.Max(Smooth(0.5f, 0.68f, Mathf.PerlinNoise(w.x * 0.08f + 40f, w.z * 0.08f + 13f)), Smooth(0.5f, 2.5f, Walk(w)) * 0.85f);
+                    float leaves = Mathf.Max(Smooth(0.55f, 0.72f, Mathf.PerlinNoise(w.x * 0.08f + 40f, w.z * 0.08f + 13f)), Smooth(3f, 7f, Walk(w)) * 0.7f);
                     trail *= 1f - rock;
                     leaves *= (1f - trail) * (1f - rock);
                     float ground = Mathf.Max(0f, 1f - rock - trail - leaves);
@@ -272,36 +277,63 @@ namespace ProjectRidge.EditorTools
 
         static readonly Dictionary<string, GameObject> prefabCache = new Dictionary<string, GameObject>();
 
+        // Proporciones de diorama (Echoes of Wisdom): árboles bajos y anchos, ~3 veces el papá, copas en capas.
         static readonly ChunkyMeshGenerator.TreeShape[] ConiferShapes =
         {
-            new ChunkyMeshGenerator.TreeShape { height = 7.5f, radius = 2.3f, tiers = 4, trunkRadius = 0.28f, lobes = 5 },
-            new ChunkyMeshGenerator.TreeShape { height = 9.5f, radius = 2.6f, tiers = 5, trunkRadius = 0.32f, lobes = 6 },
-            new ChunkyMeshGenerator.TreeShape { height = 6f, radius = 2.0f, tiers = 3, trunkRadius = 0.24f, lobes = 4 },
-            new ChunkyMeshGenerator.TreeShape { height = 11f, radius = 2.8f, tiers = 5, trunkRadius = 0.36f, lobes = 7 },
-            new ChunkyMeshGenerator.TreeShape { height = 8.5f, radius = 2.1f, tiers = 4, trunkRadius = 0.27f, lobes = 5 },
+            new ChunkyMeshGenerator.TreeShape { height = 5.2f, radius = 2.0f, tiers = 3, trunkRadius = 0.3f, lobes = 5 },
+            new ChunkyMeshGenerator.TreeShape { height = 6.4f, radius = 2.3f, tiers = 4, trunkRadius = 0.34f, lobes = 6 },
+            new ChunkyMeshGenerator.TreeShape { height = 4.4f, radius = 1.7f, tiers = 3, trunkRadius = 0.27f, lobes = 4 },
+            new ChunkyMeshGenerator.TreeShape { height = 7.2f, radius = 2.5f, tiers = 4, trunkRadius = 0.38f, lobes = 7 },
+            new ChunkyMeshGenerator.TreeShape { height = 5.8f, radius = 2.1f, tiers = 3, trunkRadius = 0.32f, lobes = 5 },
         };
 
-        static float RoundTreeHeight(int variant) => 5.5f + variant * 0.8f;
-        static float RoundTreeTop(int variant) => RoundTreeHeight(variant) * 0.5f + 2.6f + variant * 0.3f;
-        static float RoundTreeRadius(int variant) => 2.2f + variant * 0.3f;
+        static float RoundTreeHeight(int variant) => 4.6f + variant * 0.5f;
+        static float RoundTreeTop(int variant) => RoundTreeHeight(variant);
+        static float RoundTreeRadius(int variant) => 1.9f + variant * 0.25f;
 
-        static GameObject TreePrefab(int variant, Mats m)
+        static readonly StylizedTreeGenerator.Palette ConiferPalette = new StylizedTreeGenerator.Palette
         {
-            string name = "HollowConifer_" + variant;
+            leafDark = new Color(0.07f, 0.21f, 0.13f), leafLight = new Color(0.27f, 0.52f, 0.27f), core = new Color(0.03f, 0.09f, 0.06f),
+            barkDark = new Color(0.1f, 0.05f, 0.035f), barkLight = new Color(0.36f, 0.2f, 0.12f),
+        };
+
+        static readonly StylizedTreeGenerator.Palette BroadleafPalette = new StylizedTreeGenerator.Palette
+        {
+            leafDark = new Color(0.09f, 0.22f, 0.1f), leafLight = new Color(0.36f, 0.54f, 0.2f), core = new Color(0.035f, 0.09f, 0.05f),
+            barkDark = new Color(0.1f, 0.06f, 0.04f), barkLight = new Color(0.33f, 0.22f, 0.14f),
+        };
+
+        static Material foliageMat;
+
+        /// <summary>Un solo material para toda la vegetación estilizada: color por vértice, viento y borde de luna.</summary>
+        static Material FoliageMaterial(float sway)
+        {
+            string name = sway > 0.08f ? "Hollow_StylizedFoliage" : "Hollow_StylizedTrees";
+            var mat = WindMaterial(name, null, null, Color.white, 0.18f, sway, 0.16f, 0.012f, true, 0.3f);
+            mat.SetFloat("_UseVertexColor", 1f);
+            mat.SetColor("_RimColor", new Color(0.09f, 0.16f, 0.26f));
+            mat.SetFloat("_RimPower", 3f);
+            EditorUtility.SetDirty(mat);
+            return mat;
+        }
+
+        static GameObject FoliagePrefab(string name, StylizedTreeGenerator.Shape shape, StylizedTreeGenerator.Palette pal, int seed, float sway, float colliderRadius)
+        {
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            var s = ConiferShapes[variant % ConiferShapes.Length];
-            var mesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Conifer(name, 100 + variant * 17, s));
+            var mesh = ChunkyMeshGenerator.Save(StylizedTreeGenerator.Build("Styl_" + name, shape, pal, seed)); // nombre propio: no pisar las mallas viejas
             var go = new GameObject(name);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterials = new[] { m.barkWind, m.needles };
+            mr.sharedMaterial = FoliageMaterial(sway);
             mr.receiveGI = ReceiveGI.LightProbes;
-            var col = go.AddComponent<CapsuleCollider>();
-            col.radius = s.trunkRadius + 0.12f;
-            col.height = 4f;
-            col.center = Vector3.up * 2f;
-            var lod = go.AddComponent<LODGroup>();
-            lod.SetLODs(new[] { new LOD(0.01f, new Renderer[] { mr }) });
+            mr.shadowCastingMode = ShadowCastingMode.On;
+            if (colliderRadius > 0f)
+            {
+                var col = go.AddComponent<CapsuleCollider>();
+                col.radius = colliderRadius;
+                col.height = 3f;
+                col.center = Vector3.up * 1.5f;
+            }
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic); // sin static batching: el viento usa el espacio de objeto
             var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
             Object.DestroyImmediate(go);
@@ -309,61 +341,38 @@ namespace ProjectRidge.EditorTools
             return saved;
         }
 
+        static GameObject TreePrefab(int variant, Mats m)
+        {
+            var s = ConiferShapes[variant % ConiferShapes.Length];
+            var shape = new StylizedTreeGenerator.Shape
+            {
+                tiers = s.tiers, height = s.height, trunkHeight = 0.75f + s.height * 0.05f, trunkRadius = s.trunkRadius,
+                baseRadius = s.radius, topRadius = s.radius * 0.38f, round = false, leafLength = 0.82f, leafWidth = 0.66f,
+            };
+            return FoliagePrefab("HollowConifer_" + variant, shape, ConiferPalette, 100 + variant * 17, 0.06f, s.trunkRadius + 0.15f);
+        }
+
         static GameObject RoundTreePrefab(int variant, Mats m)
         {
-            string name = "HollowRoundTree_" + variant;
-            if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            float h = RoundTreeHeight(variant);
-            var trunkMesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Log(name + "_Trunk", h * 0.62f, 0.22f + variant * 0.03f, 8));
-            var crownMesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Blob(name + "_Crown", 300 + variant * 13, RoundTreeRadius(variant), 6, 2.6f + variant * 0.3f));
-            var go = new GameObject(name);
-            var trunk = new GameObject("Trunk");
-            trunk.transform.SetParent(go.transform, false);
-            trunk.transform.localPosition = Vector3.up * h * 0.31f;
-            trunk.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-            trunk.AddComponent<MeshFilter>().sharedMesh = trunkMesh;
-            var tr = trunk.AddComponent<MeshRenderer>();
-            tr.sharedMaterials = new[] { m.bark, m.cutWood };
-            var crown = new GameObject("Crown");
-            crown.transform.SetParent(go.transform, false);
-            crown.transform.localPosition = Vector3.up * (h * 0.5f);
-            crown.AddComponent<MeshFilter>().sharedMesh = crownMesh;
-            var cr = crown.AddComponent<MeshRenderer>();
-            cr.sharedMaterial = m.leavesTree;
-            tr.receiveGI = ReceiveGI.LightProbes;
-            cr.receiveGI = ReceiveGI.LightProbes;
-            var col = go.AddComponent<CapsuleCollider>();
-            col.radius = 0.35f;
-            col.height = 4f;
-            col.center = Vector3.up * 2f;
-            var lod = go.AddComponent<LODGroup>();
-            lod.SetLODs(new[] { new LOD(0.01f, new Renderer[] { tr, cr }) });
-            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
-            var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
-            Object.DestroyImmediate(go);
-            prefabCache[name] = saved;
-            return saved;
+            float r = RoundTreeRadius(variant);
+            var shape = new StylizedTreeGenerator.Shape
+            {
+                tiers = 2, height = RoundTreeHeight(variant), trunkHeight = 1.5f, trunkRadius = 0.3f + variant * 0.03f,
+                baseRadius = r, topRadius = r * 0.72f, round = true, leafLength = 0.74f, leafWidth = 0.62f,
+            };
+            return FoliagePrefab("HollowRoundTree_" + variant, shape, BroadleafPalette, 300 + variant * 13, 0.06f, 0.42f);
         }
 
         /// <summary>Arbusto decorativo de borde (fuera del área jugable; los escondites son los pastizales).</summary>
         static GameObject BushPrefab(int variant, Mats m)
         {
-            string name = "HollowBush_" + variant;
-            if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
-            float r = 1.15f + variant * 0.2f;
-            const float height = 1.25f;
-            var mesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Blob(name, 500 + variant * 7, r, 5, height));
-            var go = new GameObject(name);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = m.bush;
-            mr.receiveGI = ReceiveGI.LightProbes;
-            mr.shadowCastingMode = ShadowCastingMode.On;
-            GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic);
-            var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
-            Object.DestroyImmediate(go);
-            prefabCache[name] = saved;
-            return saved;
+            float r = 0.95f + variant * 0.15f;
+            var shape = new StylizedTreeGenerator.Shape
+            {
+                tiers = 1, height = 1.25f, trunkHeight = 0f, trunkRadius = 0f,
+                baseRadius = r, topRadius = r, round = true, leafLength = 0.46f, leafWidth = 0.4f,
+            };
+            return FoliagePrefab("HollowBush_" + variant, shape, BroadleafPalette, 500 + variant * 7, 0.1f, 0f);
         }
 
         static Vector3 RockSize(int variant, bool cliff) => cliff
@@ -417,7 +426,10 @@ namespace ProjectRidge.EditorTools
                 int variant = round ? rng.Next(3) : rng.Next(ConiferShapes.Length);
                 float scale = R(0.85f, 1.2f);
                 float radius = (round ? RoundTreeRadius(variant) : ConiferShapes[variant].radius) * scale;
-                if (Reserved(p, blockers, radius + 0.6f)) continue;
+                // Al norte (fondo) pueden pegarse al muro: la copa queda detrás y por encima, no tapa nada; así el bosque
+                // entra en cuadro sobre los muros, como en un diorama.
+                bool north = float.IsInfinity(SouthClearance(p, 0f));
+                if (Reserved(p, blockers, north ? 0.7f + radius * 0.3f : radius + 0.6f)) continue;
                 p.y = GroundY(t, p) - 0.1f;
                 float top = p.y + (round ? RoundTreeTop(variant) : ConiferShapes[variant].height) * scale;
                 if (!Fits(p, top, radius)) continue;
@@ -438,24 +450,7 @@ namespace ProjectRidge.EditorTools
             parent.SetParent(root, false);
             int count = 0;
 
-            // Bloques de acantilado sobre las paredes empinadas (lectura de terrazas), solo donde no tapan.
-            for (float x = TerrainMin.x + 1f; x <= TerrainMin.x + SizeX - 1f; x += 2.6f)
-                for (float z = TerrainMin.y + 1f; z <= TerrainMin.y + SizeZ - 1f; z += 2.6f)
-                {
-                    var p = new Vector3(x + R(-1.1f, 1.1f), 0f, z + R(-1.1f, 1.1f));
-                    float nx = (p.x - TerrainMin.x) / SizeX, nz = (p.z - TerrainMin.y) / SizeZ;
-                    if (nx < 0f || nx > 1f || nz < 0f || nz > 1f) continue;
-                    if (t.terrainData.GetSteepness(nx, nz) < 36f) continue;
-                    if (Mathf.Abs(p.x - RavineX(p.z)) < 3.6f) continue; // el barranco queda con la textura de roca
-                    if (rng.NextDouble() > 0.6) continue;
-                    int v = rng.Next(4);
-                    float scale = R(0.9f, 1.4f);
-                    float sink = R(0.5f, 1.1f);
-                    p.y = GroundY(t, p) - sink;
-                    if (!Fits(p, p.y + RockSize(v, true).y * scale, RockSize(v, true).x * 0.5f * scale)) continue;
-                    Spawn(RockPrefab(v, true, m), parent, p, R(0f, 360f), scale);
-                    count++;
-                }
+            // Los escalones de terraza llevan muros de bloques (TerraceWalls); aquí solo cantos sueltos y cobertura.
 
             // Cantos sueltos fuera de las salas.
             for (int tries = 0; tries < 6000 && count < 420; tries++)

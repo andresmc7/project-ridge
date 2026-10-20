@@ -33,6 +33,10 @@ namespace ProjectRidge.Player
         [Tooltip("Metros de altura por segundo al agacharse o levantarse.")]
         [Min(0.1f)] public float crouchTransitionSpeed = 6f;
 
+        [Header("Empujones")]
+        [Tooltip("Frenado de un empujón externo (m/s²): golpe recibido, embestida al golpear.")]
+        [Min(0.1f)] public float knockbackDrag = 14f;
+
         [Header("Gravedad")]
         public float gravity = -20f;
         [Tooltip("Velocidad vertical que mantiene al personaje pegado al suelo en pendientes.")]

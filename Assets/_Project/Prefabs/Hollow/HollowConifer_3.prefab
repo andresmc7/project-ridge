@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 6039959661607156867}
   - component: {fileID: 5447604561844957017}
   - component: {fileID: 2455940943471810682}
-  - component: {fileID: 3717718254032209439}
   m_Layer: 0
   m_Name: HollowConifer_3
   m_TagString: Untagged
@@ -42,7 +41,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3992332820475686673}
-  m_Mesh: {fileID: 4300000, guid: 53b90ead04a8b3a4194180375191de40, type: 2}
+  m_Mesh: {fileID: 4300000, guid: 5216b00f23efa0040b8ab6fb586622c2, type: 2}
 --- !u!23 &5447604561844957017
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -68,8 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e799d4e167660d14586b99b0a067addb, type: 2}
-  - {fileID: 2100000, guid: 0a7c9b9625412d2499ae79a2f05e28ea, type: 2}
+  - {fileID: 2100000, guid: d385773bc26389f42badc36c8fa18314, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -112,26 +110,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.48000002
-  m_Height: 4
+  m_Radius: 0.53
+  m_Height: 3
   m_Direction: 1
-  m_Center: {x: 0, y: 2, z: 0}
---- !u!205 &3717718254032209439
-LODGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3992332820475686673}
-  serializedVersion: 2
-  m_LocalReferencePoint: {x: 0.27009678, y: 5.27559, z: 0.03376603}
-  m_Size: 10.9511795
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
-  m_LastLODIsBillboard: 0
-  m_LODs:
-  - screenRelativeHeight: 0.01
-    fadeTransitionWidth: 0
-    renderers:
-    - renderer: {fileID: 5447604561844957017}
-  m_Enabled: 1
+  m_Center: {x: 0, y: 1.5, z: 0}

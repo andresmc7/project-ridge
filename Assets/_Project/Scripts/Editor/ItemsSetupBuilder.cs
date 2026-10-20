@@ -210,6 +210,185 @@ namespace ProjectRidge.EditorTools
             return "Combat set up on player + " + enemies + " enemies";
         }
 
+        /// <summary>
+        /// Bengala de mano (reemplaza a la pistola): prefab con mecha, luz roja, chispas, humo rojo y sonido, y la
+        /// herramienta en el papá (Fire = dejar una bengala en el suelo). Desactiva la pistola en CombatConfig.
+        /// </summary>
+        public static string BuildHandFlare()
+        {
+            PolyHavenMaterialBuilder.EnsureFolder(PrefabDir);
+            PolyHavenMaterialBuilder.EnsureFolder(MatDir);
+            var config = AssetDatabase.LoadAssetAtPath<CombatConfig>(DataDir + "/CombatConfig.asset");
+            config.flareGun = false;
+            EditorUtility.SetDirty(config);
+            var bank = AssetDatabase.LoadAssetAtPath<ProjectRidge.Core.AudioBank>(DataDir + "/AudioBank.asset");
+
+            var root = new GameObject("HandFlare");
+            var body = Part(root.transform, PrimitiveType.Cylinder, new Vector3(0f, 0.05f, 0f), new Vector3(0.045f, 0.13f, 0.045f),
+                Mat("Item_Flare", new Color(0.8f, 0.3f, 0.06f), new Color(0.5f, 0.12f, 0.02f)));
+            body.localRotation = Quaternion.Euler(0f, 0f, 72f); // tumbada, con la punta algo levantada
+            var tip = Part(root.transform, PrimitiveType.Sphere, new Vector3(-0.12f, 0.09f, 0f), Vector3.one * 0.055f,
+                Mat("Item_FlareTip", new Color(1f, 0.35f, 0.25f), new Color(0.3f, 0.05f, 0.02f)));
+
+            var lightGo = new GameObject("Glow");
+            lightGo.transform.SetParent(root.transform, false);
+            lightGo.transform.localPosition = new Vector3(0f, 0.45f, 0f);
+            var light = lightGo.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.shadows = LightShadows.None; // solo la luna y la linterna proyectan sombra
+            light.enabled = false;
+
+            var fuse = SparkSystem(root.transform, "FuseSparks", new Vector3(-0.12f, 0.09f, 0f), 14f, 0.6f, 0.12f, 0.35f, 20);
+            var sparks = SparkSystem(root.transform, "Sparks", new Vector3(-0.12f, 0.09f, 0f), 55f, 2f, 0.35f, 0.8f, 90);
+            var smoke = SmokeSystem(root.transform);
+
+            AudioSource Source(string n, AudioClip clip, float volume, float pitch)
+            {
+                var go = new GameObject(n);
+                go.transform.SetParent(root.transform, false);
+                var a = go.AddComponent<AudioSource>();
+                a.clip = clip; a.loop = true; a.playOnAwake = false; a.volume = volume; a.pitch = pitch;
+                a.spatialBlend = 1f; a.rolloffMode = AudioRolloffMode.Linear; a.minDistance = 2f; a.maxDistance = 22f;
+                return a;
+            }
+            var fuseAudio = Source("FuseAudio", bank != null ? bank.flareBurnLoop : null, 0.35f, 1.6f);
+            var burnAudio = Source("BurnAudio", bank != null ? bank.flareBurnLoop : null, 0.9f, 1f);
+
+            var hf = root.AddComponent<HandFlare>();
+            var so = new SerializedObject(hf);
+            so.FindProperty("config").objectReferenceValue = config;
+            so.FindProperty("glow").objectReferenceValue = light;
+            so.FindProperty("fuseSparks").objectReferenceValue = fuse;
+            so.FindProperty("sparks").objectReferenceValue = sparks;
+            so.FindProperty("smoke").objectReferenceValue = smoke;
+            so.FindProperty("fuseAudio").objectReferenceValue = fuseAudio;
+            so.FindProperty("burnAudio").objectReferenceValue = burnAudio;
+            so.FindProperty("tip").objectReferenceValue = tip.GetComponent<Renderer>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+            var saved = PrefabUtility.SaveAsPrefabAsset(root, PrefabDir + "/HandFlare.prefab");
+            Object.DestroyImmediate(root);
+
+            var health = Object.FindFirstObjectByType<PlayerHealth>();
+            var player = health.gameObject;
+            var tool = Ensure<PlayerFlareTool>(player);
+            so = new SerializedObject(tool);
+            so.FindProperty("config").objectReferenceValue = config;
+            so.FindProperty("input").objectReferenceValue = player.GetComponent<PlayerInputHandler>();
+            so.FindProperty("controller").objectReferenceValue = player.GetComponent<PlayerController>();
+            so.FindProperty("combat").objectReferenceValue = player.GetComponent<PlayerCombat>();
+            so.FindProperty("health").objectReferenceValue = health;
+            so.FindProperty("inventory").objectReferenceValue = player.GetComponent<PlayerInventory>();
+            so.FindProperty("interactor").objectReferenceValue = player.GetComponent<PlayerInteractor>();
+            so.FindProperty("animator").objectReferenceValue = player.GetComponentInChildren<FatherAnimator>();
+            so.FindProperty("flareItem").objectReferenceValue = LoadItem("Flare");
+            so.FindProperty("prefab").objectReferenceValue = saved.GetComponent<HandFlare>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return "hand flare ok";
+        }
+
+        static ParticleSystem SparkSystem(Transform parent, string name, Vector3 pos, float rate, float speed, float minLife, float maxLife, int max)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = pos;
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.playOnAwake = false;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(minLife, maxLife);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speed * 0.4f, speed);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.02f, 0.055f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.8f, 0.45f), new Color(1f, 0.3f, 0.15f));
+            main.gravityModifier = 0.7f;
+            main.maxParticles = max;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var emission = ps.emission;
+            emission.rateOverTime = rate;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 40f;
+            shape.radius = 0.01f;
+            shape.rotation = new Vector3(-90f, 0f, 0f);
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.35f, 0.1f), 1f) },
+                         new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = grad;
+            var psr = go.GetComponent<ParticleSystemRenderer>();
+            psr.sharedMaterial = SparkMaterial();
+            psr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            return ps;
+        }
+
+        /// <summary>Humo rojo que sube despacio, se abre y se deriva con el viento (lo ilumina la propia bengala).</summary>
+        static ParticleSystem SmokeSystem(Transform parent)
+        {
+            var go = new GameObject("Smoke");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(-0.1f, 0.2f, 0f);
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.playOnAwake = false;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(4.5f, 6.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 0.9f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.5f, 0.9f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.maxParticles = 70;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var emission = ps.emission;
+            emission.rateOverTime = 11f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 12f;
+            shape.radius = 0.05f;
+            shape.rotation = new Vector3(-90f, 0f, 0f);
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 0.6f, 1f, 4.2f));
+            var rot = ps.rotationOverLifetime;
+            rot.enabled = true;
+            rot.z = new ParticleSystem.MinMaxCurve(-0.4f, 0.4f);
+            var vel = ps.velocityOverLifetime;
+            vel.enabled = true;
+            vel.space = ParticleSystemSimulationSpace.World;
+            vel.x = new ParticleSystem.MinMaxCurve(0.15f, 0.45f);
+            vel.y = new ParticleSystem.MinMaxCurve(0f, 0.05f);
+            vel.z = new ParticleSystem.MinMaxCurve(0.05f, 0.25f);
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.strength = 0.35f;
+            noise.frequency = 0.4f;
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.3f, 0.22f), 0f), new GradientColorKey(new Color(0.75f, 0.2f, 0.2f), 0.35f), new GradientColorKey(new Color(0.32f, 0.26f, 0.3f), 1f) },
+                         new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.55f, 0.12f), new GradientAlphaKey(0.3f, 0.6f), new GradientAlphaKey(0f, 1f) });
+            col.color = grad;
+            var psr = go.GetComponent<ParticleSystemRenderer>();
+            string path = MatDir + "/FX_FlareSmoke.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")); AssetDatabase.CreateAsset(m, path); }
+            m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/_Project/Art/Hollow/FX/Tex_SoftDot.png"));
+            m.SetFloat("_Surface", 1f); // transparente
+            m.SetFloat("_Blend", 0f);   // alpha
+            m.SetOverrideTag("RenderType", "Transparent");
+            m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            m.SetInt("_ZWrite", 0);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            m.SetColor("_BaseColor", new Color(1.6f, 1.1f, 1.1f, 1f));
+            EditorUtility.SetDirty(m);
+            psr.sharedMaterial = m;
+            psr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            psr.sortingFudge = -2f;
+            return ps;
+        }
+
         static FlareProjectile BuildFlarePrefab(CombatConfig config)
         {
             var root = new GameObject("FlareProjectile");

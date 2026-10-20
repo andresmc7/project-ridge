@@ -72,6 +72,27 @@ namespace ProjectRidge.AI
             CanSeeTarget = false;
             if (target == null) return;
 
+            // Escondido: el cono no te ve, pero si te pasa encima te siente (hay que moverse antes de que llegue).
+            if (target.IsHidden)
+            {
+                Vector3 offset = target.transform.position - transform.position;
+                float dy = Mathf.Abs(offset.y);
+                offset.y = 0f;
+                float near = offset.magnitude;
+                if (near <= config.hiddenNoticeRadius && dy <= config.hiddenNoticeHeight)
+                {
+                    float closeness = 2f - near / Mathf.Max(0.01f, config.hiddenNoticeRadius);
+                    Suspicion = Mathf.Min(1f, Suspicion + config.hiddenNoticeGain * closeness * dt);
+                    CanSeeTarget = Suspicion >= config.investigateThreshold;
+                    if (CanSeeTarget)
+                    {
+                        LastKnownPosition = target.transform.position;
+                        HasLastKnownPosition = true;
+                    }
+                    return;
+                }
+            }
+
             Vector3 eyePos = eye.position;
             Vector3 toTarget = target.ChestPoint - eyePos;
             float distance = toTarget.magnitude;
@@ -81,7 +102,7 @@ namespace ProjectRidge.AI
             bool inCone = Vector3.Angle(transform.forward, flat) <= config.viewAngle * 0.5f;
             bool close = distance <= config.proximityRadius && target.VisibilityMultiplier > config.proximityMinVisibility;
 
-            if (inRange && (inCone || close) && HasLineOfSight(eyePos))
+            if (!target.IsHidden && inRange && (inCone || close) && HasLineOfSight(eyePos))
             {
                 CanSeeTarget = true;
                 if (close)

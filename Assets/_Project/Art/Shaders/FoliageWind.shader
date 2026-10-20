@@ -21,6 +21,11 @@ Shader "ProjectRidge/FoliageWind"
         _HeightScale ("Sway per meter of height", Float) = 0.18
         _Translucency ("Back-light translucency", Range(0,1)) = 0.25
         [Toggle] _UseVertexHeight ("Height from UV2.x (combined meshes)", Float) = 0
+
+        [Header(Stylized)]
+        [Toggle] _UseVertexColor ("Albedo x vertex RGB, occlusion = vertex A", Float) = 0
+        _RimColor ("Rim (moon edge) color", Color) = (0,0,0,0)
+        _RimPower ("Rim power", Float) = 3
     }
 
     SubShader
@@ -42,6 +47,9 @@ Shader "ProjectRidge/FoliageWind"
             float _HeightScale;
             half _Translucency;
             float _UseVertexHeight;
+            float _UseVertexColor;
+            half4 _RimColor;
+            half _RimPower;
         CBUFFER_END
 
         TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
@@ -92,6 +100,7 @@ Shader "ProjectRidge/FoliageWind"
                 float4 tangentOS : TANGENT;
                 float2 uv : TEXCOORD0;
                 float2 uv1 : TEXCOORD1;
+                half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -103,6 +112,7 @@ Shader "ProjectRidge/FoliageWind"
                 float3 normalWS : TEXCOORD2;
                 float4 tangentWS : TEXCOORD3;
                 half fogFactor : TEXCOORD4;
+                half4 color : TEXCOORD5;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -120,6 +130,7 @@ Shader "ProjectRidge/FoliageWind"
                 o.tangentWS = float4(n.tangentWS, v.tangentOS.w * GetOddNegativeScale());
                 o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
                 o.fogFactor = ComputeFogFactor(o.positionCS.z);
+                o.color = _UseVertexColor > 0.5 ? v.color : half4(1, 1, 1, 1);
                 return o;
             }
 
@@ -127,6 +138,7 @@ Shader "ProjectRidge/FoliageWind"
             {
                 UNITY_SETUP_INSTANCE_ID(i);
                 half4 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
+                albedo.rgb *= i.color.rgb;
                 #if defined(_ALPHATEST_ON)
                     clip(albedo.a - _Cutoff);
                 #endif
@@ -152,10 +164,13 @@ Shader "ProjectRidge/FoliageWind"
                 s.albedo = albedo.rgb;
                 s.alpha = 1;
                 s.smoothness = _Smoothness;
-                s.occlusion = 1;
+                s.occlusion = i.color.a;
                 s.normalTS = half3(0, 0, 1);
 
                 half4 color = UniversalFragmentPBR(input, s);
+                // Borde iluminado por la luna (lectura de silueta en la oscuridad, estilo diorama).
+                half rim = pow(1.0h - saturate(dot(normalWS, input.viewDirectionWS)), _RimPower);
+                color.rgb += _RimColor.rgb * rim * i.color.a;
                 // Translucidez: la luz principal atraviesa las hojas a contraluz.
                 Light mainLight = GetMainLight(input.shadowCoord);
                 half back = saturate(dot(-input.viewDirectionWS, mainLight.direction));

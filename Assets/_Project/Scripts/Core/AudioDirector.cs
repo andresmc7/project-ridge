@@ -21,6 +21,10 @@ namespace ProjectRidge.Core
         [SerializeField] private PlayerInventory inventory;
         [Min(0f)] [SerializeField] private float alertStingCooldown = 8f;
         [Min(0.1f)] [SerializeField] private float musicFade = 1.5f;
+        [Tooltip("Probabilidad de que un tic del Lurker vaya con gruñido.")]
+        [Range(0f, 1f)] [SerializeField] private float twitchVoiceChance = 0.25f;
+        [Tooltip("Volumen del gruñido-respiración al patrullar (relativo a enemy); al cazar va a 0.8.")]
+        [Range(0f, 1f)] [SerializeField] private float prowlGrowlVolume = 0.3f;
 
         private AudioSource musicCalm, musicChase, wind, forest, rain, heartbeat, ui, playerSfx;
         private AudioSource radio;
@@ -54,18 +58,19 @@ namespace ProjectRidge.Core
             lastHealth = health.Current;
             fatherAnimator.Footstep += OnFootstep;
             combat.Swung += () => PlayerSfx(bank.clubSwing, bank.weapons * 0.6f, 0.08f);
-            combat.ClubHit += pos => At(bank.clubHit, pos, bank.weapons, 0.06f);
+            combat.ClubHit += pos => { At(bank.clubHit, pos, bank.weapons * 0.8f, 0.06f); AtPitch(Pick(bank.bodyHits), pos, bank.weapons, Random.Range(0.8f, 0.92f)); };
             combat.ClubBroke += () => PlayerSfx(bank.clubBreak, bank.weapons, 0.04f);
             combat.Crafted += () => PlayerSfx(bank.craft, bank.player, 0.05f);
             combat.Fired += () => PlayerSfx(bank.flareShot, bank.weapons, 0.04f);
             combat.DryFire += () => PlayerSfx(bank.dryFire, bank.weapons * 0.7f, 0.05f);
-            health.Damaged += _ => PlayerSfx(bank.hurt, bank.player, 0.08f);
+            health.Damaged += _ => { PlayerSfx(bank.hurt, bank.player, 0.08f); At(Pick(bank.bodyHits), player.transform.position + Vector3.up, bank.weapons, 0.08f); };
             health.Died += () => PlayerSfx(bank.death, bank.player, 0f);
             inventory.Changed += OnInventory;
 
             foreach (var enemy in EnemyController.Active.ToArray()) HookEnemy(enemy);
 
             StoneProjectile.Impacted += OnStoneImpact;
+            KnockableProp.Knocked += OnDebris;
             ScriptedApparition.Appeared += OnApparition;
             RadioClimax.Started += OnRadioStarted;
             RadioClimax.Squealed += OnRadioSquealed;
@@ -90,6 +95,7 @@ namespace ProjectRidge.Core
             RadioClimax.Started -= OnRadioStarted;
             RadioClimax.Squealed -= OnRadioSquealed;
             Searchlight.PlayerSpotted -= OnSpotted;
+            KnockableProp.Knocked -= OnDebris;
             AudioListener.pause = false;
         }
 
@@ -176,8 +182,14 @@ namespace ProjectRidge.Core
 
             if (enemy.TryGetComponent(out LurkerAnimator anim))
             {
-                anim.Footstep += () => Voice(voice, Pick(bank.lurkerSteps), bank.enemy * 0.55f, 0.12f);
-                anim.Twitched += () => Voice(voice, Pick(bank.lurkerClicks), bank.enemy * 0.45f, 0.25f);
+                // Pasos pesados: la pisada real, muy grave, más el golpe sintetizado (se oye venir).
+                anim.Footstep += () =>
+                {
+                    Voice(voice, Pick(bank.lurkerSteps), bank.enemy * 0.5f, 0.12f);
+                    AtPitch(Pick(bank.stepsGrass), enemy.transform.position, bank.enemy * 0.7f, Random.Range(0.55f, 0.66f));
+                };
+                // Gruñidos sueltos con algunos tics (no con todos: sería ruido constante).
+                anim.Twitched += () => { if (Random.value < twitchVoiceChance) Voice(voice, Pick(bank.lurkerClicks), bank.enemy * 0.45f, 0.12f); };
             }
             enemy.StateChanged += s =>
             {
@@ -202,7 +214,7 @@ namespace ProjectRidge.Core
                 bool hunting = kv.Key != null && kv.Key.IsHunting;
                 anyHunting |= hunting;
                 if (kv.Value != null)
-                    kv.Value.volume = Mathf.MoveTowards(kv.Value.volume, hunting ? bank.enemy * 0.8f : 0f, Time.unscaledDeltaTime * 1.5f);
+                    kv.Value.volume = Mathf.MoveTowards(kv.Value.volume, hunting ? bank.enemy * 0.8f : kv.Key != null && !kv.Key.IsDead ? bank.enemy * prowlGrowlVolume : 0f, Time.unscaledDeltaTime * 1.5f);
             }
 
             // Los grillos se callan cuando algo grande anda cerca.
@@ -242,9 +254,9 @@ namespace ProjectRidge.Core
         {
             bool wood = Physics.Raycast(player.transform.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1.2f, ~0, QueryTriggerInteraction.Ignore)
                         && hit.collider.name.EndsWith("Walk");
-            var clip = Pick(wood ? bank.stepsWood : bank.stepsDirt);
-            float v = player.Mode == MovementMode.Crouch ? 0.25f : player.Mode == MovementMode.Sprint ? 0.9f : player.Mode == MovementMode.Jog ? 0.65f : 0.45f;
-            PlayerSfx(clip, bank.player * v, 0.12f);
+            var clip = Pick(wood ? bank.stepsWood : bank.stepsGrass != null && bank.stepsGrass.Length > 0 ? bank.stepsGrass : bank.stepsDirt);
+            float v = player.Mode == MovementMode.Crouch ? 0.35f : player.Mode == MovementMode.Sprint ? 1f : player.Mode == MovementMode.Jog ? 0.8f : 0.6f;
+            PlayerSfx(clip, bank.player * v, 0.08f);
         }
 
         private readonly Dictionary<ItemDefinition, int> lastCounts = new Dictionary<ItemDefinition, int>();
@@ -318,6 +330,22 @@ namespace ProjectRidge.Core
             s.transform.position = pos;
             s.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
             s.PlayOneShot(clip, volume);
+        }
+
+        private void AtPitch(AudioClip clip, Vector3 pos, float volume, float pitch)
+        {
+            if (clip == null) return;
+            var s = pool[poolIndex];
+            poolIndex = (poolIndex + 1) % pool.Count;
+            s.transform.position = pos;
+            s.pitch = pitch;
+            s.PlayOneShot(clip, volume);
+        }
+
+        private void OnDebris(Vector3 pos, KnockableProp.Surface surface, float strength)
+        {
+            var set = surface == KnockableProp.Surface.Metal ? bank.debrisMetal : bank.debrisWood;
+            AtPitch(Pick(set), pos, bank.weapons * Mathf.Lerp(0.5f, 1f, strength), Random.Range(0.9f, 1.1f));
         }
 
         private static void Voice(AudioSource s, AudioClip clip, float volume, float pitchJitter)

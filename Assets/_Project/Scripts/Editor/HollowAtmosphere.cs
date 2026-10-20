@@ -174,7 +174,7 @@ namespace ProjectRidge.EditorTools
 
             int cards = FogCards(root, t, noise);
             log.AppendLine("fog cards=" + cards);
-            int puddles = Puddles(root, t);
+            int puddles = 0; // sin charcos: desde la cámara alta se leían como agujeros negros (Puddles queda disponible)
             log.AppendLine("puddles=" + puddles);
             int fungi = GlowFungi(root, t);
             log.AppendLine("glow fungi=" + fungi);
@@ -234,12 +234,60 @@ namespace ProjectRidge.EditorTools
                 EditorUtility.SetDirty(data);
                 log.AppendLine("SSAO added to " + data.name);
             }
+            SetupTiltShift(log);
             var cam = Camera.main.GetComponent<UniversalAdditionalCameraData>();
             cam.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             cam.antialiasingQuality = AntialiasingQuality.Medium;
             cam.renderPostProcessing = true;
             cam.requiresDepthTexture = true;
             AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// Desenfoque de maqueta en los bordes (Echoes of Wisdom): pase de pantalla completa antes del post-proceso,
+        /// en todos los renderers del proyecto (PC y iPhone).
+        /// </summary>
+        static void SetupTiltShift(System.Text.StringBuilder log)
+        {
+            string matPath = DataDir + "/Hollow_TiltShift.mat";
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (mat == null) { mat = new Material(Shader.Find("Hidden/ProjectRidge/TiltShift")); AssetDatabase.CreateAsset(mat, matPath); }
+            mat.SetFloat("_FocusY", 0.42f);   // el papá queda en el tercio bajo (encuadre adelantado al norte)
+            mat.SetFloat("_Band", 0.17f);
+            mat.SetFloat("_Feather", 0.26f);
+            mat.SetFloat("_MaxRadius", 0.0105f);
+            mat.SetFloat("_Corners", 0.6f);
+            mat.SetFloat("_Highlight", 3f);
+            EditorUtility.SetDirty(mat);
+
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRendererData"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.StartsWith("Assets/")) continue;
+                var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(path);
+                var feature = data.rendererFeatures.FirstOrDefault(f => f is FullScreenPassRendererFeature && f.name == "TiltShift") as FullScreenPassRendererFeature;
+                if (feature == null)
+                {
+                    feature = ScriptableObject.CreateInstance<FullScreenPassRendererFeature>();
+                    feature.name = "TiltShift";
+                    AssetDatabase.AddObjectToAsset(feature, data);
+                    data.rendererFeatures.Add(feature);
+                    var so = new SerializedObject(data);
+                    var map = so.FindProperty("m_RendererFeatureMap");
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(feature, out string _, out long localId);
+                    map.arraySize++;
+                    map.GetArrayElementAtIndex(map.arraySize - 1).longValue = localId;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    log.AppendLine("tilt-shift added to " + data.name);
+                }
+                feature.passMaterial = mat;
+                feature.injectionPoint = FullScreenPassRendererFeature.InjectionPoint.BeforeRenderingPostProcessing;
+                feature.fetchColorBuffer = true;
+                feature.requirements = ScriptableRenderPassInput.Color;
+                feature.SetActive(true);
+                EditorUtility.SetDirty(feature);
+                EditorUtility.SetDirty(data);
+            }
         }
 
         /// <summary>Mismo AO en PC y iPhone (el de por defecto de CreateInstance es otro look); en móvil a media resolución.</summary>
@@ -259,10 +307,10 @@ namespace ProjectRidge.EditorTools
             var moon = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
             if (moon == null) { log.AppendLine("no moon"); return; }
             moon.color = new Color(0.6f, 0.71f, 0.92f);
-            moon.intensity = 1.35f;
+            moon.intensity = 1.55f;
             moon.shadows = LightShadows.Soft;
             moon.shadowStrength = 0.9f;
-            moon.transform.rotation = Quaternion.Euler(38f, -128f, 0f);
+            moon.transform.rotation = Quaternion.Euler(52f, 25f, 0f); // desde atrás-izquierda de la cámara: muros visibles iluminados, sombras hacia el fondo (diorama)
             moon.cookie = CloudCookie();
             if (!moon.TryGetComponent(out UniversalAdditionalLightData _)) moon.gameObject.AddComponent<UniversalAdditionalLightData>();
             if (!moon.TryGetComponent(out CloudShadows _)) moon.gameObject.AddComponent<CloudShadows>();
@@ -346,8 +394,8 @@ namespace ProjectRidge.EditorTools
             vig.intensity.Override(0.36f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
             var bloom = Get<Bloom>();
             bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f));
-            var dof = Get<DepthOfField>();
-            dof.mode.Override(DepthOfFieldMode.Gaussian);
+            var dof = Get<DepthOfField>(); // reemplazado por el tilt-shift (pase propio)
+            dof.mode.Override(DepthOfFieldMode.Off);
             dof.gaussianStart.Override(17f); dof.gaussianEnd.Override(34f); dof.gaussianMaxRadius.Override(1.2f);
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();
@@ -405,7 +453,7 @@ namespace ProjectRidge.EditorTools
             var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (existing != null) { existing.shader = mat.shader; Object.DestroyImmediate(mat); mat = existing; } else AssetDatabase.CreateAsset(mat, path);
             mat.SetTexture("_NoiseTex", noise);
-            mat.SetColor("_Color", new Color(0.5f, 0.58f, 0.66f, 0.42f));
+            mat.SetColor("_Color", new Color(0.5f, 0.58f, 0.66f, 0.32f));
             mat.SetFloat("_NoiseScale", 0.07f);
             mat.SetVector("_Speed", new Vector4(0.04f, 0.015f, 0f, 0f));
             mat.SetFloat("_SoftDistance", 1.2f);
@@ -438,7 +486,10 @@ namespace ProjectRidge.EditorTools
             {
                 var p = new Vector3(TerrainMin.x + (float)rng.NextDouble() * SizeX, 0f, TerrainMin.y + (float)rng.NextDouble() * SizeZ);
                 float d = Walk(p);
-                if (d < 1.6f || d > 7f) continue;
+                // Al sur, sobre la terraza baja (primer plano, bajo el nivel del escenario); al norte, solo detrás del
+                // segundo escalón: nunca delante de los muros ni del bosque de la primera terraza.
+                bool southSide = !float.IsInfinity(SouthClearance(p, 0f));
+                if (southSide ? (d < 1.4f || d > 9f) : d < StepUp2At + 2.5f) continue;
                 float size = 7f + (float)rng.NextDouble() * 5f;
                 Card(OnGround(t, p.x, p.z, 0.6f + (float)rng.NextDouble() * 0.6f), size, (float)rng.NextDouble() * 360f);
                 placed++;

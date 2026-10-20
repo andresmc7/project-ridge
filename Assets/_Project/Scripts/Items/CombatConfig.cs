@@ -24,12 +24,37 @@ namespace ProjectRidge.Items
         [Min(0f)] public float clubBreakNoise = 12f;
         [Tooltip("Pausa breve del juego al conectar (hit-stop), en segundos reales.")]
         [Min(0f)] public float hitStop = 0.06f;
+        [Tooltip("Escala de tiempo durante el hit-stop.")]
+        [Range(0f, 1f)] public float hitStopScale = 0.04f;
+        [Tooltip("Embestida hacia adelante al soltar el golpe (m/s): el cuerpo acompaña el swing.")]
+        [Min(0f)] public float clubLunge = 3.2f;
+        [Tooltip("Retroceso del Lurker al recibir el golpe (m/s).")]
+        [Min(0f)] public float clubKnockback = 4f;
+        [Tooltip("Fuerza de la reacción física del Lurker (1 = golpe normal); por sorpresa se multiplica por sneakMultiplier.")]
+        [Min(0f)] public float clubHitReaction = 1.3f;
+        [Tooltip("Golpe de cámara al conectar.")]
+        [Min(0f)] public float clubCameraKick = 0.7f;
         [Tooltip("Con el garrote roto, Attack fabrica uno nuevo con chatarra.")]
         [Min(1)] public int craftScrapCost = 2;
         [Min(0f)] public float craftTime = 1.2f;
         [Min(0f)] public float craftNoise = 3f;
         [Tooltip("Velocidad del jugador mientras golpea (multiplicador).")]
         [Range(0f, 1f)] public float swingMoveFactor = 0.35f;
+
+        [Header("Bengala de mano (reemplaza a la pistola, 2026-10-20)")]
+        [Tooltip("La pistola de bengalas queda desactivada: Fire usa la bengala de mano.")]
+        public bool flareGun = false;
+        [Tooltip("Segundos de mecha antes de encenderse (tiempo para llegar a un escondite).")]
+        [Min(0f)] public float handFlareFuse = 3f;
+        [Min(0f)] public float handFlareBurn = 16f;
+        [Tooltip("Últimos segundos en los que la luz se apaga.")]
+        [Min(0.1f)] public float handFlareFadeTime = 1.5f;
+        [Min(0.2f)] public float handFlareNoiseInterval = 1.5f;
+        [Tooltip("Los Lurker dentro de este radio van a la bengala y se quedan mirándola.")]
+        [Min(0f)] public float handFlareLureRadius = 16f;
+        [Tooltip("Desde que se pulsa hasta que la bengala toca el suelo (animación de dejarla).")]
+        [Min(0f)] public float handFlarePlaceDelay = 0.35f;
+        [Min(0f)] public float handFlarePlaceDistance = 0.7f;
 
         [Header("Pistola de bengalas")]
         [Min(0f)] public float shotNoise = 22f;

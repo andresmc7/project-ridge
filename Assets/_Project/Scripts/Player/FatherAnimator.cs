@@ -33,6 +33,10 @@ namespace ProjectRidge.Player
         [Tooltip("Altura del pie (m) por debajo de la cual cuenta como apoyado.")]
         [SerializeField] private float footContact = 0.11f;
         [SerializeField] private float lookRadius = 6f;
+        [Tooltip("Grados de inclinación del torso por m/s² de aceleración (adelante al arrancar, atrás al frenar).")]
+        [SerializeField] private float leanPerAccel = 0.9f;
+        [SerializeField] private float maxLean = 9f;
+        [SerializeField] private float leanSmoothing = 10f;
 
         public event Action<bool> Footstep;
 
@@ -45,6 +49,8 @@ namespace ProjectRidge.Player
         private Vector3 lookTarget;
         private float lookWeight;
         private float torchWeight;
+        private Transform spine, chest;
+        private float lastSpeed, lean;
 
         private static readonly int SpeedId = Animator.StringToHash("Speed");
         private static readonly int CrouchId = Animator.StringToHash("Crouch");
@@ -66,6 +72,8 @@ namespace ProjectRidge.Player
             footL = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
             footR = animator.GetBoneTransform(HumanBodyBones.RightFoot);
             handL = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+            chest = animator.GetBoneTransform(HumanBodyBones.Chest);
         }
 
         private void OnEnable()
@@ -89,6 +97,9 @@ namespace ProjectRidge.Player
 
         /// <summary>Lanzar (piedra): lo llama el sistema de lanzamiento.</summary>
         public void PlayThrow() => animator.SetTrigger(ThrowId);
+
+        /// <summary>Agacharse a dejar algo en el suelo (bengala de mano).</summary>
+        public void PlayPlace() => Lock(PickUpId, 0.7f);
 
         private void OnSwung() => animator.SetTrigger(AttackId);
         private void OnFired() { animator.SetTrigger(FireId); fireTimer = 0f; }
@@ -133,6 +144,18 @@ namespace ProjectRidge.Player
 
         private void LateUpdate()
         {
+            // Peso: el torso se adelanta al arrancar y se echa atrás al frenar (inercia del cuerpo).
+            float dt = Time.deltaTime;
+            if (dt > 0f)
+            {
+                float accel = (controller.CurrentSpeed - lastSpeed) / dt;
+                lastSpeed = controller.CurrentSpeed;
+                float target = health.IsDead ? 0f : Mathf.Clamp(accel * leanPerAccel, -maxLean, maxLean);
+                lean = Mathf.Lerp(lean, target, 1f - Mathf.Exp(-leanSmoothing * dt));
+                if (spine != null) spine.rotation = Quaternion.AngleAxis(lean * 0.55f, transform.right) * spine.rotation;
+                if (chest != null) chest.rotation = Quaternion.AngleAxis(lean * 0.45f, transform.right) * chest.rotation;
+            }
+
             // Pasos por contacto del pie con el suelo (sincronizados con la animación real).
             float groundY = transform.position.y;
             bool l = footL.position.y - groundY < footContact, r = footR.position.y - groundY < footContact;

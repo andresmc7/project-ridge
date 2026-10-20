@@ -23,6 +23,7 @@ namespace ProjectRidge.Player
         private Vector3 horizontalVelocity;
         private float verticalVelocity;
         private bool crouchRequested;
+        private Vector3 externalVelocity;
 
         public MovementMode Mode { get; private set; } = MovementMode.Idle;
         /// <summary>Velocidad horizontal real en m/s, después de colisiones.</summary>
@@ -41,6 +42,13 @@ namespace ProjectRidge.Player
         public Vector3 DesiredDirection { get; private set; }
 
         public event Action<MovementMode> ModeChanged;
+
+        /// <summary>Empujón externo (golpe recibido, embestida del garrote): se suma al movimiento y se frena solo.</summary>
+        public void AddKnockback(Vector3 velocity)
+        {
+            velocity.y = 0f;
+            externalVelocity += velocity;
+        }
 
         /// <summary>Gira de inmediato hacia un punto (atacar o disparar a un objetivo).</summary>
         public void FaceTowards(Vector3 point)
@@ -102,7 +110,8 @@ namespace ProjectRidge.Player
                 verticalVelocity = config.groundedStickVelocity;
             verticalVelocity += config.gravity * dt;
 
-            controller.Move((horizontalVelocity + Vector3.up * verticalVelocity) * dt);
+            controller.Move((horizontalVelocity + externalVelocity + Vector3.up * verticalVelocity) * dt);
+            externalVelocity = Vector3.MoveTowards(externalVelocity, Vector3.zero, config.knockbackDrag * dt);
 
             // Velocidad real después de colisiones; es la que debe usar el ruido. CharacterController ya desliza
             // por paredes y esquinas, así que horizontalVelocity no se recorta al chocar.

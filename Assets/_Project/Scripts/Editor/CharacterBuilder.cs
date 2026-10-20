@@ -656,8 +656,9 @@ namespace ProjectRidge.EditorTools
             c.layers = layers;
             var sm = c.layers[0].stateMachine;
 
-            // Velocidades naturales medidas de los clips: caminar 0.95, trote 2.46, sprint 3.19, agachado 0.74 m/s.
-            var loco = Tree(c, "Locomotion", "Speed", new[] { ("Idle_Loop", 0f, 1f), ("Walk_Loop", 1.2f, 1.26f), ("Jog_Fwd_Loop", 2.8f, 1.14f), ("Sprint_Loop", 4.2f, 1.32f) }, clips);
+            // Velocidades naturales medidas de los clips: caminar 0.95, trote 2.46, sprint 3.19, agachado 0.74 m/s. Trote a 3.2 m/s
+            // (x1.3): más cadencia, menos tiempo en el aire: se siente pegado al suelo.
+            var loco = Tree(c, "Locomotion", "Speed", new[] { ("Idle_Loop", 0f, 1f), ("Walk_Loop", 1.2f, 1.26f), ("Jog_Fwd_Loop", 3.2f, 1.3f), ("Sprint_Loop", 4.2f, 1.32f) }, clips);
             var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", 0.95f, 1.28f) }, clips);
             sm.defaultState = loco;
             var toCrouch = loco.AddTransition(crouch); toCrouch.AddCondition(AnimatorConditionMode.If, 0, "Crouch"); toCrouch.duration = 0.25f; toCrouch.hasExitTime = false;

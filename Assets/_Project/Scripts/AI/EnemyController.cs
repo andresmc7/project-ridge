@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using ProjectRidge.CameraRig;
 using ProjectRidge.Core;
+using ProjectRidge.Items;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -34,6 +36,8 @@ namespace ProjectRidge.AI
         private float nextRepath;
         private float stunEnd;
         private Vector3 knockbackVelocity;
+        private HandFlare lure;
+        private Vector3 lurePoint;
 
         /// <summary>Enemigos activos (para el HUD de sigilo y las alertas del OVNI).</summary>
         public static readonly List<EnemyController> Active = new List<EnemyController>();
@@ -157,6 +161,11 @@ namespace ProjectRidge.AI
             {
                 EnterInvestigate(perception.LastKnownPosition);
             }
+            else if (State == EnemyState.Patrol || State == EnemyState.Investigate || State == EnemyState.Search)
+            {
+                var flare = HandFlare.NearestBurning(transform.position);
+                if (flare != null) EnterLured(flare);
+            }
 
             switch (State)
             {
@@ -165,6 +174,7 @@ namespace ProjectRidge.AI
                 case EnemyState.Search: TickSearch(); break;
                 case EnemyState.Chase: TickChase(); break;
                 case EnemyState.Attack: TickAttack(); break;
+                case EnemyState.Lured: TickLured(); break;
             }
         }
 
@@ -358,11 +368,17 @@ namespace ProjectRidge.AI
                     if (stateTime >= config.attackWindup) attackPhase = AttackPhase.Active;
                     break;
                 case AttackPhase.Active:
+                    // Se abalanza: recorre attackLunge durante la ventana activa, sin atravesar al papá.
+                    Vector3 toTarget = target.transform.position - transform.position;
+                    toTarget.y = 0f;
+                    if (toTarget.magnitude > config.attackRange * 0.5f && config.attackActive > 0f)
+                        agent.Move(transform.forward * (config.attackLunge / config.attackActive) * Time.deltaTime);
                     if (!attackLanded && InAttackArc(target.transform.position))
                     {
                         attackLanded = true; // un golpe por ataque, no daño por frame
                         if (target.TryGetComponent(out IDamageable damageable))
                             damageable.TakeDamage(config.attackDamage);
+                        LandHit(target.gameObject, toTarget);
                     }
                     if (stateTime >= config.attackWindup + config.attackActive) attackPhase = AttackPhase.Recovery;
                     break;
@@ -373,11 +389,49 @@ namespace ProjectRidge.AI
             }
         }
 
+        /// <summary>El zarpazo pesa: empujón, reacción física del cuerpo, golpe de cámara y pausa breve.</summary>
+        private void LandHit(GameObject victim, Vector3 direction)
+        {
+            if (direction.sqrMagnitude < 0.0001f) direction = transform.forward;
+            direction.Normalize();
+            if (victim.TryGetComponent(out ProjectRidge.Player.PlayerController pc)) pc.AddKnockback(direction * config.attackKnockback);
+            var reaction = victim.GetComponentInChildren<HitReaction>();
+            if (reaction != null) reaction.Impulse(direction, config.attackHitReaction);
+            CameraShake.Kick(direction, config.attackCameraKick);
+            HitStop.Trigger(config.attackHitStop, config.attackHitStopScale);
+        }
+
         private bool InAttackArc(Vector3 targetPos)
         {
             Vector3 to = targetPos - transform.position;
             to.y = 0f;
             return to.magnitude <= config.attackRange && Vector3.Angle(transform.forward, to) <= config.attackArc * 0.5f;
+        }
+
+        // ---------- Lured (bengala de mano)
+
+        private void EnterLured(HandFlare flare)
+        {
+            SetState(EnemyState.Lured);
+            lure = flare;
+            agent.isStopped = false;
+            agent.speed = config.lureSpeed;
+            Vector3 from = transform.position - flare.transform.position;
+            from.y = 0f;
+            if (from.sqrMagnitude < 0.01f) from = transform.forward;
+            lurePoint = SampleOnNavMesh(flare.transform.position + from.normalized * config.lureStandOff);
+            agent.SetDestination(lurePoint);
+        }
+
+        private void TickLured()
+        {
+            if (lure == null || !lure.IsBurning)
+            {
+                EnterSearch(lurePoint);
+                return;
+            }
+            // Hipnotizado: quieto, mirando la luz (su cono apunta a la bengala, no al camino).
+            if (Arrived()) FaceTowards(lure.transform.position);
         }
 
         // ---------- Stunned (golpe, bengala)

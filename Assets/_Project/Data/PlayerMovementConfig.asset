@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Player.PlayerMovementConfig
   crouchSpeed: 0.95
   walkSpeed: 1.2
-  jogSpeed: 2.8
+  jogSpeed: 3.2
   sprintSpeed: 4.2
-  acceleration: 40
-  deceleration: 55
+  acceleration: 24
+  deceleration: 32
   turnSpeed: 1800
   alignmentSharpness: 2
   stickDeadzone: 0.15

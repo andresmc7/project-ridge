@@ -540,6 +540,7 @@ namespace ProjectRidge.EditorTools
             {
                 EditorUtility.CopySerialized(mesh, existing);
                 Object.DestroyImmediate(mesh);
+                EditorUtility.SetDirty(existing);
                 return existing;
             }
             AssetDatabase.CreateAsset(mesh, path);

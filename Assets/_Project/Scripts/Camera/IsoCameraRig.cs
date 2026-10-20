@@ -32,7 +32,7 @@ namespace ProjectRidge.CameraRig
 
             Quaternion rotation = Quaternion.Euler(config.pitch, config.yaw, 0f);
             transform.rotation = rotation;
-            follow.FollowOffset = Vector3.up * config.targetHeight + rotation * new Vector3(0f, 0f, -config.distance);
+            follow.FollowOffset = Vector3.up * config.targetHeight + rotation * new Vector3(0f, 0f, -config.distance) + Quaternion.Euler(0f, config.yaw, 0f) * Vector3.forward * config.framingOffset;
 
             var tracker = follow.TrackerSettings;
             tracker.BindingMode = BindingMode.WorldSpace;

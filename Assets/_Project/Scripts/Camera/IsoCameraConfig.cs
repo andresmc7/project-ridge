@@ -14,6 +14,8 @@ namespace ProjectRidge.CameraRig
         [Tooltip("Altura del punto de mira sobre los pies del jugador.")]
         [Min(0f)] public float targetHeight = 1f;
         [Range(10f, 90f)] public float fieldOfView = 45f;
+        [Tooltip("Metros hacia el fondo (norte) que se adelanta el encuadre: el papá queda en el tercio bajo y se ve el bosque de arriba.")]
+        public float framingOffset = 0f;
         [Tooltip("Damping de posición del Follow. 0 = rígido.")]
         [Range(0f, 5f)] public float positionDamping = 0.3f;
 

@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using ProjectRidge.AI;
+using ProjectRidge.CameraRig;
+using ProjectRidge.Core;
 using ProjectRidge.Items;
 using ProjectRidge.Noise;
 using UnityEngine;
@@ -29,6 +31,8 @@ namespace ProjectRidge.Player
         [Tooltip("Desde dónde sale la bengala (mano).")]
         [SerializeField] private Transform muzzle;
         [SerializeField] private LayerMask enemyMask = 1 << 10;
+        [Tooltip("Salpicadura al conectar (icor oscuro del Lurker).")]
+        [SerializeField] private ParticleSystem hitFx;
 
         private readonly HashSet<EnemyController> hitThisSwing = new HashSet<EnemyController>();
         private readonly Collider[] overlap = new Collider[16];
@@ -56,7 +60,7 @@ namespace ProjectRidge.Player
         private void OnEnable()
         {
             input.AttackPressed += OnAttack;
-            input.FirePressed += TryFire;
+            if (config.flareGun) input.FirePressed += TryFire;
         }
 
         private void OnDisable()
@@ -71,7 +75,7 @@ namespace ProjectRidge.Player
         private void OnAttack()
         {
             if (controller.InputLocked) return;
-            if (input.AimHeld) { TryFire(); return; }
+            if (input.AimHeld && config.flareGun) { TryFire(); return; }
             if (health.IsDead || IsBusy) return;
             if (!HasClub) { TryCraft(); return; }
 
@@ -89,7 +93,12 @@ namespace ProjectRidge.Player
             switch (Phase)
             {
                 case SwingPhase.Windup:
-                    if (Time.time >= phaseEnd) { Phase = SwingPhase.Active; phaseEnd = Time.time + (phaseDuration = config.clubActive); }
+                    if (Time.time >= phaseEnd)
+                    {
+                        Phase = SwingPhase.Active;
+                        phaseEnd = Time.time + (phaseDuration = config.clubActive);
+                        controller.AddKnockback(transform.forward * config.clubLunge); // el peso del cuerpo va detrás del garrote
+                    }
                     break;
                 case SwingPhase.Active:
                     DetectHits();
@@ -128,12 +137,22 @@ namespace ProjectRidge.Player
 
                 hitThisSwing.Add(enemy); // un golpe por enemigo por swing
                 float damage = config.clubDamage * (enemy.IsHunting ? 1f : config.sneakMultiplier);
-                enemy.Interrupt(config.clubStagger, transform.position, 3f);
+                bool sneak = !enemy.IsHunting;
+                enemy.Interrupt(config.clubStagger, transform.position, config.clubKnockback);
+                Vector3 hitDir = to.sqrMagnitude > 0.01f ? to.normalized : transform.forward;
+                var reaction = enemy.GetComponentInChildren<HitReaction>();
+                if (reaction != null) reaction.Impulse(hitDir, config.clubHitReaction * (sneak ? config.sneakMultiplier * 0.75f : 1f));
+                CameraShake.Kick(hitDir, config.clubCameraKick * (sneak ? 1.4f : 1f));
                 if (enemy.TryGetComponent(out EnemyHealth eh)) eh.TakeDamage(damage);
                 Vector3 impact = enemy.transform.position + Vector3.up * 1.3f;
                 NoiseSystem.Emit(impact, config.clubHitNoise, NoiseType.Impact, gameObject);
                 ClubHit?.Invoke(impact);
-                if (config.hitStop > 0f) StartCoroutine(HitStop());
+                if (hitFx != null)
+                {
+                    var fx = Instantiate(hitFx, impact, Quaternion.LookRotation(hitDir + Vector3.up * 0.3f));
+                    Destroy(fx.gameObject, 2f);
+                }
+                HitStop.Trigger(config.hitStop, config.hitStopScale);
 
                 if (--ClubDurability <= 0)
                 {
@@ -143,15 +162,6 @@ namespace ProjectRidge.Player
                     return;
                 }
             }
-        }
-
-        private IEnumerator HitStop()
-        {
-            float previous = Time.timeScale;
-            if (previous <= 0f) yield break;
-            Time.timeScale = 0.05f;
-            yield return new WaitForSecondsRealtime(config.hitStop);
-            if (Mathf.Approximately(Time.timeScale, 0.05f)) Time.timeScale = previous;
         }
 
         private void TryCraft()

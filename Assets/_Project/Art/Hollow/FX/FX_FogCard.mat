@@ -34,7 +34,7 @@ Material:
     - _NoiseScale: 0.07
     - _SoftDistance: 1.2
     m_Colors:
-    - _Color: {r: 0.5, g: 0.58, b: 0.66, a: 0.42}
+    - _Color: {r: 0.5, g: 0.58, b: 0.66, a: 0.32}
     - _Speed: {r: 0.04, g: 0.015, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

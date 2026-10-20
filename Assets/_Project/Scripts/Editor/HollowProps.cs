@@ -435,6 +435,7 @@ namespace ProjectRidge.EditorTools
                 var p = OnGround(t, l.x, l.y, 0.32f);
                 var go = LogPiece(g, "FallenLog", l.w, 0.42f, m, Vector3.zero, Vector3.zero);
                 go.transform.SetPositionAndRotation(p, Quaternion.Euler(0f, l.z, 0f));
+                MakeNavBlocker(go);
                 blockers.Add(p);
             }
 
@@ -561,6 +562,8 @@ namespace ProjectRidge.EditorTools
                 new SearchableContainer.Entry { item = med, amount = 1 }, new SearchableContainer.Entry { item = scrap, amount = 1 });
             ItemsSetupBuilder.PickupObject(root, "Scrap", Cabin(-1.2f, -1.5f), 40f);
 
+            // Pasillo antes del arroyo: la primera bengala de mano, justo antes del primer Lurker.
+            ItemsSetupBuilder.PickupObject(root, "Flare", At(-26.2f, -1.3f), 20f);
             // Sala 3: la bengala está justo en el cruce de los dos reflectores (recompensa con riesgo).
             ItemsSetupBuilder.PickupObject(root, "Flare", At(11.2f, 0.6f), 70f);
             ItemsSetupBuilder.PickupObject(root, "Medkit", At(16.4f, 5.6f), 200f);

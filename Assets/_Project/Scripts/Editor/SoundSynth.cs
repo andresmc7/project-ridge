@@ -312,72 +312,206 @@ namespace ProjectRidge.EditorTools
             return b;
         }
 
-        static float[] LurkerClick(int v)
+        // ------------------------------------------------------------------ Voz del Lurker: bestia grave y primitiva
+        //
+        // Modelo fuente-filtro: pulsos glotales (Rosenberg) graves con jitter, shimmer y subarmónico (cada segundo
+        // pulso más débil: la voz "se parte" una octava abajo, como un rugido animal), filtrados por formantes de
+        // una garganta enorme (F1/F2/F3 bajos) y una resonancia de pecho; aliento ruidoso y saturación cruda.
+
+        struct BeastShape
         {
-            var b = Clicks(0.45f, 4 + v * 2, 2600f + v * 400f, 6f, 0.25f + v * 0.04f);
-            Mix(b, Clicks(0.3f, 2, 900f, 3f, 0.2f), 0, 0.6f); // crujido húmedo
-            FadeEdges(b);
-            Normalize(b, 0.85f);
-            return Reverb(b, 0.12f, 0.7f, 0.25f);
+            public float f1, f2, f3;       // formantes (Hz)
+            public float open;             // fase abierta del pulso (0–1): más bajo = más áspero
+            public float sub;              // subarmónico 0–1
+            public float jitter, shimmer;  // irregularidad de periodo y de amplitud por ciclo
+            public float breath;           // ruido de aliento
+            public float drive;            // saturación
+            public float lowpass;          // corte final (Hz): lo grave domina, sin chirridos
         }
 
-        static float[] LurkerScreech()
+        static float[] BeastVoice(float seconds, System.Func<float, float> f0, System.Func<float, float> amp, BeastShape s, int seed)
         {
-            var b = Screech(1.5f, 820f, 0.137f * 7.3f, 9f, 1.35f, 0.7f, 23f, 3f, 0.6f);
-            var b2 = Screech(1.5f, 1210f, 0.71f, 6f, 1.2f, 0.85f, 31f, 2.5f, 0.3f);
-            Mix(b, b2, (int)(0.05f * SR), 0.6f);
-            Normalize(b);
-            return Reverb(b, 0.35f, 1.3f, 1.0f);
-        }
-
-        static float[] LurkerAttack()
-        {
-            var b = Screech(0.7f, 1100f, 1.31f, 11f, 1.5f, 0.9f, 37f, 4f, 0.8f);
-            Mix(b, Thump(0.3f, 70f, 45f, 0.08f, 1f, 3000f), 0, 0.7f);
-            Normalize(b);
-            return Reverb(b, 0.25f, 1f, 0.6f);
-        }
-
-        static float[] LurkerHurt()
-        {
-            var b = Screech(0.55f, 1400f, 0.77f, 7f, 1.1f, 0.55f, 41f, 3f, 0.5f);
-            Mix(b, Clicks(0.3f, 5, 2800f, 6f, 0.2f), 0, 0.5f);
-            Normalize(b);
-            return Reverb(b, 0.25f, 1f, 0.5f);
-        }
-
-        static float[] LurkerDeath()
-        {
-            var b = Screech(2.4f, 900f, 0.61f, 10f, 1.2f, 0.35f, 17f, 3.5f, 0.7f);
-            var lp = new LP();
-            for (int i = (int)(1.4f * SR); i < b.Length; i++)
-            {
-                float t = i / (float)SR;
-                float gurgle = lp.Process(Noise(), 300f) * (0.5f + 0.5f * Mathf.Sin(TAU * 9f * t)) * 1.5f;
-                b[i] += gurgle * Mathf.Clamp01((t - 1.4f) * 2f) * (1f - (t - 1.4f) / 1.0f);
-            }
-            Mix(b, Clicks(1.5f, 12, 2500f, 6f, 1.4f), (int)(0.6f * SR), 0.6f);
-            Normalize(b);
-            return Reverb(b, 0.35f, 1.3f, 1.2f);
-        }
-
-        static float[] LurkerGrowlLoop()
-        {
-            var b = Buf(4.2f);
-            var bp = new BP();
-            var bp2 = new BP();
-            float sub = 0f;
+            var b = Buf(seconds);
+            var r = new System.Random(seed);
+            float Rnd() => (float)r.NextDouble();
+            BP bp1 = new BP(), bp2 = new BP(), bp3 = new BP(), chest = new BP(), nb1 = new BP(), nb2 = new BP();
+            LP lp1 = new LP(), lp2 = new LP(), lp3 = new LP();
+            float phase = 0f, jit = 0f, cycleAmp = 1f, prevG = 0f;
+            int cycle = 0;
             for (int i = 0; i < b.Length; i++)
             {
                 float t = i / (float)SR;
-                float breath = 0.55f + 0.45f * Mathf.Sin(TAU * t / 1.4f);
-                float rasp = bp.Process(Noise() * (1f + 0.8f * Mathf.Sin(TAU * 37f * t)), 420f + 200f * breath, 2.5f);
-                float hiss = bp2.Process(Noise(), 2400f, 1.5f) * 0.25f;
-                sub += TAU * 46f / SR;
-                b[i] = Drive((rasp * 2.2f + hiss) * breath + Mathf.Sin(sub) * 0.25f * (0.6f + 0.4f * Mathf.Sin(TAU * 3f * t)), 2f);
+                float freq = Mathf.Max(20f, f0(t) * (1f + jit));
+                phase += freq / SR;
+                if (phase >= 1f)
+                {
+                    phase -= 1f;
+                    cycle++;
+                    jit = (Rnd() * 2f - 1f) * s.jitter;
+                    cycleAmp = (1f - s.shimmer * Rnd()) * ((cycle & 1) == 0 ? 1f : 1f - s.sub);
+                }
+                // Pulso glotal: sube en la fase abierta y cierra de golpe.
+                float g;
+                if (phase < s.open) g = 0.5f * (1f - Mathf.Cos(Mathf.PI * phase / s.open));
+                else if (phase < s.open * 1.4f) g = Mathf.Cos(0.5f * Mathf.PI * (phase - s.open) / (s.open * 0.4f));
+                else g = 0f;
+                float dg = (g - prevG) * SR / (freq * 6f); // derivada: el cierre da los armónicos
+                prevG = g;
+                float a = amp(t);
+                float src = (g * 0.6f + dg * 0.4f) * cycleAmp * a;
+                float noise = Noise() * s.breath * a;
+                float x = src + noise * 0.5f;
+                float y = bp1.Process(x, s.f1, 4.5f) * 1.0f + bp2.Process(x, s.f2, 6f) * 0.6f + bp3.Process(x, s.f3, 8f) * 0.25f
+                          + chest.Process(x, 105f, 1.4f) * 0.9f
+                          + (nb1.Process(noise, s.f1 * 1.3f, 2f) + nb2.Process(noise, s.f2 * 1.2f, 3f) * 0.6f) * 0.8f;
+                float driven = Drive(y * 2.5f, s.drive);
+                b[i] = lp3.Process(lp2.Process(lp1.Process(driven, s.lowpass), s.lowpass), s.lowpass * 1.4f);
             }
-            Normalize(b, 0.8f);
-            return MakeLoop(b, 0.6f);
+            Normalize(b, 0.9f);
+            return b;
+        }
+
+        /// <summary>Pasa-bajos de dos polos sobre todo el búfer: quita el siseo agudo del ruido (aliento, gorgoteo).</summary>
+        static float[] Darken(float[] b, float cutoff)
+        {
+            LP a = new LP(), c = new LP();
+            for (int i = 0; i < b.Length; i++) b[i] = c.Process(a.Process(b[i], cutoff), cutoff);
+            Normalize(b, 0.9f);
+            return b;
+        }
+
+        // Una garganta grande: formantes cerrados (gruñido, "ugh") y abiertos (rugido, "aah").
+        static readonly BeastShape Closed = new BeastShape { f1 = 260f, f2 = 560f, f3 = 1300f, open = 0.45f, sub = 0.55f, jitter = 0.06f, shimmer = 0.35f, breath = 0.22f, drive = 2f, lowpass = 700f };
+        static readonly BeastShape Open = new BeastShape { f1 = 450f, f2 = 880f, f3 = 1900f, open = 0.38f, sub = 0.45f, jitter = 0.05f, shimmer = 0.3f, breath = 0.3f, drive = 2.4f, lowpass = 1100f };
+
+        /// <summary>Resoplidos y gruñidos cortos al sospechar (antes eran clics).</summary>
+        static float[] LurkerClick(int v)
+        {
+            var b = Buf(0.9f + v * 0.1f);
+            int grunts = 1 + v % 3;
+            for (int k = 0; k < grunts; k++)
+            {
+                float len = Rand(0.16f, 0.3f);
+                float pitch = Rand(62f, 82f);
+                var g = BeastVoice(len, t => pitch * (1f - 0.25f * t / len), t => Env(t, 0.012f, len * 0.35f), Closed, 40 + v * 7 + k);
+                Mix(b, g, (int)((0.05f + k * Rand(0.22f, 0.3f)) * SR), 0.9f);
+            }
+            // Resoplido nasal (aire por la nariz) al final.
+            var snort = Buf(0.25f);
+            var nb = new BP();
+            for (int i = 0; i < snort.Length; i++) { float t = i / (float)SR; snort[i] = nb.Process(Noise(), 700f, 1.2f) * Env(t, 0.01f, 0.07f); }
+            Mix(b, snort, (int)((0.1f + grunts * 0.26f) * SR), 0.7f);
+            FadeEdges(b);
+            Darken(b, 900f);
+            return Reverb(b, 0.15f, 0.8f, 0.3f);
+        }
+
+        /// <summary>Rugido al verte: sube, se sostiene ronco y cae, con golpe de pecho al principio.</summary>
+        static float[] LurkerScreech()
+        {
+            float len = 1.7f;
+            var b = BeastVoice(len, t => t < 0.35f ? Mathf.Lerp(58f, 112f, t / 0.35f) : Mathf.Lerp(112f, 72f, (t - 0.35f) / (len - 0.35f)),
+                t => Mathf.Clamp01(t / 0.06f) * (t > len - 0.5f ? (len - t) / 0.5f : 1f), Open, 11);
+            var low = BeastVoice(len, t => t < 0.35f ? Mathf.Lerp(29f, 56f, t / 0.35f) : Mathf.Lerp(56f, 36f, (t - 0.35f) / (len - 0.35f)),
+                t => Mathf.Clamp01(t / 0.1f) * (t > len - 0.6f ? (len - t) / 0.6f : 1f), Closed, 12);
+            Mix(b, low, 0, 0.6f);
+            Mix(b, Thump(0.4f, 60f, 32f, 0.12f, 0.4f, 400f), 0, 0.9f);
+            Normalize(b);
+            return Reverb(b, 0.32f, 1.4f, 1.1f);
+        }
+
+        /// <summary>Zarpazo: ladrido corto y violento.</summary>
+        static float[] LurkerAttack()
+        {
+            float len = 0.6f;
+            var b = BeastVoice(len, t => Mathf.Lerp(125f, 70f, t / len), t => Env(t, 0.008f, 0.22f), Open, 21);
+            Mix(b, Thump(0.3f, 75f, 40f, 0.08f, 0.5f, 450f), 0, 0.8f);
+            Darken(b, 1100f);
+            return Reverb(b, 0.22f, 1f, 0.6f);
+        }
+
+        /// <summary>Golpeado: quejido gutural que se quiebra.</summary>
+        static float[] LurkerHurt()
+        {
+            float len = 0.5f;
+            var b = BeastVoice(len, t => t < 0.08f ? 140f : Mathf.Lerp(105f, 62f, (t - 0.08f) / (len - 0.08f)), t => Env(t, 0.005f, 0.2f), Open, 31);
+            Normalize(b);
+            return Reverb(b, 0.2f, 1f, 0.5f);
+        }
+
+        /// <summary>Muerte: gemido largo que baja, se ahoga en un gorgoteo y termina en aliento.</summary>
+        static float[] LurkerDeath()
+        {
+            float len = 2.6f;
+            var b = BeastVoice(len, t => Mathf.Lerp(96f, 38f, Mathf.Pow(t / len, 0.8f)) * (1f + 0.06f * Mathf.Sin(TAU * 9f * t) * Mathf.Clamp01((t - 1.2f) * 2f)),
+                t => Mathf.Clamp01(t / 0.05f) * Mathf.Clamp01((len - t) / 1f), Closed, 41);
+            var lp = new LP();
+            for (int i = (int)(1.3f * SR); i < b.Length; i++)
+            {
+                float t = i / (float)SR;
+                float gurgle = lp.Process(Noise(), 260f) * (0.5f + 0.5f * Mathf.Sin(TAU * 8f * t)) * 1.6f;
+                b[i] += gurgle * Mathf.Clamp01((t - 1.3f) * 2f) * (1f - (t - 1.3f) / (len - 1.3f));
+            }
+            Darken(b, 800f);
+            return Reverb(b, 0.3f, 1.3f, 1.2f);
+        }
+
+        /// <summary>Respiración-gruñido en bucle al patrullar: exhalación gruñida, inhalación ronca, pausa.</summary>
+        static float[] LurkerGrowlLoop()
+        {
+            float len = 4.6f;
+            var b = Buf(len);
+            // Exhalación gruñida (1.4 s) y una segunda más corta.
+            Mix(b, BeastVoice(1.4f, t => 52f + 6f * Mathf.Sin(TAU * 0.9f * t), t => Bell(t, 1.4f), Closed, 51), (int)(0.1f * SR), 1f);
+            Mix(b, BeastVoice(0.9f, t => 58f - 8f * t, t => Bell(t, 0.9f), Closed, 52), (int)(2.4f * SR), 0.8f);
+            // Inhalaciones: ruido ronco por la garganta.
+            var bp = new BP();
+            for (int i = 0; i < b.Length; i++)
+            {
+                float t = i / (float)SR;
+                float inhale = Bell(Mathf.Clamp(t - 1.6f, 0f, 0.6f), 0.6f) + Bell(Mathf.Clamp(t - 3.4f, 0f, 0.5f), 0.5f) * 0.8f;
+                b[i] += bp.Process(Noise(), 450f + 150f * inhale, 1.8f) * inhale * 0.5f;
+            }
+            Darken(b, 700f);
+            return MakeLoop(b, 0.5f);
+        }
+
+        /// <summary>Centroide espectral (Hz) de un búfer: QA de que la voz es grave. DFT ingenua sobre la ventana más fuerte.</summary>
+        public static float SpectralCentroid(float[] b)
+        {
+            const int n = 2048;
+            int start = 0;
+            double best = -1;
+            for (int s0 = 0; s0 + n < b.Length; s0 += n / 2)
+            {
+                double e = 0;
+                for (int i = 0; i < n; i++) e += b[s0 + i] * b[s0 + i];
+                if (e > best) { best = e; start = s0; }
+            }
+            double num = 0, den = 0;
+            for (int k = 1; k < n / 2; k++)
+            {
+                double re = 0, im = 0;
+                for (int i = 0; i < n && start + i < b.Length; i++)
+                {
+                    double w = 0.5 - 0.5 * System.Math.Cos(2 * System.Math.PI * i / (n - 1));
+                    double x = b[start + i] * w;
+                    double a = 2 * System.Math.PI * k * i / n;
+                    re += x * System.Math.Cos(a); im -= x * System.Math.Sin(a);
+                }
+                double mag = System.Math.Sqrt(re * re + im * im);
+                num += mag * k * SR / (double)n; den += mag;
+            }
+            return (float)(num / System.Math.Max(den, 1e-9));
+        }
+
+        /// <summary>QA: centroides de las voces del Lurker (deben quedar graves, bajo ~900 Hz).</summary>
+        public static string LurkerVoiceReport()
+        {
+            rng = new System.Random(1);
+            return "growl " + SpectralCentroid(LurkerGrowlLoop()).ToString("0") + " Hz, roar " + SpectralCentroid(LurkerScreech()).ToString("0")
+                + " Hz, attack " + SpectralCentroid(LurkerAttack()).ToString("0") + " Hz, hurt " + SpectralCentroid(LurkerHurt()).ToString("0")
+                + " Hz, death " + SpectralCentroid(LurkerDeath()).ToString("0") + " Hz, grunt " + SpectralCentroid(LurkerClick(1)).ToString("0") + " Hz";
         }
 
         static float[] Hurt()

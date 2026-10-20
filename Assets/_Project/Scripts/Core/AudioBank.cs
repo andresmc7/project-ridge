@@ -27,6 +27,14 @@ namespace ProjectRidge.Core
         [Header("Jugador")]
         public AudioClip[] stepsDirt;
         public AudioClip[] stepsWood;
+        [Tooltip("Pisadas reales (Kenney, CC0): pasto y tierra del bosque.")]
+        public AudioClip[] stepsGrass;
+        [Tooltip("Golpes de cuerpo (garrote que conecta, zarpazo que te alcanza).")]
+        public AudioClip[] bodyHits;
+        [Tooltip("Caídas y golpes sordos (cuerpo que cae, escombros pesados).")]
+        public AudioClip[] bodyFalls;
+        public AudioClip[] debrisWood;
+        public AudioClip[] debrisMetal;
         public AudioClip hurt;
         public AudioClip death;
         public AudioClip heal;

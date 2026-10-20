@@ -12,6 +12,8 @@ namespace ProjectRidge.AI
         Chase,
         Attack,
         Stunned,
-        Dead
+        Dead,
+        /// <summary>Atraído por una bengala de mano: va hacia ella y se queda mirándola mientras arde.</summary>
+        Lured
     }
 }

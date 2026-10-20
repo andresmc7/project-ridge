@@ -31,6 +31,19 @@ namespace ProjectRidge.AI
         [Tooltip("Con esta sospecha y viéndote, pasa a Chase.")]
         [Range(0f, 1f)] public float chaseThreshold = 1f;
 
+        [Header("Escondido")]
+        [Tooltip("Escondido en el pasto, si pasa a esta distancia (plana) te nota igual: el pasto no te salva si te pisa.")]
+        [Min(0f)] public float hiddenNoticeRadius = 1.4f;
+        [Tooltip("Sospecha por segundo dentro de ese radio estando escondido (el doble justo encima).")]
+        [Min(0f)] public float hiddenNoticeGain = 1.2f;
+        [Tooltip("Diferencia de altura máxima para que cuente (no te nota desde otra terraza).")]
+        [Min(0f)] public float hiddenNoticeHeight = 1.2f;
+
+        [Header("Bengala de mano")]
+        [Tooltip("Se queda mirando la bengala a esta distancia.")]
+        [Min(0f)] public float lureStandOff = 2f;
+        [Min(0f)] public float lureSpeed = 2f;
+
         [Header("Oído")]
         [Tooltip("Multiplica el radio de los ruidos.")]
         [Min(0f)] public float hearingSensitivity = 1f;
@@ -77,6 +90,16 @@ namespace ProjectRidge.AI
         [Min(0f)] public float attackDamage = 35f;
         [Tooltip("Ángulo frontal en el que el golpe conecta.")]
         [Range(10f, 360f)] public float attackArc = 100f;
+        [Tooltip("Se abalanza estos metros durante el golpe (no se queda clavado en el sitio).")]
+        [Min(0f)] public float attackLunge = 1.1f;
+        [Tooltip("Empujón al papá al conectar (m/s).")]
+        [Min(0f)] public float attackKnockback = 5.5f;
+        [Tooltip("Fuerza de la reacción física del papá al recibir el zarpazo.")]
+        [Min(0f)] public float attackHitReaction = 1.6f;
+        [Min(0f)] public float attackCameraKick = 1.5f;
+        [Tooltip("Pausa del juego al conectar (segundos reales).")]
+        [Min(0f)] public float attackHitStop = 0.07f;
+        [Range(0f, 1f)] public float attackHitStopScale = 0.05f;
 
         [Header("Vida")]
         [Min(1f)] public float maxHealth = 100f;
