@@ -2,6 +2,20 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-21 — POLISH PASS P7: animación completa (arranques, frenadas, pivote, giro en el sitio, IK de pies)
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P7")` → **7/7 PASS**. Regresiones: `P0` **8/8** (D2 ahora mide el giro en movimiento, ver DECISIONS), `P1` **12/12**. Capturas: `P7_after_start_025x.png` y `P7_after_stop_025x.png` (tiras a 0.25×), `P7_after_bridge.png`, `P7_after_tense.png`.
+
+- **Sin Mixamo** (no hay `_incoming/mixamo/`): clips de **100STYLE** (CC BY 4.0) recortados con `Tools/Blender/mine_100style.py` (busca arranques, frenadas, giros y pivotes en la trayectoria de la cadera, dentro del rango válido de `Frame_Cuts.csv`) y convertidos con `Tools/Blender/convert_100style.py`. Importados como Humanoid con mapa de huesos explícito (`Style100Import`); la rotación del 4.º hueso de columna se suma al 3.º en Blender para que Unity no la descarte (0 advertencias de importación).
+- **Arranque y frenadas** (probado): `WalkStart`, `WalkStop`, `RunStop`; mientras duran, el avance sale del root motion del clip (`PlayerController.DrivenSpeed`), así los pies no patinan. Frenada caminando: 0.32 m. Arranque al trote o al sprint: inclinación (la alternativa del spec), no hay clip limpio.
+- **Pivote** (probado): media vuelta corriendo → clip `Pivot`; el giro lo sigue haciendo el controlador a 540°/s.
+- **Giro en el sitio** (probado): parado y con > 70° pedidos, el controlador gira en 0.45 s (90°) a 0.65 s (180°) sin avanzar (0.00 m) mientras el clip da los pasos hacia ese lado (`TurnLeft`/`TurnRight`, lado detectado por la velocidad angular de la raíz).
+- **Inclinación en curvas** (probado): hacia dentro, proporcional a la velocidad de giro, máx. 7° (medido 4.4° trotando en círculo).
+- **IK de pies** (probado en el puente): tobillo a 0.2 cm de su altura sobre la tabla y punta del pie apoyada (0.2 cm); la cadera baja 5 cm. Rayo al suelo por pie, alineado con la normal, apagado en el aire del paso.
+- **Idle con vida** (probado): tras 6 s quieto mira atrás (`LookAround`, estilo "Followed"); con un Lurker a ≤ 14 m, idle tenso encorvado (estilo "BentForward").
+- Velocidades naturales de los clips UAL re-medidas en el papá nuevo: 0.91 / 2.51 / 3.53 / 0.67 m/s (tabla: 0.93 / 2.60 / 3.62 / 0.69); diferencia ≤ 3.5%, las escalas siguen dentro de 0.85–1.1×.
+- Revisión a 0.25× (tiras): el arranque y la frenada se ven sin patinar; en la tira del arranque el papá se agacha solo al rozar la hierba (sigilo automático de P1, correcto).
+- `UNVERIFIED`: los 60 s de juego seguidos a 0.25× de la sección 4 (se revisaron las transiciones nuevas por separado, no una partida entera); IK de mano izquierda con Animation Rigging (la linterna sigue con la capa de brazo de UAL, sin el paquete); recoger con IK de mano al objeto y alineación de 0.2 s antes de registrar/usar la radio; clip de golpe de bate (sigue el de espada de UAL); convulsión del Lurker aturdido (sigue la capa procedural).
+
 ## 2026-10-21 — POLISH PASS P6: personajes nuevos (papá MakeHuman, Lurker húmedo)
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P6")` → **5/5 PASS**; regresión `PolishTests.Run("P3")` → **6/6 PASS** (papá 10.0–11.5% del alto, sombra 55%, luces 3.4%). Capturas: `P6_before.png`, `P6_before_pose.png`, `P6_after.png`, `P6_after_pose.png`, `P6_after_pose_front.png`, `P6_after_lurker.png`, `P6_after_lurker_side.png`, `compare_P6.png`.
 

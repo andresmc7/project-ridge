@@ -153,7 +153,8 @@ namespace ProjectRidge.EditorTools
             if (!body.TryGetComponent(out Animator anim)) anim = body.AddComponent<Animator>();
             anim.avatar = AssetDatabase.LoadAllAssetsAtPath(MakeHumanImport.Body).OfType<Avatar>().First();
             anim.runtimeAnimatorController = ctrl;
-            anim.applyRootMotion = false;
+            // FatherAnimator.OnAnimatorMove recibe el avance de arranques y frenadas; con ese método no se mueve el transform.
+            anim.applyRootMotion = true;
             anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             // Frente del cuerpo en la pose de enlace (de talón a punta del pie): ahí se colocan mochila y funda.
             var footL = anim.GetBoneTransform(HumanBodyBones.LeftFoot);
@@ -205,6 +206,10 @@ namespace ProjectRidge.EditorTools
             so.FindProperty("clubSheath").objectReferenceValue = sheath;
             so.FindProperty("flareGun").objectReferenceValue = gun;
             so.FindProperty("torchProp").objectReferenceValue = torch;
+            const string animCfgPath = "Assets/_Project/Data/FatherAnimationConfig.asset";
+            var animCfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.FatherAnimationConfig>(animCfgPath);
+            if (animCfg == null) { animCfg = ScriptableObject.CreateInstance<ProjectRidge.Player.FatherAnimationConfig>(); AssetDatabase.CreateAsset(animCfg, animCfgPath); }
+            so.FindProperty("animConfig").objectReferenceValue = animCfg;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // La bengala sale de la pistola.
@@ -650,6 +655,7 @@ namespace ProjectRidge.EditorTools
             }, clips);
             var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", mv.crouchSpeed, ClipRate("Crouch_Fwd_Loop", mv.crouchSpeed)) }, clips);
             sm.defaultState = loco;
+            BuildFatherTransitions(c, sm, loco, clips);
             var toCrouch = loco.AddTransition(crouch); toCrouch.AddCondition(AnimatorConditionMode.If, 0, "Crouch"); toCrouch.duration = 0.25f; toCrouch.hasExitTime = false;
             var toStand = crouch.AddTransition(loco); toStand.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouch"); toStand.duration = 0.25f; toStand.hasExitTime = false;
 
@@ -690,6 +696,71 @@ namespace ProjectRidge.EditorTools
             torch.motion = clips["Idle_Torch_Loop"];
             EditorUtility.SetDirty(c);
             return c;
+        }
+
+        /// <summary>
+        /// POLISH_PASS 3.7 con clips de 100STYLE (CC BY 4.0): idle que se tensa con un Lurker cerca, arranque y frenadas
+        /// (avance por root motion, estados "Driven"), giro en el sitio a cada lado (velocidad = duración del giro del
+        /// controlador), pivote de 180° en carrera y mirar atrás tras 6 s quieto. Los dispara FatherAnimator.
+        /// </summary>
+        static void BuildFatherTransitions(AnimatorController c, AnimatorStateMachine sm, AnimatorState loco, Dictionary<string, AnimationClip> clips)
+        {
+            if (((ModelImporter)AssetImporter.GetAtPath(Style100Import.Root + "/S100_TurnA.fbx")).animationType != ModelImporterAnimationType.Human)
+                Style100Import.Configure();
+            foreach (var p in new[] { "Start", "StopWalk", "StopRun", "TurnLeft", "TurnRight", "Pivot", "LookAround", "Resume" })
+                c.AddParameter(p, AnimatorControllerParameterType.Trigger);
+            c.AddParameter(new AnimatorControllerParameter { name = "TurnRate", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
+            c.AddParameter("Tension", AnimatorControllerParameterType.Float);
+
+            // Idle: normal ↔ tenso (encorvado) según la amenaza.
+            var idle = new BlendTree { name = "Idle", blendParameter = "Tension", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
+            AssetDatabase.AddObjectToAsset(idle, c);
+            idle.AddChild(clips["Idle_Loop"], 0f);
+            idle.AddChild(Style100Import.Clip("S100_TenseIdle"), 1f);
+            var tree = (BlendTree)loco.motion;
+            var children = tree.children;
+            children[0].motion = idle;
+            tree.children = children;
+            loco.iKOnFeet = true;
+
+            AnimatorState S(string name, string clip, string tag)
+            {
+                var s = Action(sm, name, Style100Import.Clip(clip), 1f);
+                s.tag = tag;
+                s.iKOnFeet = true;
+                return s;
+            }
+            void On(AnimatorState from, AnimatorState to, string trigger, float duration)
+            {
+                var t = from.AddTransition(to);
+                t.AddCondition(AnimatorConditionMode.If, 0f, trigger);
+                t.hasExitTime = false;
+                t.duration = duration;
+            }
+
+            var start = S("WalkStart", "S100_WalkStart", "Driven");
+            var stopWalk = S("WalkStop", "S100_WalkStop", "DrivenStop");
+            var stopRun = S("RunStop", "S100_RunStop", "DrivenStop");
+            var pivot = S("Pivot", "S100_Pivot", "Driven");
+            var look = S("LookAround", "S100_LookAround", "");
+            On(loco, start, "Start", 0.12f); Back(start, loco, 0.7f, 0.3f); On(start, stopWalk, "StopWalk", 0.15f);
+            On(loco, stopWalk, "StopWalk", 0.15f); Back(stopWalk, loco, 0.92f, 0.25f); On(stopWalk, loco, "Resume", 0.15f);
+            On(loco, stopRun, "StopRun", 0.12f); Back(stopRun, loco, 0.92f, 0.25f); On(stopRun, loco, "Resume", 0.15f);
+            On(loco, pivot, "Pivot", 0.1f); Back(pivot, loco, 0.8f, 0.2f);
+            On(loco, look, "LookAround", 0.35f); Back(look, loco, 0.92f, 0.4f); On(look, loco, "Resume", 0.2f);
+
+            // Giro en el sitio: el clip que gira a la derecha (velocidad angular de la raíz positiva en Unity) va a TurnRight.
+            var a = Style100Import.Clip("S100_TurnA");
+            var b = Style100Import.Clip("S100_TurnB");
+            bool aIsRight = a.averageAngularSpeed > b.averageAngularSpeed;
+            foreach (var (name, clip) in new[] { ("TurnRight", aIsRight ? "S100_TurnA" : "S100_TurnB"), ("TurnLeft", aIsRight ? "S100_TurnB" : "S100_TurnA") })
+            {
+                var turn = S(name, clip, "");
+                turn.speedParameter = "TurnRate";
+                turn.speedParameterActive = true;
+                On(loco, turn, name, 0.1f);
+                Back(turn, loco, 0.85f, 0.2f);
+            }
         }
 
         static AnimatorController LurkerController()

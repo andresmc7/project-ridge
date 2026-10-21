@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b609d1b6d011354e94dfc02831b767a, type: 3}
+  m_Name: FatherAnimationConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Player.FatherAnimationConfig
+  restSpeed: 0.15
+  stopMinSpeed: 0.5
+  runStopSpeed: 1.9
+  pivotAngle: 150
+  pivotMinSpeed: 1.9
+  pivotCooldown: 0.8
+  turnClipTurnTime: 0.6
+  minTurnRate: 0.85
+  maxTurnRate: 1.6
+  lookAroundAfter: 6
+  lookAroundRepeat: 9
+  tenseRadius: 14
+  tenseBlendTime: 0.8
+  curveLeanPerDegPerSec: 0.02
+  maxCurveLean: 7
+  curveLeanSmoothing: 8
+  curveLeanMinSpeed: 0.6
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294959355
+  footRayUp: 0.5
+  footRayDown: 1.1
+  ankleHeight: 0.072
+  footLiftFade: 0.12
+  maxHipDrop: 0.35
+  hipSmoothing: 12

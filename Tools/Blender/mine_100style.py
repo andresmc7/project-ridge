@@ -119,14 +119,30 @@ def segments(name, pos, yaw, dt):
     return out
 
 
+def frame_cuts(root):
+    """Rango válido de cada toma (fuera de él el actor entra, sale o hace la pose T de calibración)."""
+    cuts = {}
+    with open(os.path.join(root, "Frame_Cuts.csv"), encoding="utf-8") as f:
+        header = f.readline().strip().split(",")
+        for line in f:
+            row = line.strip().split(",")
+            for k in range(1, len(header), 2):
+                code = header[k].replace("_START", "")
+                if row[k] != "N/A":
+                    cuts[row[0] + "_" + code] = (int(row[k]), int(row[k + 1]))
+    return cuts
+
+
 def main():
     root, out_path = sys.argv[1], sys.argv[2]
+    cuts = frame_cuts(root)
     result = []
     for take in sys.argv[3:]:
         style = take.split("_")[0]
         path = os.path.join(root, style, take + ".bvh")
         pos, yaw, dt = load_root(path)
-        segs = segments(take, pos, yaw, dt)
+        lo, hi = cuts.get(take, (0, len(pos) - 1))
+        segs = [s for s in segments(take, pos, yaw, dt) if s["start"] >= lo and s["end"] <= hi]
         result.extend(segs)
         kinds = {}
         for s in segs:

@@ -1,0 +1,4 @@
+100STYLE Dataset — Ian Mason, Sebastian Starke, Taku Komura.
+https://zenodo.org/records/8127870 — Creative Commons Attribution 4.0 International (CC BY 4.0).
+Paper: "Real-Time Style Modelling of Human Locomotion via Feature-Wise Transformations and Local Motion Phases" (2022).
+Changes: segments cut from the original BVH takes and converted to FBX with Tools/Blender/convert_100style.py.

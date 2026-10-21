@@ -51,6 +51,7 @@ namespace ProjectRidge.EditorTools
                 "P4" => P4(),
                 "P5" => P5(),
                 "P6" => P6(),
+                "P7" => P7(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -214,11 +215,10 @@ namespace ProjectRidge.EditorTools
             float runSpeed = player.CurrentSpeed;
             bool clubOnBack = club != null && club.gameObject.activeInHierarchy && !club.IsChildOf(handR);
             Shot("P0_after_run");
-            Stick(Vector2.zero);
             Check("D4 club sheathed while moving", clubOnBack && !combat.ClubInHand, "club parent " + (club != null ? club.parent.name : "none") + ", speed " + runSpeed.ToString("0.00"));
-            yield return 0.5f;
 
-            // D2: giro de 180° en ~0.33 s (540°/s), no instantáneo.
+            // D2: giro de 180° en movimiento en ~0.33 s (540°/s), no instantáneo. Parado, el giro grande es en el sitio
+            // con pasos (P7, 3.7) y dura más a propósito.
             Stick(new Vector2(-1f, 0f));
             float t0 = Time.time, turned = 0f;
             Vector3 f0 = player.transform.forward;
@@ -451,19 +451,22 @@ namespace ProjectRidge.EditorTools
             player.FaceTowards(lurker.transform.position);
             if (items.Active != stone) Tap(Key.Tab);
             Vector3 aim = items.SmartTarget();
+            // Más allá de donde estaba el Lurker al lanzar (después camina hacia el ruido de la piedra).
+            Vector3 lurkerAtThrow = lurker.transform.position, playerAtThrow = player.transform.position;
             int stonesBefore = inv.Count(stone);
             Tap(Key.Q);
             yield return 1.5f;
-            float beyond = Vector3.Distance(Flat(aim), Flat(player.transform.position)) - Vector3.Distance(Flat(lurker.transform.position), Flat(player.transform.position));
+            float beyond = Vector3.Distance(Flat(aim), Flat(playerAtThrow)) - Vector3.Distance(Flat(lurkerAtThrow), Flat(playerAtThrow));
             Check("OBJECT: stone to smart target", inv.Count(stone) == stonesBefore - 1 && beyond > 1f, "stones " + stonesBefore + "→" + inv.Count(stone) + ", lands " + beyond.ToString("0.0") + " m beyond the lurker");
             inv.Add(flare, 1);
             Tap(Key.Tab);
             yield return 0.2f;
             bool flareActive = items.Active == flare;
+            int flaresBefore = inv.Count(flare); // P0 en la misma sesión pudo dejar una bengala recogida
             Tap(Key.Q);
             yield return 1.5f;
-            Check("OBJECT: cycle + flare gun", flareActive && inv.Count(flare) == 0 && Object.FindObjectsByType<FlareProjectile>(FindObjectsSortMode.None).Length > 0,
-                  "flare active " + flareActive + ", flares left " + inv.Count(flare));
+            Check("OBJECT: cycle + flare gun", flareActive && inv.Count(flare) == flaresBefore - 1 && Object.FindObjectsByType<FlareProjectile>(FindObjectsSortMode.None).Length > 0,
+                  "flare active " + flareActive + ", flares " + flaresBefore + "→" + inv.Count(flare));
             Shot("P1_after");
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
         }
@@ -662,6 +665,213 @@ namespace ProjectRidge.EditorTools
             while (Time.time < limit) { maxYaw = Mathf.Max(maxYaw, Mathf.Abs(lanim.HeadYaw)); yield return null; }
             Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side");
             player.GetComponent<PlayerHealth>().Restore();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        // ------------------------------------------------------------------ P7
+
+        static Animator fatherAnim;
+        static readonly HashSet<string> seenStates = new HashSet<string>();
+        static readonly string[] P7States = { "Locomotion", "WalkStart", "WalkStop", "RunStop", "Pivot", "TurnLeft", "TurnRight", "LookAround" };
+
+        /// <summary>Anota los estados de la capa base que aparecen (actual y siguiente en una transición).</summary>
+        static void NoteStates()
+        {
+            var cur = fatherAnim.GetCurrentAnimatorStateInfo(0);
+            var next = fatherAnim.GetNextAnimatorStateInfo(0);
+            foreach (var n in P7States)
+                if (cur.IsName(n) || (fatherAnim.IsInTransition(0) && next.IsName(n))) seenStates.Add(n);
+        }
+
+        static IEnumerator Watch(float seconds)
+        {
+            float end = Time.time + seconds;
+            while (Time.time < end) { NoteStates(); yield return null; }
+        }
+
+        /// <summary>Cuadro cercano del papá (cámara propia de lado, sin el HUD) para revisar la animación a 0.25x.</summary>
+        static Texture2D CloseFrame(int size)
+        {
+            var go = new GameObject("P7Cam");
+            var cam = go.AddComponent<Camera>();
+            cam.fieldOfView = 30f;
+            Vector3 c = player.transform.position + Vector3.up * 0.95f;
+            Vector3 eye = c + Quaternion.Euler(0f, 90f, 0f) * player.transform.forward * 4.2f + Vector3.up * 0.6f;
+            go.transform.SetPositionAndRotation(eye, Quaternion.LookRotation(c - eye));
+            var rt = RenderTexture.GetTemporary(size, size, 24, RenderTextureFormat.ARGB32);
+            cam.targetTexture = rt;
+            cam.Render();
+            var active = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(size, size, TextureFormat.RGB24, false);
+            tex.ReadPixels(new Rect(0, 0, size, size), 0, 0);
+            tex.Apply();
+            RenderTexture.active = active;
+            cam.targetTexture = null;
+            RenderTexture.ReleaseTemporary(rt);
+            Object.DestroyImmediate(go);
+            return tex;
+        }
+
+        static void SaveStrip(List<Texture2D> frames, string name)
+        {
+            int s = frames[0].width;
+            var strip = new Texture2D(s * frames.Count, s, TextureFormat.RGB24, false);
+            for (int i = 0; i < frames.Count; i++) { strip.SetPixels(i * s, 0, s, s, frames[i].GetPixels()); Object.DestroyImmediate(frames[i]); }
+            strip.Apply();
+            System.IO.File.WriteAllBytes(ProgressDir + name + ".png", strip.EncodeToPNG());
+            Object.DestroyImmediate(strip);
+            frames.Clear();
+        }
+
+        /// <summary>Altura de la articulación de la punta del pie (ball) sobre el suelo en el idle del papá (medida: 0.7 cm).</summary>
+        const float ToeHeight = 0.007f;
+
+        static IEnumerator P7()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            fatherAnim = player.transform.Find("Visual").GetComponent<Animator>();
+            var fa = fatherAnim.GetComponent<FatherAnimator>();
+            var cfg = AssetDatabase.LoadAssetAtPath<FatherAnimationConfig>("Assets/_Project/Data/FatherAnimationConfig.asset");
+            float walkTilt = (player.Config.sneakThreshold + player.Config.jogThreshold) * 0.5f;
+
+            // Arranque y frenada caminando (a 0.25x, con tira de cuadros para revisar).
+            Teleport(Ground(-54f, 0f));
+            yield return 1.5f;
+            seenStates.Clear();
+            Time.timeScale = 0.25f;
+            var frames = new List<Texture2D>();
+            Stick(new Vector2(walkTilt, 0f));
+            bool driven = false;
+            float t0 = Time.time, nextFrame = 0f;
+            while (Time.time - t0 < 1.6f)
+            {
+                NoteStates();
+                driven |= player.DrivenSpeed.HasValue;
+                if (Time.time - t0 >= nextFrame && frames.Count < 6) { frames.Add(CloseFrame(320)); nextFrame += 0.25f; }
+                yield return null;
+            }
+            SaveStrip(frames, "P7_after_start_025x");
+            bool sawStart = seenStates.Contains("WalkStart");
+            seenStates.Clear();
+            Stick(Vector2.zero);
+            Vector3 stopFrom = player.transform.position;
+            t0 = Time.time; nextFrame = 0f;
+            while (Time.time - t0 < 1.6f)
+            {
+                NoteStates();
+                if (Time.time - t0 >= nextFrame && frames.Count < 6) { frames.Add(CloseFrame(320)); nextFrame += 0.27f; }
+                yield return null;
+            }
+            SaveStrip(frames, "P7_after_stop_025x");
+            Time.timeScale = 1f;
+            float stopDist = Vector3.Distance(Flat(stopFrom), Flat(player.transform.position));
+            Check("walk start and stop clips", sawStart && seenStates.Contains("WalkStop") && driven && player.CurrentSpeed < 0.05f,
+                  "start " + sawStart + " (root-motion speed " + driven + "), stop " + seenStates.Contains("WalkStop") + ", stopped in " + stopDist.ToString("0.00") + " m");
+
+            // Frenada en carrera.
+            yield return 1f;
+            Stick(new Vector2(1f, 0f));
+            yield return 2f;
+            seenStates.Clear();
+            Stick(Vector2.zero);
+            yield return Watch(1.2f);
+            Check("run stop clip", seenStates.Contains("RunStop"), "states " + string.Join(",", seenStates));
+
+            // Pivote: trotando a la derecha, media vuelta.
+            Teleport(Ground(-56f, 0f));
+            yield return 1f;
+            Stick(new Vector2(1f, 0f));
+            yield return 1.5f;
+            seenStates.Clear();
+            Stick(new Vector2(-1f, 0f));
+            yield return Watch(0.8f);
+            bool pivot = seenStates.Contains("Pivot");
+            string pivotStates = string.Join(",", seenStates);
+            Stick(Vector2.zero);
+            yield return 1.5f;
+            Check("pivot on a 180° reversal while running", pivot, "states " + pivotStates);
+
+            // Giro en el sitio a cada lado: pasos sin avanzar y luego camina.
+            var sides = new List<string>();
+            float maxSlide = 0f;
+            foreach (var dir in new[] { new Vector2(0f, walkTilt), new Vector2(0f, -walkTilt) })
+            {
+                Teleport(Ground(-54f, 0f));
+                player.transform.rotation = Quaternion.LookRotation(Vector3.right);
+                yield return 1.2f;
+                seenStates.Clear();
+                Vector3 from = player.transform.position;
+                Stick(dir);
+                float limit = Time.time + 1.5f;
+                while (Time.time < limit)
+                {
+                    NoteStates();
+                    if (player.TurningInPlace) maxSlide = Mathf.Max(maxSlide, Vector3.Distance(Flat(from), Flat(player.transform.position)));
+                    yield return null;
+                }
+                if (seenStates.Contains("TurnLeft")) sides.Add("left");
+                if (seenStates.Contains("TurnRight")) sides.Add("right");
+                Stick(Vector2.zero);
+                yield return 1f;
+            }
+            Check("turn in place both ways (steps, no sliding)", sides.Contains("left") && sides.Contains("right") && maxSlide < 0.15f,
+                  "sides " + string.Join("+", sides) + ", moved " + maxSlide.ToString("0.00") + " m while turning");
+
+            // Inclinación en curva: trotando en círculo hacia la derecha.
+            Teleport(Ground(-55f, 0f));
+            yield return 1f;
+            float maxLean = 0f, signed = 0f;
+            float a0 = Time.time;
+            while (Time.time - a0 < 2.5f)
+            {
+                float a = (Time.time - a0) * 2.2f;
+                Stick(new Vector2(Mathf.Cos(-a), Mathf.Sin(-a)) * 0.95f);
+                if (Mathf.Abs(fa.CurveLean) > maxLean) { maxLean = Mathf.Abs(fa.CurveLean); signed = fa.CurveLean; }
+                yield return null;
+            }
+            Stick(Vector2.zero);
+            yield return 1.5f;
+            Check("leans into curves, max 7°", maxLean > 2f && maxLean <= cfg.maxCurveLean + 0.01f && signed > 0f,
+                  "max lean " + signed.ToString("0.0") + "° turning right");
+
+            // IK de pies en el puente: ningún pie flota ni se hunde.
+            var bridge = GameObject.Find("WoodenBridge");
+            Teleport(bridge.transform.position + Vector3.up * 1.2f);
+            yield return 2f;
+            // Tobillo a su altura sobre la tabla y punta del pie (ball) apoyada: ni flota ni atraviesa.
+            float worst = 0f, worstToe = 0f;
+            foreach (var (foot, toe) in new[] { (HumanBodyBones.LeftFoot, HumanBodyBones.LeftToes), (HumanBodyBones.RightFoot, HumanBodyBones.RightToes) })
+            {
+                var f = fatherAnim.GetBoneTransform(foot);
+                var t = fatherAnim.GetBoneTransform(toe);
+                if (Physics.Raycast(f.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 1.5f, cfg.groundMask, QueryTriggerInteraction.Ignore))
+                    worst = Mathf.Max(worst, Mathf.Abs(f.position.y - hit.point.y - cfg.ankleHeight));
+                else worst = 9f;
+                if (Physics.Raycast(t.position + Vector3.up * 0.5f, Vector3.down, out RaycastHit th, 1.5f, cfg.groundMask, QueryTriggerInteraction.Ignore))
+                    worstToe = Mathf.Max(worstToe, Mathf.Abs(t.position.y - th.point.y - ToeHeight));
+                else worstToe = 9f;
+            }
+            Shot("P7_after_bridge");
+            Check("foot IK on the bridge", worst < 0.04f && worstToe < 0.05f, "worst ankle error " + (worst * 100f).ToString("0.0") + " cm, worst toe error " + (worstToe * 100f).ToString("0.0")
+                  + " cm, hip " + (fa.HipOffset * 100f).ToString("0.0") + " cm, on " + bridge.name);
+
+            // Idle con vida: quieto más de 6 s mira atrás; con un Lurker cerca, idle tenso.
+            Teleport(Ground(-54f, 0f));
+            seenStates.Clear();
+            yield return Watch(cfg.lookAroundAfter + 1.5f);
+            bool looked = seenStates.Contains("LookAround");
+            var lurker = Object.FindFirstObjectByType<EnemyController>(FindObjectsInactive.Include);
+            lurker.gameObject.SetActive(true);
+            lurker.Perception.Suppress(9999f);
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-46f, 2f));
+            yield return cfg.tenseBlendTime + 0.6f;
+            float tense = fa.Tension;
+            Shot("P7_after_tense");
+            lurker.gameObject.SetActive(false);
+            Check("idle looks around after 6 s; tense with a lurker near", looked && tense > 0.95f, "looked around " + looked + ", tension " + tense.ToString("0.00"));
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
         }
 

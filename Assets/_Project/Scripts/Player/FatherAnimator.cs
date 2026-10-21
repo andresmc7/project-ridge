@@ -27,6 +27,8 @@ namespace ProjectRidge.Player
         [SerializeField] private Transform clubSheath;
         [SerializeField] private GameObject flareGun;
         [SerializeField] private GameObject torchProp;
+        [Tooltip("Arranques, frenadas, pivote, idle con vida, inclinación en curvas e IK de pies.")]
+        [SerializeField] private FatherAnimationConfig animConfig;
 
         [Header("Ajustes")]
         [Tooltip("Inclinación hacia abajo de la linterna (grados).")]
@@ -59,6 +61,28 @@ namespace ProjectRidge.Player
         private Quaternion clubHandRot;
         private bool clubOnBack;
         private float lastSpeed, lean;
+        private bool hadInput, startArmed;
+        private float idleTime, nextLookAround, pivotReady, tension;
+        private float lastYaw, curveLean, hipOffset;
+
+        /// <summary>Inclinación lateral actual por la curva (°, positiva hacia la derecha).</summary>
+        public float CurveLean => curveLean;
+        /// <summary>Cuánto bajó la cadera el IK de pies este cuadro (m, negativo = abajo).</summary>
+        public float HipOffset => hipOffset;
+        /// <summary>0 = idle normal, 1 = idle tenso (amenaza cerca).</summary>
+        public float Tension => tension;
+
+        private static readonly int StartId = Animator.StringToHash("Start");
+        private static readonly int StopWalkId = Animator.StringToHash("StopWalk");
+        private static readonly int StopRunId = Animator.StringToHash("StopRun");
+        private static readonly int TurnLeftId = Animator.StringToHash("TurnLeft");
+        private static readonly int TurnRightId = Animator.StringToHash("TurnRight");
+        private static readonly int PivotId = Animator.StringToHash("Pivot");
+        private static readonly int LookAroundId = Animator.StringToHash("LookAround");
+        private static readonly int ResumeId = Animator.StringToHash("Resume");
+        private static readonly int TensionId = Animator.StringToHash("Tension");
+        private static readonly int TurnRateId = Animator.StringToHash("TurnRate");
+        private static readonly int[] Transitions = { StartId, StopWalkId, StopRunId, TurnLeftId, TurnRightId, PivotId, LookAroundId, ResumeId };
 
         private static readonly int SpeedId = Animator.StringToHash("Speed");
         private static readonly int CrouchId = Animator.StringToHash("Crouch");
@@ -97,6 +121,7 @@ namespace ProjectRidge.Player
             health.Damaged += OnDamaged;
             interactor.Interacted += OnInteracted;
             if (healing != null) healing.Healed += OnHealed;
+            controller.StandingTurnStarted += OnStandingTurn;
         }
 
         private void OnDisable()
@@ -106,8 +131,92 @@ namespace ProjectRidge.Player
             health.Damaged -= OnDamaged;
             interactor.Interacted -= OnInteracted;
             if (healing != null) healing.Healed -= OnHealed;
+            controller.StandingTurnStarted -= OnStandingTurn;
             controller.ActionLocked = false;
+            controller.DrivenSpeed = null;
         }
+
+        /// <summary>Giro en el sitio: clip de pasos hacia ese lado, a la velocidad que dura el giro del controlador.</summary>
+        private void OnStandingTurn(float angle, float duration)
+        {
+            if (animConfig == null) return;
+            animator.SetFloat(TurnRateId, Mathf.Clamp(animConfig.turnClipTurnTime / duration, animConfig.minTurnRate, animConfig.maxTurnRate));
+            Fire(angle > 0f ? TurnRightId : TurnLeftId);
+        }
+
+        /// <summary>Dispara una transición de locomoción y descarta las demás pendientes (no se disparan tarde).</summary>
+        private void Fire(int trigger)
+        {
+            foreach (int t in Transitions) if (t != trigger) animator.ResetTrigger(t);
+            animator.SetTrigger(trigger);
+        }
+
+        /// <summary>
+        /// Arranques y frenadas (clips de 100STYLE), pivote en carrera, mirar alrededor tras 6 s quieto e idle tenso
+        /// con un Lurker cerca (POLISH_PASS 3.7). Los giros en el sitio los inicia el controlador (OnStandingTurn).
+        /// </summary>
+        private void UpdateLocomotionEvents(float dt)
+        {
+            if (animConfig == null) return;
+            bool input = controller.DesiredDirection != Vector3.zero;
+            float speed = controller.CurrentSpeed;
+            var st = animator.GetCurrentAnimatorStateInfo(0);
+            bool inLoco = st.IsName("Locomotion") && !animator.IsInTransition(0);
+            bool walking = controller.Mode == MovementMode.Walk || controller.Mode == MovementMode.Sneak;
+
+            // El arranque queda armado mientras está parado sin input o girando en el sitio (gira y después arranca).
+            // Se mira si estaba parado el cuadro anterior: el controlador ya acelera en el primer cuadro con input.
+            if (!input) startArmed = speed < animConfig.restSpeed;
+            else if (controller.TurningInPlace) startArmed = true;
+            else if (!walking) startArmed = false;
+            if (inLoco && input && startArmed && walking && !controller.TurningInPlace)
+            {
+                Fire(StartId);
+                startArmed = false;
+            }
+            else if (inLoco && !input && hadInput && speed > animConfig.stopMinSpeed && !controller.IsCrouching)
+                Fire(speed >= animConfig.runStopSpeed ? StopRunId : StopWalkId);
+            else if (input && (st.IsTag("DrivenStop") || st.IsName("LookAround")))
+                Fire(ResumeId);
+            else if (inLoco && input && speed > animConfig.pivotMinSpeed && Time.time >= pivotReady
+                     && Vector3.Angle(transform.forward, controller.DesiredDirection) > animConfig.pivotAngle)
+            {
+                Fire(PivotId);
+                pivotReady = Time.time + animConfig.pivotCooldown;
+            }
+            hadInput = input;
+
+            // Quieto un rato: mira alrededor asustado; y otra vez si sigue quieto.
+            if (inLoco && !input && speed < 0.05f && !controller.IsCrouching) idleTime += dt;
+            else if (!st.IsName("LookAround")) { idleTime = 0f; nextLookAround = animConfig.lookAroundAfter; }
+            if (idleTime >= nextLookAround && inLoco)
+            {
+                Fire(LookAroundId);
+                nextLookAround = idleTime + animConfig.lookAroundRepeat;
+            }
+
+            // Idle tenso: encorvado y respirando rápido con un Lurker cerca.
+            bool threat = false;
+            float r2 = animConfig.tenseRadius * animConfig.tenseRadius;
+            foreach (var e in ProjectRidge.AI.EnemyController.Active)
+                threat |= (e.transform.position - transform.position).sqrMagnitude < r2;
+            tension = Mathf.MoveTowards(tension, threat ? 1f : 0f, dt / animConfig.tenseBlendTime);
+            animator.SetFloat(TensionId, tension);
+        }
+
+        /// <summary>
+        /// Arranques, frenadas y pivote: el avance sale del clip (root motion), no de la aceleración, para que los pies no
+        /// patinen. En el resto de estados el root motion se descarta (los clips de UAL lo traen horneado).
+        /// </summary>
+        private void OnAnimatorMove()
+        {
+            if (animConfig == null || Time.deltaTime <= 0f) { controller.DrivenSpeed = null; return; }
+            var cur = animator.GetCurrentAnimatorStateInfo(0);
+            bool driven = Driven(cur) || (animator.IsInTransition(0) && Driven(animator.GetNextAnimatorStateInfo(0)));
+            controller.DrivenSpeed = driven ? Mathf.Max(0f, Vector3.Dot(animator.deltaPosition, transform.forward) / Time.deltaTime) : (float?)null;
+        }
+
+        private static bool Driven(AnimatorStateInfo s) => s.IsTag("Driven") || s.IsTag("DrivenStop");
 
         /// <summary>Lanzar (piedra): lo llama el sistema de lanzamiento.</summary>
         public void PlayThrow() => animator.SetTrigger(ThrowId);
@@ -155,6 +264,7 @@ namespace ProjectRidge.Player
             wasDead = health.IsDead;
             if (controller.ActionLocked && Time.time >= actionUnlock) controller.ActionLocked = false;
 
+            UpdateLocomotionEvents(dt);
             fireTimer += dt;
             if (flareGun != null) flareGun.SetActive(fireTimer < 0.8f);
             UpdateClub();
@@ -196,6 +306,20 @@ namespace ProjectRidge.Player
                 lean = Mathf.Lerp(lean, target, 1f - Mathf.Exp(-leanSmoothing * dt));
                 if (spine != null) spine.rotation = Quaternion.AngleAxis(lean * 0.55f, transform.right) * spine.rotation;
                 if (chest != null) chest.rotation = Quaternion.AngleAxis(lean * 0.45f, transform.right) * chest.rotation;
+
+                // Curvas: la columna se inclina hacia dentro según la velocidad de giro (máx. 7°, POLISH_PASS 3.7).
+                float yaw = transform.eulerAngles.y;
+                float yawRate = Mathf.DeltaAngle(lastYaw, yaw) / dt;
+                lastYaw = yaw;
+                if (animConfig != null)
+                {
+                    float want = controller.CurrentSpeed > animConfig.curveLeanMinSpeed && !health.IsDead
+                        ? Mathf.Clamp(yawRate * animConfig.curveLeanPerDegPerSec, -animConfig.maxCurveLean, animConfig.maxCurveLean) : 0f;
+                    curveLean = Mathf.Lerp(curveLean, want, 1f - Mathf.Exp(-animConfig.curveLeanSmoothing * dt));
+                    // Ángulo negativo sobre el eje de avance = hacia la derecha del personaje.
+                    if (spine != null) spine.rotation = Quaternion.AngleAxis(-curveLean * 0.5f, transform.forward) * spine.rotation;
+                    if (chest != null) chest.rotation = Quaternion.AngleAxis(-curveLean * 0.5f, transform.forward) * chest.rotation;
+                }
             }
 
             // Pasos por contacto del pie con el suelo (sincronizados con la animación real).
@@ -241,6 +365,51 @@ namespace ProjectRidge.Player
             float reach = clubSheath != null && combat.HasClub && p > 0f && p < 1f ? Mathf.Sin(p * Mathf.PI) : 0f;
             animator.SetIKPositionWeight(AvatarIKGoal.RightHand, reach);
             if (reach > 0f) animator.SetIKPosition(AvatarIKGoal.RightHand, clubSheath.position);
+
+            FootIK();
+        }
+
+        /// <summary>
+        /// IK de pies (POLISH_PASS 3.7): cada pie apoyado baja o sube al suelo real (rayo) y se alinea con su pendiente;
+        /// la cadera baja lo que haga falta para que el pie más bajo llegue (ningún pie flota en pendientes, escalones
+        /// ni en el puente). En el aire del paso el IK se apaga.
+        /// </summary>
+        private void FootIK()
+        {
+            if (animConfig == null || health.IsDead || !controller.IsGrounded) { hipOffset = 0f; return; }
+            float baseY = transform.position.y;
+            bool okL = FootTarget(AvatarIKGoal.LeftFoot, baseY, out Vector3 posL, out Quaternion rotL, out float wL, out float offL);
+            bool okR = FootTarget(AvatarIKGoal.RightFoot, baseY, out Vector3 posR, out Quaternion rotR, out float wR, out float offR);
+            float drop = Mathf.Clamp(Mathf.Min(okL ? offL * wL : 0f, okR ? offR * wR : 0f, 0f), -animConfig.maxHipDrop, 0f);
+            hipOffset = Mathf.Lerp(hipOffset, drop, 1f - Mathf.Exp(-animConfig.hipSmoothing * Time.deltaTime));
+            animator.bodyPosition += Vector3.up * hipOffset;
+            if (okL) SetFoot(AvatarIKGoal.LeftFoot, posL, rotL, wL);
+            if (okR) SetFoot(AvatarIKGoal.RightFoot, posR, rotR, wR);
+        }
+
+        private bool FootTarget(AvatarIKGoal goal, float baseY, out Vector3 pos, out Quaternion rot, out float weight, out float offset)
+        {
+            Vector3 p = animator.GetIKPosition(goal);
+            rot = animator.GetIKRotation(goal);
+            float lift = Mathf.Max(0f, p.y - baseY - animConfig.ankleHeight);
+            weight = 1f - Mathf.Clamp01(lift / animConfig.footLiftFade);
+            pos = p;
+            offset = 0f;
+            var origin = new Vector3(p.x, baseY + animConfig.footRayUp, p.z);
+            if (!Physics.Raycast(origin, Vector3.down, out RaycastHit hit, animConfig.footRayUp + animConfig.footRayDown, animConfig.groundMask, QueryTriggerInteraction.Ignore))
+                return false;
+            pos = new Vector3(p.x, hit.point.y + animConfig.ankleHeight + lift, p.z);
+            offset = pos.y - p.y;
+            rot = Quaternion.FromToRotation(Vector3.up, hit.normal) * rot;
+            return true;
+        }
+
+        private void SetFoot(AvatarIKGoal goal, Vector3 pos, Quaternion rot, float weight)
+        {
+            animator.SetIKPositionWeight(goal, weight);
+            animator.SetIKRotationWeight(goal, weight);
+            animator.SetIKPosition(goal, pos);
+            animator.SetIKRotation(goal, rot);
         }
     }
 }

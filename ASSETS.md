@@ -77,3 +77,17 @@ Generado con `Tools/Blender/make_father.py` (fuente de verdad; re-ejecutable) �
 | Botas `toigo_ankle_boots_male` | shoes01 | MargaretToigo | CC0 | https://files.makehumancommunity.org/asset_packs/shoes01/shoes01_cc0.zip |
 
 Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (CC-BY; si se usaran habría que acreditar a sus autores).
+
+## 100STYLE (animación del papá, POLISH P7)
+
+**100STYLE Dataset** — Ian Mason (MIT), Sebastian Starke (Meta), Taku Komura (HKU). https://zenodo.org/records/8127870 — **CC BY 4.0** (atribución obligatoria: va en `Assets/ThirdParty/100STYLE/CREDITS.txt` y debe ir en los créditos del juego). Descargado el `100STYLE.zip` (BVH) a `_incoming/100style/`. Cambios: segmentos recortados de las tomas y convertidos a FBX con `Tools/Blender/convert_100style.py` → `Assets/ThirdParty/100STYLE/`. Fecha: 2026-10-21.
+
+| Clip | Toma (cuadros a 60 fps) | Uso |
+|---|---|---|
+| `S100_WalkStart` | Neutral_FW 5942–6012 | Arranque caminando |
+| `S100_WalkStop` | Neutral_FW 7748–7831 | Frenada caminando |
+| `S100_RunStop` | Neutral_FR 4231–4311 | Frenada trotando/corriendo |
+| `S100_TurnA`, `S100_TurnB` | Neutral_FW 406–461, 5919–5971 | Giro en el sitio (pasos) |
+| `S100_Pivot` | Neutral_FR 409–469 | Pivote de 180° en carrera |
+| `S100_TenseIdle` | BentForward_ID 600–1200 | Idle tenso (encorvado) |
+| `S100_LookAround` | Followed_ID 640–830 | Mirar atrás asustado tras 6 s quieto |

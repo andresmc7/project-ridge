@@ -22,6 +22,14 @@ namespace ProjectRidge.Player
         [Min(1f)] public float turnSpeed = 540f;
         [Tooltip("Cuánto frena el avance mientras el cuerpo aún no encara el input (1 = coseno; más alto = pivota casi en el sitio).")]
         [Min(0.1f)] public float alignmentSharpness = 2f;
+        [Tooltip("Parado, si el input pide girar más que esto (°), gira en el sitio dando pasos antes de avanzar.")]
+        [Range(0f, 180f)] public float standingTurnAngle = 70f;
+        [Tooltip("Por debajo de esta velocidad (m/s) cuenta como parado para el giro en el sitio.")]
+        [Min(0f)] public float standingTurnMaxSpeed = 0.3f;
+        [Tooltip("Duración (s) de un giro en el sitio de 90°.")]
+        [Min(0.05f)] public float standingTurnTime90 = 0.45f;
+        [Tooltip("Duración (s) de un giro en el sitio de 180°.")]
+        [Min(0.05f)] public float standingTurnTime180 = 0.65f;
 
         [Header("Joystick")]
         [Tooltip("Inclinación mínima para moverse.")]

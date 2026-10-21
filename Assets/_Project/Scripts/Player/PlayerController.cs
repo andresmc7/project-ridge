@@ -42,8 +42,19 @@ namespace ProjectRidge.Player
         public bool ActionLocked { get; set; }
         /// <summary>Dirección de movimiento pedida este frame (plana, normalizada; cero si no hay input).</summary>
         public Vector3 DesiredDirection { get; private set; }
+        /// <summary>
+        /// Velocidad de avance que dicta la animación (root motion de arranques, frenadas y pivote): mientras tiene valor
+        /// manda sobre la aceleración, así los pies no patinan. La escribe FatherAnimator cada cuadro.
+        /// </summary>
+        public float? DrivenSpeed { get; set; }
+        /// <summary>Girando en el sitio (pasos de giro): no avanza hasta terminar.</summary>
+        public bool TurningInPlace => turnRemaining != 0f;
 
         public event Action<MovementMode> ModeChanged;
+        /// <summary>Empieza un giro en el sitio: ángulo con signo (° , positivo = a la derecha) y duración (s).</summary>
+        public event Action<float, float> StandingTurnStarted;
+
+        private float turnRemaining, turnRate;
 
         /// <summary>Empujón externo (golpe recibido, embestida del garrote): se suma al movimiento y se frena solo.</summary>
         public void AddKnockback(Vector3 velocity)
@@ -85,8 +96,27 @@ namespace ProjectRidge.Player
 
             DesiredDirection = desiredDirection;
 
+            // Parado y con un giro grande pedido: gira en el sitio dando pasos (POLISH_PASS 3.7) y luego avanza.
+            if (hasInput && turnRemaining == 0f && !IsCrouching && SpeedMultiplier > 0.5f && CurrentSpeed < config.standingTurnMaxSpeed)
+            {
+                float angle = Vector3.SignedAngle(transform.forward, desiredDirection, Vector3.up);
+                if (Mathf.Abs(angle) > config.standingTurnAngle)
+                {
+                    float duration = Mathf.Lerp(config.standingTurnTime90, config.standingTurnTime180, Mathf.InverseLerp(90f, 180f, Mathf.Abs(angle)));
+                    turnRemaining = angle;
+                    turnRate = Mathf.Abs(angle) / duration;
+                    StandingTurnStarted?.Invoke(angle, duration);
+                }
+            }
+            if (turnRemaining != 0f)
+            {
+                float step = Mathf.Min(Mathf.Abs(turnRemaining), turnRate * dt) * Mathf.Sign(turnRemaining);
+                transform.rotation = Quaternion.AngleAxis(step, Vector3.up) * transform.rotation;
+                turnRemaining -= step;
+                if (Mathf.Abs(turnRemaining) < 0.01f) turnRemaining = 0f;
+            }
             // Giro primero, rápido: el cuerpo encara el input casi al instante.
-            if (hasInput && SpeedMultiplier > 0.5f)
+            else if (hasInput && SpeedMultiplier > 0.5f)
             {
                 Quaternion target = Quaternion.LookRotation(desiredDirection, Vector3.up);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, target, config.turnSpeed * dt);
@@ -94,12 +124,14 @@ namespace ProjectRidge.Player
 
             // Se avanza siempre hacia donde mira el cuerpo, escalado por lo alineado que está con el input:
             // nunca se desliza de lado ni camina de espaldas al cambiar de dirección (pivote limpio).
-            float targetSpeed = hasInput ? SpeedFor(mode, tilt) * SpeedMultiplier : 0f;
+            float targetSpeed = hasInput && turnRemaining == 0f ? SpeedFor(mode, tilt) * SpeedMultiplier : 0f;
             float alignment = hasInput ? Mathf.Clamp01(Vector3.Dot(transform.forward, desiredDirection)) : 0f;
             alignment = Mathf.Pow(alignment, config.alignmentSharpness);
             Vector3 targetVelocity = transform.forward * targetSpeed * alignment;
             if (SpeedMultiplier > 0.5f) horizontalVelocity = transform.forward * horizontalVelocity.magnitude;
             float rate = targetVelocity.sqrMagnitude >= horizontalVelocity.sqrMagnitude ? config.acceleration : config.deceleration;
+            // Arranque, frenada o pivote animados: la velocidad sale del clip (se llega a ella con la desaceleración).
+            if (DrivenSpeed.HasValue && SpeedMultiplier > 0.5f) targetVelocity = transform.forward * DrivenSpeed.Value;
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * dt);
 
             if (controller.isGrounded && verticalVelocity < 0f)
