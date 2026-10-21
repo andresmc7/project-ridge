@@ -46,6 +46,8 @@ namespace ProjectRidge.Core
         [SerializeField] private CanvasGroup endPanel;
         [SerializeField] private Text endBody;
         [SerializeField] private CanvasGroup endButtons;
+        [Tooltip("Etiqueta del botón \"Ayudas de sigilo\" del menú de pausa.")]
+        [SerializeField] private Text stealthAidsLabel;
 
         [Header("Textos")]
         [SerializeField] private string firstObjective = "Find a way through the forest.";
@@ -110,6 +112,7 @@ namespace ProjectRidge.Core
             Show(pausePanel, false);
             Show(cluePanel, false);
             Show(endPanel, false);
+            UpdateStealthAidsLabel();
             Show(endButtons, false); // D14: nunca en el título (solo al final de la demo)
             Show(gameplayHud, false);
             Show(titlePanel, true);
@@ -165,6 +168,18 @@ namespace ProjectRidge.Core
         }
 
         public void Resume() => Pause(false);
+
+        /// <summary>Menú de pausa: enciende o apaga las "Ayudas de sigilo" (cono de visión en el suelo).</summary>
+        public void ToggleStealthAids()
+        {
+            StealthAids.Enabled = !StealthAids.Enabled;
+            UpdateStealthAidsLabel();
+        }
+
+        private void UpdateStealthAidsLabel()
+        {
+            if (stealthAidsLabel != null) stealthAidsLabel.text = StealthAids.Enabled ? "STEALTH AIDS: ON" : "STEALTH AIDS: OFF";
+        }
 
         public void Restart()
         {

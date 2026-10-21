@@ -49,6 +49,7 @@ namespace ProjectRidge.EditorTools
                 "P2" => P2(),
                 "P3" => P3(),
                 "P4" => P4(),
+                "P5" => P5(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -570,6 +571,96 @@ namespace ProjectRidge.EditorTools
                 Shot("P3_after_dither");
             }
             Check("occluder fades with dithering", tree != null && target < 1f && shader == "ProjectRidge/DitherFade", (tree != null ? tree.name + " at " + tree.transform.position : "no fadeable") + ", alpha " + target + ", shader " + shader);
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        // ------------------------------------------------------------------ P5
+
+        static IEnumerator P5()
+        {
+            yield return PassTitle();
+            Calm();
+            EnemyController lurker = null;
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                e.gameObject.SetActive(e.name == "Lurker");
+                if (e.name == "Lurker") lurker = e;
+            }
+            var feedback = lurker.GetComponent<EnemyStateFeedback>();
+            var indicators = Object.FindFirstObjectByType<UI.DetectionIndicators>();
+            var lanim = lurker.GetComponentInChildren<LurkerAnimator>();
+
+            // Sin cono pintado en el juego normal; solo con la opción de accesibilidad.
+            yield return 0.3f;
+            bool anyCone = false;
+            foreach (var c in Object.FindObjectsByType<VisionCone>(FindObjectsSortMode.None)) anyCone |= c.GetComponent<MeshRenderer>().enabled;
+            ProjectRidge.Core.StealthAids.Enabled = true;
+            yield return 0.2f;
+            bool coneWithAids = false;
+            foreach (var c in Object.FindObjectsByType<VisionCone>(FindObjectsSortMode.None)) coneWithAids |= c.GetComponent<MeshRenderer>().enabled;
+            ProjectRidge.Core.StealthAids.Enabled = false;
+            Check("no ground cone (only as accessibility option)", !anyCone && coneWithAids, "cone visible by default " + anyCone + ", with stealth aids " + coneWithAids);
+
+            // Patrulla: brasa tenue, sin indicador.
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
+            Teleport(Ground(-24f, 0f)); // lejos del Lurker
+            yield return 1f;
+            Color calmEyes = feedback.EyeColor;
+            var calmInd = indicators.State(lurker);
+            Shot("P5_after_patrol");
+
+            // De pie a la vista: la sospecha sube (arco que se llena), luego caza (ojos rojos y haz).
+            // En terreno abierto (el sendero de la entrada): el Lurker mira hacia el papá y lo va viendo.
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-52f, 0f));
+            Teleport(Ground(-45f, 0f));
+            yield return 0.2f;
+            lurker.Perception.Suppress(0f);
+            lurker.AlertTo(player.transform.position);
+            float partialFill = 0f;
+            bool sawPartial = false;
+            float limit = Time.time + 8f;
+            while (Time.time < limit && !lurker.IsHunting)
+            {
+                var st = indicators.State(lurker);
+                if (st.arc && st.fill > 0.1f && st.fill < 0.95f && !sawPartial) { sawPartial = true; partialFill = st.fill; ShotUI("P5_after_detecting"); }
+                yield return null;
+            }
+            yield return 0.4f;
+            var huntInd = indicators.State(lurker);
+            Color huntEyes = feedback.EyeColor;
+            float beam = feedback.Beam;
+            ShotUI("P5_after_hunting");
+            Check("eyes change with state", calmEyes.r < huntEyes.r * 0.5f && beam > 0.9f, "patrol eyes " + calmEyes + ", hunting " + huntEyes + ", eye beam " + beam.ToString("0.00"));
+            Check("detection arc fills, then full when hunted", !calmInd.arc && sawPartial && huntInd.arc && huntInd.fill > 0.99f,
+                  "patrol shown " + calmInd.arc + ", partial fill seen " + sawPartial + " (" + partialFill.ToString("0.00") + "), hunting fill " + huntInd.fill.ToString("0.00"));
+
+            // Fuera de cámara: flecha en el borde hacia el Lurker.
+            Vector3 away = player.transform.position + (player.transform.position - lurker.transform.position).normalized * 16f;
+            Teleport(Ground(away.x, away.z));
+            lurker.Perception.Notice(player.transform.position);
+            bool arrow = false;
+            limit = Time.time + 2f;
+            while (Time.time < limit)
+            {
+                var st = indicators.State(lurker);
+                Vector3 vp = Camera.main.WorldToViewportPoint(lurker.transform.position);
+                bool off = vp.z < 0f || vp.x < 0f || vp.x > 1f || vp.y < 0f || vp.y > 1f;
+                if (off && st.arrow) { arrow = true; ShotUI("P5_after_edge_arrow"); break; }
+                yield return null;
+            }
+            Check("edge arrow when the lurker is off camera", arrow, "arrow shown " + arrow + " (lurker " + lurker.State + ")");
+
+            // La cabeza apunta a lo que vigila.
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
+            lurker.Perception.Suppress(9999f);
+            yield return 0.5f;
+            Vector3 side = lurker.transform.position + lurker.transform.right * 5f;
+            lurker.AlertTo(side);
+            float maxYaw = 0f;
+            limit = Time.time + 1.2f;
+            while (Time.time < limit) { maxYaw = Mathf.Max(maxYaw, Mathf.Abs(lanim.HeadYaw)); yield return null; }
+            Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side");
+            player.GetComponent<PlayerHealth>().Restore();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
         }
 

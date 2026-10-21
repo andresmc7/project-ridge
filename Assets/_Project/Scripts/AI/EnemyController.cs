@@ -76,6 +76,14 @@ namespace ProjectRidge.AI
             EnterInvestigate(position);
         }
 
+        /// <summary>
+        /// Hacia dónde atiende ahora (la cabeza apunta ahí, POLISH_PASS 3.5): el punto que investiga, el último lugar
+        /// donde te vio mientras caza o busca, o la bengala que lo hipnotiza. Sin foco en la patrulla.
+        /// </summary>
+        public bool HasFocus => State == EnemyState.Investigate || State == EnemyState.Lured
+                                || ((State == EnemyState.Chase || State == EnemyState.Search) && perception.HasLastKnownPosition);
+        public Vector3 FocusPoint => State == EnemyState.Investigate ? investigateTarget : State == EnemyState.Lured ? lurePoint : perception.LastKnownPosition;
+
         public bool IsDead => State == EnemyState.Dead;
         /// <summary>Cazando o atacando: un golpe ahora no es por sorpresa.</summary>
         public bool IsHunting => State == EnemyState.Chase || State == EnemyState.Attack;

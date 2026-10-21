@@ -4,6 +4,7 @@ namespace ProjectRidge.AI
 {
     /// <summary>
     /// Cono de visión del Lurker dibujado en el suelo, recortado por lo que tapa la vista (rocas, troncos, terreno).
+    /// Solo se ve con la opción de accesibilidad "Ayudas de sigilo"; en el juego normal la lectura sale del Lurker.
     /// Lo que se ve es lo que hay: dentro del cono, de pie o sin esconderse, te detecta. Rojo tenue en calma, se
     /// enciende con la sospecha y queda rojo intenso en la persecución. Se apaga al morir.
     /// </summary>
@@ -53,9 +54,10 @@ namespace ProjectRidge.AI
             transform.localPosition = Vector3.zero;
             transform.rotation = Quaternion.Euler(0f, enemy.transform.eulerAngles.y, 0f);
 
-            bool dead = enemy.IsDead;
-            meshRenderer.enabled = !dead;
-            if (dead) return;
+            // Solo con la opción de accesibilidad "Ayudas de sigilo" (POLISH_PASS 3.5): apagada por defecto.
+            bool show = !enemy.IsDead && ProjectRidge.Core.StealthAids.Enabled;
+            meshRenderer.enabled = show;
+            if (!show) return;
 
             if (Time.time >= next)
             {

@@ -26,7 +26,7 @@ namespace ProjectRidge.EditorTools
 
             var canvas = GameObject.Find("HUD");
             var safe = canvas.transform.Find("SafeArea");
-            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StickArea", "Action", "Object", "Flashlight", "HealHold", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw" })
+            foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StickArea", "Action", "Object", "Flashlight", "HealHold", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw", "DetectionIndicators" })
             {
                 var old = safe.Find(n);
                 if (old != null) Object.DestroyImmediate(old.gameObject);
@@ -164,6 +164,24 @@ namespace ProjectRidge.EditorTools
             sso.FindProperty("damageFlash").objectReferenceValue = flash;
             sso.ApplyModifiedPropertiesWithoutUndo();
 
+            // --- Indicadores de detección sobre los Lurker (y flecha en el borde si están fuera de cámara).
+            var arrowSprite = SpriteAsset("UI_Arrow", (u, v) => Mathf.Clamp01((v * 0.9f - Mathf.Abs(u - 0.5f) * 1.8f + 0.05f) * 40f) * (v < 0.92f ? 1f : 0f));
+            var detect = Stretch("DetectionIndicators", safe);
+            var arcRt = Rect("Arc", detect, new Vector2(0.5f, 0.5f), Vector2.zero, Pt(18f));
+            var arc = Img(arcRt, ring, Color.white, false);
+            arc.type = Image.Type.Filled;
+            arc.fillMethod = Image.FillMethod.Radial360;
+            arc.fillOrigin = (int)Image.Origin360.Bottom;
+            arc.fillAmount = 0f;
+            var arrowRt = Rect("EdgeArrow", detect, new Vector2(0.5f, 0.5f), Vector2.zero, Pt(14f));
+            var arrow = Img(arrowRt, arrowSprite, Color.white, false);
+            var di = detect.gameObject.AddComponent<ProjectRidge.UI.DetectionIndicators>();
+            var dso = new SerializedObject(di);
+            dso.FindProperty("arcTemplate").objectReferenceValue = arc;
+            dso.FindProperty("arrowTemplate").objectReferenceValue = arrow;
+            dso.FindProperty("edgeInset").floatValue = Pt(26f);
+            dso.ApplyModifiedPropertiesWithoutUndo();
+
             // --- Indicador de sigilo (arriba al centro)
             var hud = Rect("StealthHud", safe, new Vector2(0.5f, 1f), new Vector2(0f, -62f), 0f);
             hud.sizeDelta = new Vector2(420f, 90f);
@@ -246,9 +264,11 @@ namespace ProjectRidge.EditorTools
             Img(pause, white, new Color(0f, 0f, 0f, 0.72f), true);
             var pauseGroup = pause.gameObject.AddComponent<CanvasGroup>();
             Label("Title", pause, new Vector2(0f, 190f), new Vector2(600f, 60f), "PAUSED", 40, FontStyle.Bold);
-            var resume = MenuButton(pause, "Resume", new Vector2(0f, 90f), white);
-            var restart = MenuButton(pause, "Restart", new Vector2(0f, 20f), white);
-            var quit = MenuButton(pause, "Quit", new Vector2(0f, -50f), white);
+            var resume = MenuButton(pause, "Resume", new Vector2(0f, 120f), white);
+            var restart = MenuButton(pause, "Restart", new Vector2(0f, 55f), white);
+            // Accesibilidad (POLISH_PASS 3.5): cono de visión de los Lurker en el suelo, apagado por defecto.
+            var aids = MenuButton(pause, "Stealth aids: off", new Vector2(0f, -10f), white);
+            var quit = MenuButton(pause, "Quit", new Vector2(0f, -75f), white);
             Label("VolumeLabel", pause, new Vector2(0f, -125f), new Vector2(300f, 26f), "VOLUME", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.6f);
             var slider = VolumeSlider(pause, new Vector2(0f, -160f), white, disc);
             Label("Controls", pause, new Vector2(0f, -245f), new Vector2(1100f, 60f),
@@ -316,11 +336,13 @@ namespace ProjectRidge.EditorTools
             so.FindProperty("endPanel").objectReferenceValue = endGroup;
             so.FindProperty("endBody").objectReferenceValue = endBody;
             so.FindProperty("endButtons").objectReferenceValue = endButtons;
+            so.FindProperty("stealthAidsLabel").objectReferenceValue = aids.GetComponentInChildren<Text>();
             so.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEditor.Events.UnityEventTools.AddPersistentListener(resume.onClick, gf.Resume);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(restart.onClick, gf.Restart);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(quit.onClick, gf.Quit);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(aids.onClick, gf.ToggleStealthAids);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(playAgain.onClick, gf.Restart);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(endQuit.onClick, gf.Quit);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(clueBtn.onClick, gf.DismissClue);

@@ -36,6 +36,9 @@ namespace ProjectRidge.AI
         private Vector3 ticOffset;
         private float ticAmount, ticHold, nextTic;
         private Vector3 headSnap;
+        private float lookWeight;
+        /// <summary>Giro de la cabeza hacia lo que vigila (QA), en grados.</summary>
+        public float HeadYaw { get; private set; }
         private float nextHeadSnap;
         private Vector3 glitch;
         private float glitchTimer;
@@ -124,6 +127,20 @@ namespace ProjectRidge.AI
             // El cuello compensa para mirar al frente; la cabeza va ladeada.
             Rotate(neck, -hunch * 0.5f, 0f, 0f);
             Rotate(head, -hunch * 0.2f, 0f, 16f * alive);
+
+            // La cabeza apunta a donde mira (POLISH_PASS 3.5): con una pista, hacia ella (cuello y cabeza, hasta 75°).
+            // Así el jugador lee hacia dónde vigila por la postura, sin cono pintado.
+            bool tracking = enemy.HasFocus;
+            lookWeight = Mathf.MoveTowards(lookWeight, tracking ? 1f : 0f, Time.deltaTime * 3f);
+            if (lookWeight > 0.001f && head != null)
+            {
+                Vector3 to = enemy.FocusPoint - head.position;
+                to.y = 0f;
+                float yaw = Mathf.Clamp(Vector3.SignedAngle(Vector3.ProjectOnPlane(root.forward, Vector3.up), to, Vector3.up), -75f, 75f) * lookWeight * alive;
+                Rotate(neck, 0f, yaw * 0.35f, 0f);
+                Rotate(head, 0f, yaw * 0.65f, 0f);
+                HeadYaw = yaw;
+            }
 
             // Al cazar, los brazos largos se adelantan, abiertos.
             if (hunt > 0.01f && state != EnemyState.Attack)

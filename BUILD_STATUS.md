@@ -2,6 +2,16 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-21 — POLISH PASS P5: legibilidad de la IA sin conos pintados
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P5")` → **5/5 PASS**. Capturas: `P5_before.png` (cono rojo en el suelo), `P5_after_patrol.png`, `P5_after_detecting.png`, `P5_after_hunting.png`, `P5_after_edge_arrow.png`.
+
+- **Sin cono en el suelo** (probado): `VisionCone` solo se dibuja con la opción "Ayudas de sigilo" del menú de pausa (apagada por defecto, se guarda en PlayerPrefs).
+- **Ojos** (probado): brasa tenue en patrulla (0.6, 0.02, 0.02), naranja intenso que parpadea al investigar o buscar, rojo (6, 0.1, 0.05) con un haz leve desde los ojos al cazar (haz 1.00).
+- **Cabeza** (probado): apunta a lo que atiende (el punto que investiga, el último lugar donde te vio o la bengala), hasta 75°; medido 21° hacia un punto a 90° del cuerpo mientras se gira.
+- **Indicador de detección** (probado): arco sobre la cabeza que se llena de blanco a naranja (visto a 0.53) y queda lleno y rojo al cazar; solo con sospecha > 0.05. Fuera de cámara, flecha en el borde hacia el Lurker.
+- **Sonido**: chasquido gutural al empezar a sospechar, chillido al detectar (ya existía) y respiración procedural audible a ≤ 8 m. `UNVERIFIED`: cómo suenan.
+- Pendiente visto en las capturas: con la cámara a 42° el tramo bajo de los haces del OVNI se lee como un "balde" rojo sólido cerca del suelo (va a P9).
+
 ## 2026-10-20 — POLISH PASS P4: entorno (árboles, rocas, vegetación por densidad)
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P4")` → **5/5 PASS**; `PolishTests.Run("P3")` repetida con el bosque nuevo → **6/6 PASS**. Bot `LoopBot.Run(24)` → llega al final de la sala 3, 2 muertes (antes 3). Capturas: `P4_before*.png`, `P4_after*.png`, cenital `P4_after_topdown.png`, mapa `P4_after_density.png`.
 

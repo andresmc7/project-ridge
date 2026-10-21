@@ -29,3 +29,5 @@ Registro de decisiones ambiguas resueltas en modo autónomo (ver `docs/POLISH_PA
 - 2026-10-20 — Impostor de 2 tarjetas cruzadas horneadas de lado (no un impostor octaédrico). — Suficiente con la cámara fija a 42°; más barato de generar y de dibujar.
 - 2026-10-20 — Musgo de las rocas con un shader propio simple (Lambert con wrap + normal map + SSAO), no URP Lit. — URP Lit no mezcla por normal; la roca es mate, el especular no se echa de menos.
 - 2026-10-20 — Charcos con reflejo y capa de suelo de musgo quedan sin hacer en P4. — Prioridad a árboles, rocas y escondites (la prueba de aceptación); se retoman si sobra tiempo en P9.
+- 2026-10-21 — El indicador de detección es un anillo que se llena (no medio arco) y la flecha de borde aparece con sospecha > 0.05 o caza. — Lectura inmediata en pantalla de móvil; 3.5 no fija la forma exacta.
+- 2026-10-21 — La cabeza del Lurker apunta al punto que atiende según su estado (no a un objetivo de IK de Mecanim). — El Lurker usa una capa procedural propia en LateUpdate; más simple y coherente con sus tics.

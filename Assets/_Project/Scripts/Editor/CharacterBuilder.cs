@@ -557,11 +557,40 @@ namespace ProjectRidge.EditorTools
             var eyes = fso.FindProperty("eyes");
             eyes.arraySize = 1;
             eyes.GetArrayElementAtIndex(0).objectReferenceValue = eyesRenderer;
+            // Haz leve desde los ojos durante la caza (POLISH_PASS 3.5): un cono aditivo pegado a la cabeza.
+            var headBone = anim.GetBoneTransform(HumanBodyBones.Head);
+            var beamGo = new GameObject("EyeBeam");
+            beamGo.layer = 10;
+            beamGo.transform.SetParent(headBone, false);
+            beamGo.transform.position = eyesRenderer != null ? eyesRenderer.bounds.center : headBone.position;
+            beamGo.transform.rotation = Quaternion.LookRotation(lurker.transform.forward + Vector3.down * 0.25f);
+            float s = 1f / Mathf.Max(0.001f, headBone.lossyScale.x);
+            beamGo.transform.localScale = new Vector3(0.45f, 0.45f, 5f) * s;
+            beamGo.AddComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/_Project/Art/Meshes/UFO_BeamCone.asset");
+            var beamR = beamGo.AddComponent<MeshRenderer>();
+            beamR.sharedMaterial = EyeBeamMaterial();
+            beamR.shadowCastingMode = ShadowCastingMode.Off;
+            beamR.receiveShadows = false;
+            beamR.enabled = false;
+            fso.FindProperty("eyeBeam").objectReferenceValue = beamR;
             fso.ApplyModifiedPropertiesWithoutUndo();
 
             // El "ojo" de la percepción sigue la cabeza real.
             var eyePoint = lurker.transform.Find("EyePoint");
             if (eyePoint != null) eyePoint.position = anim.GetBoneTransform(HumanBodyBones.Head).position;
+        }
+
+        /// <summary>Material del haz de los ojos: el mismo volumen aditivo de los reflectores, rojo y tenue.</summary>
+        static Material EyeBeamMaterial()
+        {
+            string path = OutDir + "/Lurker_EyeBeam.mat";
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null) { m = new Material(Shader.Find("ProjectRidge/VolumetricBeam")); AssetDatabase.CreateAsset(m, path); }
+            m.SetColor("_Color", new Color(1f, 0.08f, 0.04f));
+            if (m.HasProperty("_Intensity")) m.SetFloat("_Intensity", 0.6f);
+            if (m.HasProperty("_CameraFade")) m.SetFloat("_CameraFade", 2f);
+            EditorUtility.SetDirty(m);
+            return m;
         }
 
         // ------------------------------------------------------------------ Avistamiento con guion

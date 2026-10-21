@@ -37,6 +37,13 @@ namespace ProjectRidge.Core
         private float lastHealth;
         private bool anyHunting;
         private readonly Dictionary<EnemyController, AudioSource> growls = new Dictionary<EnemyController, AudioSource>();
+        // Sospecha anterior de cada Lurker (para el chasquido al empezar a sospechar) y su voz.
+        private readonly Dictionary<EnemyController, (float suspicion, AudioSource voice)> watch = new Dictionary<EnemyController, (float, AudioSource)>();
+        [Tooltip("Sospecha a partir de la cual el Lurker suelta un chasquido gutural (POLISH_PASS 3.5).")]
+        [Range(0f, 1f)] [SerializeField] private float suspicionClickAt = 0.05f;
+        [Tooltip("Distancia (m) a la que se oye respirar a un Lurker.")]
+        [Min(1f)] [SerializeField] private float breathRange = 8f;
+        private AudioClip breathClip;
 
         private void Start()
         {
@@ -183,6 +190,15 @@ namespace ProjectRidge.Core
             growl.volume = 0f;
             growl.Play();
             growls[enemy] = growl;
+            // Respiración: solo se oye de cerca (<= 8 m), siempre que está vivo.
+            var breath = enemy.gameObject.AddComponent<AudioSource>();
+            Configure3D(breath, 1.5f, breathRange);
+            breath.clip = breathClip ??= BuildBreath();
+            breath.loop = true;
+            breath.volume = bank.enemy * 0.6f;
+            breath.time = Random.Range(0f, breath.clip.length);
+            breath.Play();
+            watch[enemy] = (0f, voice);
 
             if (enemy.TryGetComponent(out LurkerAnimator anim))
             {
@@ -212,6 +228,14 @@ namespace ProjectRidge.Core
         {
             foreach (var (light, hum) in hums)
                 if (light != null && hum != null) hum.mute = !light.isActiveAndEnabled;
+            // Chasquido gutural al empezar a sospechar (antes de investigar: aviso para el jugador).
+            foreach (var e in EnemyController.Active)
+            {
+                if (!watch.TryGetValue(e, out var w)) continue;
+                float s = e.Perception.Suspicion;
+                if (w.suspicion <= suspicionClickAt && s > suspicionClickAt && !e.IsHunting) Voice(w.voice, Pick(bank.lurkerClicks), bank.enemy * 0.7f, 0.15f);
+                watch[e] = (s, w.voice);
+            }
             anyHunting = false;
             foreach (var kv in growls)
             {
@@ -300,6 +324,35 @@ namespace ProjectRidge.Core
             s.volume = volume;
             if (clip != null) s.Play();
             return s;
+        }
+
+        /// <summary>
+        /// Respiración del Lurker (procedural): inspiración áspera y espiración grave y ronca en un ciclo de ~2.8 s,
+        /// con un temblor. Grave, cruda, cercana: se oye antes de verlo.
+        /// </summary>
+        private static AudioClip BuildBreath()
+        {
+            int rate = AudioSettings.outputSampleRate;
+            const float cycle = 2.8f;
+            int samples = Mathf.RoundToInt(rate * cycle);
+            var data = new float[samples];
+            var rng = new System.Random(19);
+            float lp1 = 0f, lp2 = 0f;
+            for (int i = 0; i < samples; i++)
+            {
+                float t = i / (float)samples;
+                float white = (float)rng.NextDouble() * 2f - 1f;
+                // Inspiración (0–0.35) más aguda; espiración (0.45–0.95) grave con ronquido.
+                float inhale = t < 0.35f ? Mathf.Sin(t / 0.35f * Mathf.PI) : 0f;
+                float exhale = t > 0.45f && t < 0.95f ? Mathf.Sin((t - 0.45f) / 0.5f * Mathf.PI) : 0f;
+                lp1 += (white - lp1) * 0.12f;
+                lp2 += (white - lp2) * 0.025f;
+                float rasp = 0.6f + 0.4f * Mathf.Sin(2f * Mathf.PI * 34f * i / rate);
+                data[i] = lp1 * inhale * 0.45f + lp2 * exhale * rasp * 1.6f;
+            }
+            var clip = AudioClip.Create("Lurker_Breath", samples, 1, rate, false);
+            clip.SetData(data, 0);
+            return clip;
         }
 
         private static void Configure3D(AudioSource s, float min, float max)
