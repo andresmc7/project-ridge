@@ -10,15 +10,16 @@ namespace ProjectRidge.Player
         [SerializeField] private TallGrassDetector tallGrass;
         [SerializeField] private FlashlightController flashlight;
         [SerializeField] private CharacterController body;
+        [Tooltip("Mapa de densidad de la vegetación escondite (POLISH_PASS 3.9). Sin mapa, vale el pasto alto (triggers).")]
+        [SerializeField] private ProjectRidge.Core.HideDensityMap densityMap;
 
         public Vector3 ChestPoint => transform.position + Vector3.up * (body.height * 0.7f);
         public Vector3 HeadPoint => transform.position + Vector3.up * (body.height * 0.95f);
 
         /// <summary>
-        /// Densidad de escondite (0–1) en la posición del papá. Hoy: 1 dentro de un volumen de pasto alto; en P4 sale
-        /// del mapa de densidad de la vegetación.
+        /// Densidad de escondite (0–1) en la posición del papá, muestreada del mapa de densidad de la vegetación.
         /// </summary>
-        public float HideDensity => tallGrass.IsInTallGrass ? 1f : 0f;
+        public float HideDensity => densityMap != null ? densityMap.Sample(transform.position) : (tallGrass != null && tallGrass.IsInTallGrass ? 1f : 0f);
 
         /// <summary>Agachado en vegetación densa: invisible para Lurkers y reflectores.</summary>
         public bool IsHidden => config.crouchInGrassHides && player.IsCrouching && HideDensity >= config.hideDensity;
@@ -30,7 +31,7 @@ namespace ProjectRidge.Player
                 if (IsHidden) return 0f;
                 float cover = 1f;
                 if (player.IsCrouching) cover *= config.crouchVisibility;
-                if (tallGrass.IsInTallGrass) cover *= config.tallGrassVisibility;
+                if (HideDensity > 0f) cover *= Mathf.Lerp(1f, config.tallGrassVisibility, Mathf.Clamp01(HideDensity / config.hideDensity));
                 cover = Mathf.Max(cover, config.minVisibility);
 
                 float speed01 = Mathf.Clamp01(player.CurrentSpeed / player.Config.sprintSpeed);

@@ -59,13 +59,25 @@ namespace ProjectRidge.EditorTools
             int built = BuildLandmarks(root, terrain, mats, blockers);
             SetupWater(root, mats);
             log.AppendLine("landmarks=" + built);
+            BuildRoomLandmarks(root, terrain, blockers);
             int trees = ScatterTrees(root, terrain, mats, rng, blockers);
             log.AppendLine("trees=" + trees);
             int rocks = ScatterRocks(root, terrain, mats, rng, blockers);
             log.AppendLine("rocks=" + rocks);
+            log.AppendLine("stumps=" + ScatterStumps(root, terrain, rng, blockers));
             int bushes = PlaceBushes(root, terrain, mats, rng, blockers);
             log.AppendLine("bushes=" + bushes);
+            // Mapa de densidad de la vegetación escondite (junto a las rocas ya colocadas) y vegetación según el mapa.
+            var rockSpots = new List<Vector3>();
+            foreach (var n in new[] { "Rocks", "CliffRocks" })
+            {
+                var g = root.Find(n) ?? GameObject.Find(n)?.transform;
+                if (g != null) foreach (Transform c in g) rockSpots.Add(c.position);
+            }
+            densityMap = BuildDensityMap(terrain, rockSpots);
+            log.AppendLine("density map " + densityMap.width + "x" + densityMap.height);
             int grass = PlaceGrass(root, terrain, rng);
+            log.AppendLine("dry branches=" + PlaceDryBranches(root, terrain));
             log.AppendLine("grass tufts=" + grass);
             log.AppendLine("ground detail=" + GroundDetail(root, terrain, mats, rng));
             log.AppendLine("debris=" + PlaceDebris(root, terrain, mats));
@@ -320,7 +332,7 @@ namespace ProjectRidge.EditorTools
 
         static readonly StylizedTreeGenerator.Palette BroadleafPalette = new StylizedTreeGenerator.Palette
         {
-            leafDark = new Color(0.09f, 0.22f, 0.1f), leafLight = new Color(0.36f, 0.54f, 0.2f), core = new Color(0.035f, 0.09f, 0.05f),
+            leafDark = new Color(0.05f, 0.1f, 0.06f), leafLight = new Color(0.17f, 0.25f, 0.12f), core = new Color(0.02f, 0.04f, 0.03f),
             barkDark = new Color(0.1f, 0.06f, 0.04f), barkLight = new Color(0.33f, 0.22f, 0.14f),
         };
 
@@ -332,7 +344,7 @@ namespace ProjectRidge.EditorTools
             string name = sway > 0.08f ? "Hollow_StylizedFoliage" : "Hollow_StylizedTrees";
             var mat = WindMaterial(name, null, null, Color.white, 0.18f, sway, 0.16f, 0.012f, true, 0.3f);
             mat.SetFloat("_UseVertexColor", 1f);
-            mat.SetColor("_RimColor", new Color(0.09f, 0.16f, 0.26f));
+            mat.SetColor("_RimColor", new Color(0.07f, 0.09f, 0.06f)); // borde de luna discreto, sin azul (POLISH_PASS 3.9)
             mat.SetFloat("_RimPower", 3f);
             EditorUtility.SetDirty(mat);
             return mat;
@@ -384,16 +396,27 @@ namespace ProjectRidge.EditorTools
             return FoliagePrefab("HollowRoundTree_" + variant, shape, BroadleafPalette, 300 + variant * 13, 0.06f, 0.42f);
         }
 
-        /// <summary>Arbusto decorativo de borde (fuera del área jugable; los escondites son los pastizales).</summary>
+        /// <summary>
+        /// Mata de borde (fuera del área jugable): helechos Poly Haven reducidos, no "blobs" estilizados (POLISH_PASS 3.9:
+        /// bordes de sala con vegetación densa).
+        /// </summary>
         static GameObject BushPrefab(int variant, Mats m)
         {
-            float r = 0.95f + variant * 0.15f;
-            var shape = new StylizedTreeGenerator.Shape
-            {
-                tiers = 1, height = 1.25f, trunkHeight = 0f, trunkRadius = 0f,
-                baseRadius = r, topRadius = r, round = true, leafLength = 0.46f, leafWidth = 0.4f,
-            };
-            return FoliagePrefab("HollowBush_" + variant, shape, BroadleafPalette, 500 + variant * 7, 0.1f, 0f);
+            var fern = DecimatedPropPrefab(FernSources[variant % FernSources.Length], "Hollow_FernClump_" + variant, 1600, FernScale, false);
+            DarkenFern(fern);
+            return fern;
+        }
+
+        static readonly string[] FernSources = { "Fern_fern_02_a", "Fern_fern_02_b", "Fern_fern_02_c", "Fern_fern_02_d" };
+        /// <summary>Escala de las matas de helecho (el modelo Poly Haven mide ~0.8 m).</summary>
+        const float FernScale = 1.7f;
+
+        /// <summary>El helecho fotográfico es de día: más oscuro y menos saturado de noche.</summary>
+        static void DarkenFern(GameObject fern)
+        {
+            foreach (var r in fern.GetComponentsInChildren<MeshRenderer>())
+                foreach (var mat in r.sharedMaterials)
+                    if (mat != null && mat.HasProperty("_BaseColor")) { mat.SetColor("_BaseColor", new Color(0.42f, 0.48f, 0.36f)); EditorUtility.SetDirty(mat); }
         }
 
         static Vector3 RockSize(int variant, bool cliff) => cliff
@@ -405,14 +428,16 @@ namespace ProjectRidge.EditorTools
             string name = (cliff ? "HollowCliff_" : "HollowRock_") + variant;
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
             Vector3 size = RockSize(variant, cliff);
-            var mesh = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.Rock(name, 700 + variant * 31 + (cliff ? 1000 : 0), size, cliff ? 0.7f : 0.15f, cliff ? 0.22f : 0.3f));
+            // Roca Poly Haven (rock_moss_set) reducida a <= 3k triángulos y llevada al tamaño de la maqueta (POLISH_PASS 3.9).
+            var sources = cliff ? CliffRockSources : LooseRockSources;
+            var mesh = PolyHavenRockMesh(sources[variant % sources.Length], "PH_" + name, size);
             var go = new GameObject(name);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = m.rock;
+            mr.sharedMaterial = MossyRockMaterial();
             mr.receiveGI = ReceiveGI.LightProbes;
             var mc = go.AddComponent<MeshCollider>();
-            mc.sharedMesh = mesh;
+            mc.sharedMesh = CollisionMesh(mesh); // convexo dentro del límite de 256 polígonos
             mc.convex = true;
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
             var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
@@ -443,22 +468,23 @@ namespace ProjectRidge.EditorTools
             for (int tries = 0; tries < 60000 && placed.Count < 520; tries++)
             {
                 var p = new Vector3(R(TerrainMin.x + 2f, TerrainMin.x + SizeX - 2f), 0f, R(TerrainMin.y + 2f, TerrainMin.y + SizeZ - 2f));
-                bool round = rng.NextDouble() < 0.4;
-                int variant = round ? rng.Next(3) : rng.Next(ConiferShapes.Length);
-                float scale = R(0.85f, 1.2f);
-                float radius = (round ? RoundTreeRadius(variant) : ConiferShapes[variant].radius) * scale;
+                // Coníferas de tarjetas (POLISH_PASS 3.9): 4 variantes vivas y algún árbol muerto.
+                int variant = rng.NextDouble() < 0.12 ? CardConifers.Length - 1 : rng.Next(CardConifers.Length - 1);
+                var shape = CardConifers[variant];
+                float scale = R(0.85f, 1.15f);
+                float radius = (shape.dead ? 0.8f : shape.crownRadius) * scale;
                 // Al norte (fondo) pueden pegarse al muro: la copa queda detrás y por encima, no tapa nada; así el bosque
                 // entra en cuadro sobre los muros, como en un diorama.
                 bool north = float.IsInfinity(SouthClearance(p, 0f));
                 if (Reserved(p, blockers, north ? 0.7f + radius * 0.3f : radius + 0.6f)) continue;
                 p.y = GroundY(t, p) - 0.1f;
-                float top = p.y + (round ? RoundTreeTop(variant) : ConiferShapes[variant].height) * scale;
+                float top = p.y + shape.height * scale;
                 if (!Fits(p, top, radius)) continue;
                 float minGap = 2.4f;
                 bool close = false;
                 foreach (var q in placed) if ((Flat(q) - Flat(p)).sqrMagnitude < minGap * minGap) { close = true; break; }
                 if (close) continue;
-                var tree = Spawn(round ? RoundTreePrefab(variant, m) : TreePrefab(variant, m), parent, p, R(0f, 360f), scale);
+                var tree = Spawn(CardConiferPrefab(variant), parent, p, R(0f, 360f), scale);
                 // Red de seguridad: si el encuadre (mirar adelante, amenaza) lo pone delante del papá, se desvanece con dithering.
                 if (!north) MakeFadeable(tree);
                 placed.Add(p);
@@ -532,8 +558,8 @@ namespace ProjectRidge.EditorTools
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
             var grassTex = ChunkyMeshGenerator.GrassTexture(5);
             var mat = WindMaterial("Hollow_GrassWind", grassTex, null, new Color(0.95f, 1.08f, 0.82f), 0.08f, 0.06f, 2.5f, 0.03f, true, 0.4f);
-            // Pastizal escondite: dorado, alto y denso. Se reconoce de un vistazo (lectura de juego, no decorado).
-            var tallMat = WindMaterial("Hollow_TallGrassWind", grassTex, null, new Color(1.6f, 1.22f, 0.48f), 0.08f, 0.1f, 1.3f, 0.03f, true, 0.45f);
+            // Pasto escondite: alto y denso; las puntas captan algo más de luz, cálida y sutil (sin dorado chillón).
+            var tallMat = WindMaterial("Hollow_TallGrassWind", grassTex, null, new Color(0.98f, 1.0f, 0.62f), 0.08f, 0.1f, 1.3f, 0.03f, true, 0.45f);
             var shortMeshes = new Mesh[4];
             for (int i = 0; i < shortMeshes.Length; i++)
                 shortMeshes[i] = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("GrassShort_" + i, 900 + i, 0.4f + i * 0.05f, 10, 0.2f));
@@ -554,11 +580,8 @@ namespace ProjectRidge.EditorTools
                 list.Add(new CombineInstance { mesh = mesh, transform = Matrix4x4.TRS(p, Quaternion.Euler(0f, R(0f, 360f), 0f), Vector3.one * scale) });
             }
 
-            bool InPatch(Vector3 p, float pad)
-            {
-                foreach (var h in HidePatches) if ((new Vector2(p.x - h.x, p.z - h.y)).magnitude < h.z + pad) return true;
-                return false;
-            }
+            // El pasto corto no se mete en la vegetación escondite (pad = margen extra en metros).
+            bool InPatch(Vector3 p, float pad) => densityMap.Sample(p) > 0.18f || densityMap.Sample(p + new Vector3(pad, 0f, 0f)) > 0.3f || densityMap.Sample(p - new Vector3(pad, 0f, 0f)) > 0.3f;
 
             // Pasto corto dentro de las salas (textura del suelo) y en los bordes; nunca sobre el sendero.
             int count = 0;
@@ -583,34 +606,13 @@ namespace ProjectRidge.EditorTools
                 }
             }
 
-            // Pastizales escondite (diseño): agachado dentro, ni reflectores ni Lurkers te ven.
-            foreach (var h in HidePatches)
-            {
-                var center = OnGround(t, h.x, h.y);
-                var patch = new GameObject("HidingGrass");
-                patch.transform.SetParent(parent, false);
-                patch.transform.SetPositionAndRotation(center, Quaternion.identity);
-                int n = Mathf.RoundToInt(22f * h.z * h.z);
-                for (int i = 0; i < n; i++)
-                {
-                    Vector2 o = new Vector2(R(-1f, 1f), R(-1f, 1f));
-                    if (o.sqrMagnitude > 1f) { i--; continue; }
-                    o *= h.z;
-                    var p = OnGround(t, h.x + o.x, h.y + o.y, -0.02f);
-                    // Más bajo en el borde: el contorno se lee redondo y limpio desde arriba.
-                    float edge = 1f - o.magnitude / h.z;
-                    Tuft(tallMeshes[rng.Next(tallMeshes.Length)], p, R(0.8f, 1.05f) * (0.75f + 0.35f * edge), tallMat);
-                }
-                var hide = new GameObject("Concealment");
-                hide.layer = 8; // TallGrass
-                hide.transform.SetParent(patch.transform, false);
-                var hc = hide.AddComponent<CapsuleCollider>();
-                hc.isTrigger = true;
-                hc.radius = h.z * 0.92f;
-                hc.height = 2.5f;
-                hc.center = Vector3.up * 0.8f;
-                count += n;
-            }
+            // Vegetación escondite según el mapa de densidad (POLISH_PASS 3.9): masas irregulares de pasto alto y
+            // helechos, densas en el centro y sueltas en el borde. Agachado donde el mapa pasa del umbral = oculto.
+            var (leafA, leafN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Leaves, 23);
+            var fernMat = WindMaterial("Hollow_FernWind", leafA, leafN, new Color(0.62f, 0.78f, 0.55f), 0.18f, 0.08f, 1.6f, 0.03f, true, 0.4f);
+            fernMat.SetFloat("_UseVertexHeight", 1f);
+            var fern = ChunkyMeshGenerator.Save(ChunkyMeshGenerator.GrassTuft("Fern_0", 977, 0.55f, 9, 0.5f));
+            count += PlantDensityVegetation(root, t, densityMap, rng, Tuft, tallMeshes, tallMat, fern, fernMat);
 
             int chunkIndex = 0;
             foreach (var kv in chunks)

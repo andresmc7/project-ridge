@@ -48,6 +48,7 @@ namespace ProjectRidge.EditorTools
                 "P1" => P1(),
                 "P2" => P2(),
                 "P3" => P3(),
+                "P4" => P4(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -569,6 +570,101 @@ namespace ProjectRidge.EditorTools
                 Shot("P3_after_dither");
             }
             Check("occluder fades with dithering", tree != null && target < 1f && shader == "ProjectRidge/DitherFade", (tree != null ? tree.name + " at " + tree.transform.position : "no fadeable") + ", alpha " + target + ", shader " + shader);
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        // ------------------------------------------------------------------ P4
+
+        static IEnumerator P4()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var vis = player.GetComponent<PlayerVisibility>();
+
+            // Escondites por densidad: ninguno se ve como un círculo (vista cenital + medida de la forma).
+            var (report, minIrr, masses) = HollowBuilder.DensityReport();
+            Debug.Log("POLISH: P4 density report\n" + report);
+            HollowBuilder.DensityImage(ProgressDir + "P4_after_density.png");
+            Shots.TopDown(ProgressDir + "P4_after_topdown.png", new Vector3(-12f, 0f, 0f), 30f);
+            Check("hiding masses are not circles", masses > 0 && minIrr >= 0.08f, masses + " design masses, least irregular " + minIrr.ToString("0.00") + " (a circle on this grid ~0.03)");
+
+            // Troncos visibles desde la cámara de juego: el tronco bajo la copa que no queda tapado por ella.
+            var trunks = new List<string>();
+            bool trunksOk = true;
+            foreach (var t in Object.FindObjectsByType<LODGroup>(FindObjectsSortMode.None))
+            {
+                if (!t.name.StartsWith("HollowFir_")) continue;
+                var mr = t.GetComponentInChildren<MeshRenderer>();
+                var b = mr.bounds;
+                string key = t.name.Split('(')[0];
+                if (trunks.Exists(s => s.StartsWith(key))) continue;
+                // El tronco libre: de la base a la copa menos lo que la copa tapa a 42° (tan 42° ≈ 0.9 por metro de radio).
+                var fir = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Hollow/" + key + ".prefab");
+                var mesh = fir.GetComponentInChildren<MeshFilter>().sharedMesh;
+                float crownBottom = float.MaxValue, crownRadius = 0f;
+                if (mesh.subMeshCount > 1)
+                {
+                    var tris = mesh.GetTriangles(1);
+                    var v = mesh.vertices;
+                    foreach (int i in tris) { crownBottom = Mathf.Min(crownBottom, v[i].y); crownRadius = Mathf.Max(crownRadius, new Vector2(v[i].x, v[i].z).magnitude); }
+                }
+                float free = mesh.subMeshCount > 1 ? crownBottom - Mathf.Tan(42f * Mathf.Deg2Rad) * crownRadius * 0.55f : b.size.y;
+                trunks.Add(key + " trunk " + free.ToString("0.0") + " m");
+                trunksOk &= free > 0.8f;
+            }
+            Shot("P4_after_trunks");
+            Check("trunks visible from the game camera", trunks.Count >= 4 && trunksOk, string.Join(", ", trunks));
+
+            // Rocas para móvil: <= 3k triángulos.
+            int maxTris = 0;
+            // En play las rocas se combinan (batching estático): se miran las mallas de los prefabs.
+            foreach (var guid in AssetDatabase.FindAssets("PH_Hollow t:Mesh"))
+            {
+                var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(guid));
+                if (mesh != null && !mesh.name.EndsWith("_Col")) maxTris = Mathf.Max(maxTris, mesh.triangles.Length / 3);
+            }
+            Check("rocks <= 3k triangles", maxTris > 0 && maxTris <= 3000, "largest rock " + maxTris + " tris");
+
+            // Escondite por densidad: dentro de una masa → oculto; en el borde fino → no.
+            var map = AssetDatabase.LoadAssetAtPath<HideDensityMap>("Assets/_Project/Data/HideDensityMap.asset");
+            Vector3 center = Ground(-20.6f, -3.3f);
+            Vector3 fringe = Vector3.zero;
+            for (float r = 0.5f; r < 5f && fringe == Vector3.zero; r += 0.1f)
+                for (int a = 0; a < 16; a++)
+                {
+                    var q = center + new Vector3(Mathf.Cos(a * 0.39f), 0f, Mathf.Sin(a * 0.39f)) * r;
+                    float d = map.Sample(q);
+                    if (d > 0.18f && d < 0.35f) { fringe = Ground(q.x, q.z); break; }
+                }
+            Teleport(center);
+            yield return 1f;
+            bool hiddenIn = vis.IsHidden;
+            float dIn = vis.HideDensity;
+            Shot("P4_after_hidden");
+            Teleport(fringe);
+            yield return 1.2f;
+            bool hiddenEdge = vis.IsHidden;
+            float dEdge = vis.HideDensity;
+            Check("hidden by density (mass yes, thin edge no)", hiddenIn && !hiddenEdge && fringe != Vector3.zero,
+                  "center density " + dIn.ToString("0.00") + " hidden " + hiddenIn + "; edge " + fringe + " density " + dEdge.ToString("0.00") + " hidden " + hiddenEdge);
+
+            // Ramas secas: pisarlas caminando suma ruido.
+            var branch = Object.FindFirstObjectByType<DryBranch>();
+            float loudest = 0f;
+            System.Action<ProjectRidge.Noise.NoiseEvent> onNoise = e => { if (e.Type == ProjectRidge.Noise.NoiseType.Breakage) loudest = Mathf.Max(loudest, e.Radius); };
+            ProjectRidge.Noise.NoiseSystem.NoiseEmitted += onNoise;
+            if (branch != null)
+            {
+                Vector3 bp = branch.transform.position;
+                Teleport(Ground(bp.x - 2f, bp.z));
+                yield return 0.5f;
+                yield return Hold(new Vector2(0.6f, 0f), 2.4f);
+                Stick(Vector2.zero);
+            }
+            ProjectRidge.Noise.NoiseSystem.NoiseEmitted -= onNoise;
+            float walkRadius = AssetDatabase.LoadAssetAtPath<ProjectRidge.Noise.NoiseConfig>("Assets/_Project/Data/NoiseConfig.asset").walkStepRadius;
+            Check("dry branch cracks louder", branch != null && loudest >= walkRadius + 3.9f, "crack noise " + loudest.ToString("0.0") + " m (walk " + walkRadius + " m)");
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
         }
 

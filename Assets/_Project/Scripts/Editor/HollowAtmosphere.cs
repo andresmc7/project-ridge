@@ -373,7 +373,7 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>Exposición y contraste del grading (ajustados midiendo el histograma de las capturas, P3).</summary>
-        public static float GradingExposure = 3.7f, GradingContrast = 18f;
+        public static float GradingExposure = 4.1f, GradingContrast = 18f; // 3.7 en P3; con el bosque nuevo (copas oscuras, sin "blobs" claros) la imagen bajó: medido otra vez en P4
 
         /// <summary>QA (P3): prueba otra exposición/contraste sobre el perfil de post.</summary>
         public static void TuneGrading(float exposure, float contrast)

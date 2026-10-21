@@ -59,6 +59,33 @@ namespace ProjectRidge.EditorTools
             return file;
         }
 
+        /// <summary>Vista cenital ortográfica (QA de formas: los escondites no deben verse como círculos).</summary>
+        public static string TopDown(string file, Vector3 center, float halfWidth, int width = 1600, int height = 900)
+        {
+            var camGo = new GameObject("TopDownCam");
+            var cam = camGo.AddComponent<Camera>();
+            cam.CopyFrom(Camera.main);
+            cam.orthographic = true;
+            cam.orthographicSize = halfWidth * height / width;
+            cam.transform.SetPositionAndRotation(center + Vector3.up * 60f, Quaternion.Euler(90f, 0f, 0f));
+            cam.farClipPlane = 200f;
+            var rt = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+            cam.targetTexture = rt;
+            cam.Render();
+            var active = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+            tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            tex.Apply();
+            RenderTexture.active = active;
+            RenderTexture.ReleaseTemporary(rt);
+            Directory.CreateDirectory(Path.GetDirectoryName(file));
+            File.WriteAllBytes(file, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            Object.DestroyImmediate(camGo);
+            return file;
+        }
+
         /// <summary>
         /// Histograma de una captura (POLISH_PASS 3.10): fracción de píxeles con luminancia &lt; 0.08 (sombra profunda) y
         /// &gt; 0.6 (islas de luz), y la media. Luminancia Rec.709 sobre los valores del PNG (sRGB 0–1).

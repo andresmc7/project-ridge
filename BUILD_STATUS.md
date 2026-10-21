@@ -2,6 +2,17 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-20 — POLISH PASS P4: entorno (árboles, rocas, vegetación por densidad)
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P4")` → **5/5 PASS**; `PolishTests.Run("P3")` repetida con el bosque nuevo → **6/6 PASS**. Bot `LoopBot.Run(24)` → llega al final de la sala 3, 2 muertes (antes 3). Capturas: `P4_before*.png`, `P4_after*.png`, cenital `P4_after_topdown.png`, mapa `P4_after_density.png`.
+
+- **Árboles**: coníferas con tarjetas de ramas (atlas `fir_tree_01`), copa verde casi negro, tronco libre bajo la copa (1.1–2.6 m visibles desde la cámara a 42°), 4 variantes + árbol muerto, impostor (dos tarjetas cruzadas horneadas) por LOD a ~30 m. Ya no hay "blobs" estilizados: los arbustos del borde son matas de helecho Poly Haven.
+- **Rocas**: `rock_moss_set_01/02` reducidas a ≤ 3k triángulos (la mayor: 2954) con el shader `MossyRock` (musgo arriba por normal, cortado por ruido). Colisionadores convexos con mallas de 200 triángulos (sin avisos de 256 polígonos). Tocones y troncos muertos Poly Haven reducidos (≤ 2.5k / 3.5k).
+- **Vegetación escondite por densidad**: `HideDensityMap` (celdas de 0.25 m) = escondites de diseño deformados (elipses con borde ondulado) + ruido junto a rocas, bordes y orillas. 23 masas de diseño, ninguna circular (irregularidad mínima 0.11; un círculo en esta rejilla da ~0.03). Dentro de lo alcanzable, lo procedural nunca esconde (solo los escondites medidos contra las patrullas). El escondite se calcula muestreando el mapa: centro de una masa → densidad 1.00, oculto; borde fino → 0.24, visible.
+- **Ramas secas** claras en 12 atajos: pisarlas caminando hace 7.5 m de ruido (caminar 3.5 + 4) con crujido de madera.
+- **Hitos**: árbol muerto gigante al fondo del prado de los reflectores; restos humeantes con brasas en la terraza de la espesura (isla de luz cálida sin luz dinámica). El refugio, el puente y la camioneta ya estaban.
+- Exposición del grading 3.7 → 4.1 (el bosque nuevo es más oscuro); histograma en juego: sombra profunda 55%, luces 3.4%.
+- `UNVERIFIED`: rendimiento en iPhone (4.9k matas de pasto combinadas por parcelas de 12 m, 520 coníferas con impostor, MossyRock); el aspecto del impostor de cerca no se revisó (cambia a ~30 m); charcos con reflejo sin hacer (siguen desactivados); suelo con 4 capas pintadas (sin capa de musgo nueva).
+
 ## 2026-10-20 — POLISH PASS P3: cámara, luz y post-proceso
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P3")` → **5/6 PASS** (falla el 3% de luces del histograma, ver abajo). Capturas: `P3_before.png`, `P3_after.png`, `P3_after_0..4.png`, `P3_after_dither.png`; comparación `docs/progress/compare_P3.png`.
 

@@ -25,3 +25,7 @@ Registro de decisiones ambiguas resueltas en modo autónomo (ver `docs/POLISH_PA
 - 2026-10-20 — Cámara a 17.5 m (no 12.5) con 42° y FOV 35. — Medido en juego: a 12.5 m el papá de pie ocupaba el 16% del alto; el spec manda "mídelo y ajusta" hasta 10–12%. La distancia de amenaza sube en la misma proporción (20 m).
 - 2026-10-20 — Charcos de farol naranjas aunque el histograma quede en 2.4% de luces (objetivo 3%). — Amarillos llegaban a 3.3% pero se veían verdosos sobre el pasto; el número se recupera en P4 con los hitos de luz por sala.
 - 2026-10-20 — Exposición 3.7 / contraste 18 elegidos midiendo el histograma (2.1 dejaba 88% de la imagen en negro casi sin medios tonos).
+- 2026-10-20 — Los escondites de diseño se conservan (posición y área) pero con forma de masa irregular, y lo procedural no esconde en la zona alcanzable. — 3.9 pide masas por densidad; si el ruido creara escondites nuevos junto a las patrullas, rompería el balance medido (P5 de la sesión anterior: 1.9 m de las rutas).
+- 2026-10-20 — Impostor de 2 tarjetas cruzadas horneadas de lado (no un impostor octaédrico). — Suficiente con la cámara fija a 42°; más barato de generar y de dibujar.
+- 2026-10-20 — Musgo de las rocas con un shader propio simple (Lambert con wrap + normal map + SSAO), no URP Lit. — URP Lit no mezcla por normal; la roca es mate, el especular no se echa de menos.
+- 2026-10-20 — Charcos con reflejo y capa de suelo de musgo quedan sin hacer en P4. — Prioridad a árboles, rocas y escondites (la prueba de aceptación); se retoman si sobra tiempo en P9.

@@ -41,6 +41,9 @@ namespace ProjectRidge.EditorTools
                 EditorUtility.SetDirty(def);
             }
 
+            // El escondite se calcula con el mapa de densidad de la vegetación (POLISH_PASS 3.9).
+            Set(player.GetComponent<PlayerVisibility>(), ("densityMap", AssetDatabase.LoadAssetAtPath<ProjectRidge.Core.HideDensityMap>(DataDir + "/HideDensityMap.asset")));
+
             var stance = Ensure<AutoStance>(player);
             Set(stance, ("config", stealth), ("player", pc), ("input", input), ("visibility", player.GetComponent<PlayerVisibility>()));
             Set(pc, ("stance", stance));

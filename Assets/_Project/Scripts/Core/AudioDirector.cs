@@ -73,6 +73,7 @@ namespace ProjectRidge.Core
 
             StoneProjectile.Impacted += OnStoneImpact;
             KnockableProp.Knocked += OnDebris;
+            DryBranch.Cracked += OnBranch;
             ScriptedApparition.Appeared += OnApparition;
             RadioClimax.Started += OnRadioStarted;
             RadioClimax.Squealed += OnRadioSquealed;
@@ -98,6 +99,7 @@ namespace ProjectRidge.Core
             RadioClimax.Squealed -= OnRadioSquealed;
             Searchlight.PlayerSpotted -= OnSpotted;
             KnockableProp.Knocked -= OnDebris;
+            DryBranch.Cracked -= OnBranch;
             AudioListener.pause = false;
         }
 
@@ -343,6 +345,8 @@ namespace ProjectRidge.Core
             s.pitch = pitch;
             s.PlayOneShot(clip, volume);
         }
+
+        private void OnBranch(Vector3 pos) => OnDebris(pos, KnockableProp.Surface.Wood, 1f);
 
         private void OnDebris(Vector3 pos, KnockableProp.Surface surface, float strength)
         {

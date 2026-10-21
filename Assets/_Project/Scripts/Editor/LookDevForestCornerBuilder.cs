@@ -110,7 +110,7 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>Las 4 ramitas grandes del atlas fir_tree_01_twig (uMin, vBase, uMax, vPunta).</summary>
-        static readonly Vector4[] TwigSprites =
+        internal static readonly Vector4[] TwigSprites =
         {
             new Vector4(0.293f, 0.219f, 0.645f, 0.609f),
             new Vector4(0.625f, 0.160f, 0.967f, 0.560f),

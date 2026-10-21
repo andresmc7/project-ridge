@@ -50,6 +50,6 @@ Material:
     - _WindStrength: 0.1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _RimColor: {r: 0.09, g: 0.16, b: 0.26, a: 1}
+    - _RimColor: {r: 0.07, g: 0.09, b: 0.06, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
