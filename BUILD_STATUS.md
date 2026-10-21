@@ -2,6 +2,17 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-21 — POLISH PASS P8: música por capas, loudness, HUD mínimo y hápticos
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P8")` → **9/9 PASS**. Capturas: `P8_before.png` (copia de `P5_after_hunting.png`, el HUD anterior: no se tomó una captura propia antes de cambiar), `P8_after_explore.png`, `P8_after_lowhealth.png`, `P8_after_pickup.png`.
+
+- **Música** (probado): tres capas con crossfade de 1.5 s según el estado — explorar (dron "Abandoned passages"), tensión (sospecha > 0.3, Lurker a ≤ 12 m o haz a ≤ 10 m; pulso "Pulse" + latido) y persecución ("Urgent"). Medido: calma → Explore 1.00, Lurker a 9 m → Tension 1.00 (Explore 0.00), cazado → Chase 1.00. Stingers: pista (piano), detectado y captura (cuerdas "abyss", la captura más grave), checkpoint ("Victory"), final ("Transmission"). Todo CC0 de OpenGameArt (FreePD cerró).
+- **Loudness** (probado): medidor BS.1770-4 propio (`MusicBuilder.Integrated`, verificado: seno de 997 Hz a −20 dBFS = −20.00 LUFS; mismo resultado que un cálculo independiente en Blender/numpy). 89 clips medidos; bajar volumen es una ganancia en el banco; subirlo se hace con copias normalizadas en `Assets/_Project/Audio/Normalized/` (`Tools/Blender/normalize_audio.py`, pico ≤ −1 dBFS). Música en −20 (capas −20.0/−20.0/−19.9), ambiente −24. **43 efectos transitorios** (pasos, golpes) no llegan a −16 sin saturar: su pico ya está en −1 dBFS; quedan marcados `peakLimited`.
+- **HUD** (probado): fuera contadores, texto del arma y el indicador SAFE/HIDDEN/ALERT/HUNTED. Corazón arriba a la izquierda solo con vida < 100% o al tocarlo; viñeta roja y cojera (cadera que cae al apoyar la pierna izquierda) con vida < 35%; aviso de recogida (ícono + "+1") 1.2 s junto a OBJETO; botón OBJETO con ícono; objetivo de una frase arriba al centro 4 s al cambiar y siempre en pausa (frases acortadas). Explorando con vida llena: **0 elementos** a la vista (máx. 4).
+- **Tipografía** (probado): Barlow Condensed SemiBold (OFL) en todo el HUD, mínimo 35 unidades = 14 pt en un iPhone de 6.1". El overlay de depuración conserva la fuente de Unity (no es HUD de juego).
+- **Hápticos**: `HapticEvents` pide impacto fuerte al recibir daño y al empezar a cazarte un Lurker; leve al conectar un golpe, al disparar la bengala, al recoger y en el checkpoint (probado en el editor: 2 impactos pedidos por daño + recogida). `UNVERIFIED`: que vibren en un iPhone.
+- `UNVERIFIED`: cómo suena la mezcla (nadie la escuchó; solo hay medidas), los bucles de las copias OGG (posible clic en el punto de bucle del latido), el HUD en un iPhone real y en iPad (safe areas).
+- Visto en las capturas y pendiente para P9: el agua del arroyo aguas arriba del puente se ve blanca quemada (reflejo de la luna), ya estaba en P7.
+
 ## 2026-10-21 — POLISH PASS P7: animación completa (arranques, frenadas, pivote, giro en el sitio, IK de pies)
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P7")` → **7/7 PASS**. Regresiones: `P0` **8/8** (D2 ahora mide el giro en movimiento, ver DECISIONS), `P1` **12/12**. Capturas: `P7_after_start_025x.png` y `P7_after_stop_025x.png` (tiras a 0.25×), `P7_after_bridge.png`, `P7_after_tense.png`.
 

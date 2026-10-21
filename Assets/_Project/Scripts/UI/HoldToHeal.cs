@@ -17,7 +17,10 @@ namespace ProjectRidge.UI
 
         private float since = -1f;
 
-        public void OnPointerDown(PointerEventData e) => since = Time.unscaledTime;
+        /// <summary>Último toque (s, tiempo sin escala): el HUD muestra el corazón un momento aunque la vida esté llena.</summary>
+        public float LastTouch { get; private set; } = -99f;
+
+        public void OnPointerDown(PointerEventData e) { since = Time.unscaledTime; LastTouch = since; }
         public void OnPointerUp(PointerEventData e) => since = -1f;
         public void OnPointerExit(PointerEventData e) => since = -1f;
 

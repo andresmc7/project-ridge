@@ -15,3 +15,4 @@ MonoBehaviour:
   displayName: Stone
   shortLabel: STONE
   maxCarry: 3
+  icon: {fileID: 4093544665599204686, guid: 34e9d540cefd73f4c8b10a42d5a15812, type: 3}

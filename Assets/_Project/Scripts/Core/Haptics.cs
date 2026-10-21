@@ -9,8 +9,11 @@ namespace ProjectRidge.Core
         /// <summary>Zumbido continuo encendido (la captura).</summary>
         public static bool ContinuousOn { get; private set; }
 
-        public static void Light() => Native.Impact(0);
-        public static void Heavy() => Native.Impact(2);
+        /// <summary>Impactos pedidos desde que arrancó (para las pruebas: en el editor no vibra nada).</summary>
+        public static int ImpactCount { get; private set; }
+
+        public static void Light() { ImpactCount++; Native.Impact(0); }
+        public static void Heavy() { ImpactCount++; Native.Impact(2); }
 
         public static void Continuous(bool on)
         {

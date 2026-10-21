@@ -15,3 +15,4 @@ MonoBehaviour:
   displayName: Flare
   shortLabel: FLARE
   maxCarry: 2
+  icon: {fileID: -2693303478277692386, guid: d2c851fad179bf74481a3c7bb02931c1, type: 3}

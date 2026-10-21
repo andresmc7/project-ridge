@@ -9,5 +9,7 @@ namespace ProjectRidge.Items
         [Tooltip("Texto corto para el HUD.")]
         public string shortLabel = "ITEM";
         [Min(1)] public int maxCarry = 3;
+        [Tooltip("Ícono del HUD (botón OBJETO y aviso de recogida).")]
+        public Sprite icon;
     }
 }

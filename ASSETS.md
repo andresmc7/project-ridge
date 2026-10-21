@@ -91,3 +91,25 @@ Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (C
 | `S100_Pivot` | Neutral_FR 409–469 | Pivote de 180° en carrera |
 | `S100_TenseIdle` | BentForward_ID 600–1200 | Idle tenso (encorvado) |
 | `S100_LookAround` | Followed_ID 640–830 | Mirar atrás asustado tras 6 s quieto |
+
+## Música y stingers (POLISH P8)
+
+FreePD cerró (2026); todo sale de **OpenGameArt** con licencia **CC0** verificada en la página de cada asset. Sin modificar salvo `piano_sting` (era un contenedor MP4/M4A con extensión .mp3: se pasó a WAV con Blender, mismo audio). En `Assets/ThirdParty/OpenGameArt/Music/`. Fecha: 2026-10-21.
+
+| Archivo | Asset (autor) | Licencia | Link | Uso |
+|---|---|---|---|---|
+| `abandoned_passages_freezer.ogg` | Abandoned passages (horror ambience loop) — congusbongus | CC0 | https://opengameart.org/content/abandoned-passages-horror-ambience-loop | Capa Explorar |
+| `srg774_pulse.mp3` | Dark Sci-Fi Audio Pack: Pulse — SRG774 | CC0 | https://opengameart.org/content/dark-sci-fi-audio-pack | Capa Tensión (pulso como latido) |
+| `srg774_urgent.mp3` | Dark Sci-Fi Audio Pack: Urgent — SRG774 | CC0 | (mismo pack) | Capa Persecución |
+| `srg774_transmission.mp3` | Dark Sci-Fi Audio Pack: Transmission — SRG774 | CC0 | (mismo pack) | Stinger del final |
+| `srg774_victory.mp3` | Dark Sci-Fi Audio Pack: Victory — SRG774 | CC0 | (mismo pack) | Stinger de checkpoint |
+| `congusbongus_abyss.ogg` | String and piano horror stings: abyss — congusbongus | CC0 | https://opengameart.org/content/string-and-piano-horror-stings | Stingers de detección y captura |
+| `congusbongus_piano_sting.wav` | String and piano horror stings: piano_sting — congusbongus | CC0 | (mismo) | Stinger de pista |
+
+Descartado: "Outrunners" (OOG37): la página dice CC0 pero el aviso dice "Copyright 2022 Two Litre Falls Music… for public use"; licencia no clara → no entra.
+
+## Tipografía (POLISH P8)
+
+**Barlow Condensed SemiBold** — The Barlow Project Authors (https://github.com/jpt/barlow), **SIL Open Font License 1.1** (`OFL.txt` junto al archivo). Descargada de https://github.com/google/fonts/tree/main/ofl/barlowcondensed. En `Assets/ThirdParty/Fonts/BarlowCondensed/`. Única fuente del HUD. Fecha: 2026-10-21.
+
+Copias normalizadas (`Assets/_Project/Audio/Normalized/*_n.ogg`): derivadas de los clips CC0 de arriba (Kenney, OpenGameArt) y de los sintetizados del proyecto, solo con ganancia para llegar a su objetivo de loudness (pico limitado a −1 dBFS). Las genera `Tools/Blender/normalize_audio.py` con la lista que escribe `MusicBuilder` (P8). Misma licencia que el original.

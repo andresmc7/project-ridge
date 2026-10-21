@@ -72,5 +72,61 @@ namespace ProjectRidge.Core
         public AudioClip searchlightHumLoop;
         [Tooltip("Un reflector te vio (empieza la exposición).")]
         public AudioClip searchlightAlarm;
+
+        [Header("Música por capas (POLISH_PASS 3.11; OpenGameArt CC0, ver ASSETS.md)")]
+        [Tooltip("Explorar: dron grave con texturas espaciadas.")]
+        public AudioClip musicExplore;
+        [Tooltip("Tensión: pulso grave (latido).")]
+        public AudioClip musicTension;
+        [Tooltip("Persecución: pulso urgente.")]
+        public AudioClip musicChase;
+        [Tooltip("Sospecha de algún Lurker a partir de la cual suena la capa de tensión.")]
+        [Range(0f, 1f)] public float tensionSuspicion = 0.3f;
+        [Tooltip("Un Lurker a esta distancia (m) o menos: tensión.")]
+        [Min(0f)] public float tensionLurkerDistance = 12f;
+        [Tooltip("El haz de un reflector a esta distancia (m) o menos: tensión.")]
+        [Min(0f)] public float tensionBeamDistance = 10f;
+        [Tooltip("Segundos de crossfade entre capas.")]
+        [Min(0.05f)] public float layerCrossfade = 1.5f;
+
+        [Header("Stingers")]
+        public AudioClip stingClue;
+        public AudioClip stingDetected;
+        public AudioClip stingCapture;
+        public AudioClip stingCheckpoint;
+        public AudioClip stingEnd;
+
+        [Header("Loudness (LUFS integrados, ITU-R BS.1770; medidos por MusicBuilder)")]
+        public float musicLufs = -20f;
+        public float effectsLufs = -16f;
+        public float ambientLufs = -24f;
+        [Tooltip("Ganancia por clip para llevarlo a su objetivo de loudness (la escribe MusicBuilder).")]
+        public ClipGain[] gains = new ClipGain[0];
+
+        [System.Serializable]
+        public struct ClipGain
+        {
+            public AudioClip clip;
+            [Tooltip("Loudness medido del archivo (LUFS).")]
+            public float measuredLufs;
+            [Tooltip("Factor lineal de volumen que lo lleva al objetivo de su categoría.")]
+            public float gain;
+            [Tooltip("No llega al objetivo sin saturar: su pico ya está a −1 dBFS (sonidos transitorios).")]
+            public bool peakLimited;
+        }
+
+        private System.Collections.Generic.Dictionary<AudioClip, float> gainLookup;
+
+        /// <summary>Factor de normalización de loudness del clip (1 si no se midió).</summary>
+        public float Gain(AudioClip clip)
+        {
+            if (clip == null) return 1f;
+            if (gainLookup == null || gainLookup.Count != gains.Length)
+            {
+                gainLookup = new System.Collections.Generic.Dictionary<AudioClip, float>();
+                foreach (var g in gains) if (g.clip != null) gainLookup[g.clip] = g.gain;
+            }
+            return gainLookup.TryGetValue(clip, out float v) ? v : 1f;
+        }
     }
 }

@@ -96,7 +96,15 @@ namespace ProjectRidge.EditorTools
             fso.ApplyModifiedPropertiesWithoutUndo();
 
             AssetDatabase.SaveAssets();
-            return "controls: stance, actions, items, hidden feedback on " + player.name;
+            // Hápticos de juego (P8).
+            if (!player.TryGetComponent(out ProjectRidge.Core.HapticEvents haptics)) haptics = player.AddComponent<ProjectRidge.Core.HapticEvents>();
+            var hso = new SerializedObject(haptics);
+            hso.FindProperty("health").objectReferenceValue = player.GetComponent<PlayerHealth>();
+            hso.FindProperty("combat").objectReferenceValue = player.GetComponent<PlayerCombat>();
+            hso.FindProperty("inventory").objectReferenceValue = player.GetComponent<ProjectRidge.Items.PlayerInventory>();
+            hso.ApplyModifiedPropertiesWithoutUndo();
+
+            return "controls: stance, actions, items, hidden feedback, haptics on " + player.name;
         }
 
         static Volume HiddenVolume()

@@ -63,7 +63,9 @@ namespace ProjectRidge.Player
         private float lastSpeed, lean;
         private bool hadInput, startArmed;
         private float idleTime, nextLookAround, pivotReady, tension;
-        private float lastYaw, curveLean, hipOffset;
+        private float lastYaw, curveLean, hipOffset, limp;
+        /// <summary>Peso actual de la cojera (0–1).</summary>
+        public float Limp => limp;
 
         /// <summary>Inclinación lateral actual por la curva (°, positiva hacia la derecha).</summary>
         public float CurveLean => curveLean;
@@ -383,6 +385,16 @@ namespace ProjectRidge.Player
             float drop = Mathf.Clamp(Mathf.Min(okL ? offL * wL : 0f, okR ? offR * wR : 0f, 0f), -animConfig.maxHipDrop, 0f);
             hipOffset = Mathf.Lerp(hipOffset, drop, 1f - Mathf.Exp(-animConfig.hipSmoothing * Time.deltaTime));
             animator.bodyPosition += Vector3.up * hipOffset;
+
+            // Cojera con poca vida: al apoyar la pierna izquierda (la más baja de las dos) la cadera cae y el cuerpo se ladea.
+            bool limping = health.Current < health.Max * animConfig.limpBelowHealth && controller.CurrentSpeed > 0.3f;
+            bool leftStance = animator.GetIKPosition(AvatarIKGoal.LeftFoot).y < animator.GetIKPosition(AvatarIKGoal.RightFoot).y;
+            limp = Mathf.Lerp(limp, limping && leftStance ? 1f : 0f, 1f - Mathf.Exp(-animConfig.hipSmoothing * Time.deltaTime));
+            if (limp > 0.001f)
+            {
+                animator.bodyPosition += Vector3.down * animConfig.limpDip * limp;
+                animator.bodyRotation = Quaternion.AngleAxis(animConfig.limpTilt * limp, transform.forward) * animator.bodyRotation;
+            }
             if (okL) SetFoot(AvatarIKGoal.LeftFoot, posL, rotL, wL);
             if (okR) SetFoot(AvatarIKGoal.RightFoot, posR, rotR, wR);
         }

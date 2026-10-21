@@ -52,6 +52,7 @@ namespace ProjectRidge.EditorTools
                 "P5" => P5(),
                 "P6" => P6(),
                 "P7" => P7(),
+                "P8" => P8(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -666,6 +667,173 @@ namespace ProjectRidge.EditorTools
             Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side");
             player.GetComponent<PlayerHealth>().Restore();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        // ------------------------------------------------------------------ P8
+
+        static IEnumerator P8()
+        {
+            yield return PassTitle();
+            Calm();
+            var audio = Object.FindFirstObjectByType<AudioDirector>();
+            var bank = AssetDatabase.LoadAssetAtPath<AudioBank>("Assets/_Project/Data/AudioBank.asset");
+            var lurkers = new List<EnemyController>(Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None));
+            var lurker = lurkers.Find(e => e.name == "Lurker") ?? lurkers[0];
+            foreach (var e in lurkers) e.Perception.Suppress(9999f);
+
+            // Loudness: el medidor da −20 LUFS con un seno de 997 Hz a −20 dBFS en ambos canales (referencia BS.1770),
+            // y cada clip, con su ganancia, queda en el objetivo de su categoría.
+            int rate = 48000;
+            var sine = new float[rate * 3 * 2];
+            for (int i = 0; i < rate * 3; i++) sine[2 * i] = sine[2 * i + 1] = 0.1f * Mathf.Sin(2f * Mathf.PI * 997f * i / rate);
+            float reference = MusicBuilder.Integrated(sine, 2, rate);
+            var report = new List<string>();
+            bool loudOk = Mathf.Abs(reference + 20f) < 0.3f;
+            int measured = 0, clamped = 0, limited = 0;
+            foreach (var g in bank.gains)
+            {
+                if (g.clip == null || float.IsNegativeInfinity(g.measuredLufs)) continue;
+                measured++;
+                float result = g.measuredLufs + 20f * Mathf.Log10(g.gain);
+                float target = MusicBuilder.TargetOf(bank, g.clip);
+                bool music = target == bank.musicLufs, ambient = target == bank.ambientLufs;
+                bool ok = Mathf.Abs(result - target) <= 1f;
+                if (!ok && g.peakLimited) limited++;
+                else if (!ok) clamped++;
+                if (music || ambient) report.Add(g.clip.name + " " + g.measuredLufs.ToString("0.0") + "→" + result.ToString("0.0"));
+                if (music || ambient) loudOk &= ok;
+            }
+            Debug.Log("POLISH: P8 loudness (file → normalized LUFS)\n" + string.Join("\n", report));
+            Check("loudness: meter calibrated, music at −20, ambient −24, effects −16 LUFS", loudOk && clamped == 0,
+                  "997 Hz at −20 dBFS reads " + reference.ToString("0.00") + " LUFS; " + measured + " clips measured, " + clamped + " off target, " + limited + " transients short of −16 by their −1 dBFS peak");
+
+            // Capas: explorar (lejos de todo), tensión (Lurker a ≤ 12 m), persecución (lo caza). Crossfade de 1.5 s.
+            Teleport(Ground(-45f, 0f)); // sendero abierto: el Lurker lo ve (como en P5)
+            foreach (var e in lurkers) if (e != lurker) e.gameObject.SetActive(false);
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-24f, 0f));
+            yield return bank.layerCrossfade + 0.6f;
+            var layer1 = audio.Layer;
+            float explore = audio.LayerVolume(AudioDirector.MusicLayer.Explore) / audio.LayerTarget(AudioDirector.MusicLayer.Explore);
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-54f, 0f));
+            yield return bank.layerCrossfade + 0.3f;
+            var layer2 = audio.Layer;
+            float tension = audio.LayerVolume(AudioDirector.MusicLayer.Tension) / audio.LayerTarget(AudioDirector.MusicLayer.Tension);
+            float exploreLeft = audio.LayerVolume(AudioDirector.MusicLayer.Explore) / audio.LayerTarget(AudioDirector.MusicLayer.Explore);
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f); // sin gracia: puede cazar
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-54f, 0f));
+            lurker.Perception.Suppress(0f);
+            lurker.AlertTo(player.transform.position);
+            float limit = Time.time + 8f;
+            var hpChase = player.GetComponent<PlayerHealth>();
+            while (!lurker.IsHunting && Time.time < limit) yield return null;
+            // Que no lo mate mientras se mide (si muere, reaparece en el checkpoint y la música vuelve a explorar).
+            limit = Time.time + bank.layerCrossfade + 0.3f;
+            while (Time.time < limit) { hpChase.Restore(); yield return null; }
+            var layer3 = audio.Layer;
+            float chase = audio.LayerVolume(AudioDirector.MusicLayer.Chase) / audio.LayerTarget(AudioDirector.MusicLayer.Chase);
+            var sting = audio.LastSting;
+            Check("music layers follow the state with a 1.5 s crossfade", layer1 == AudioDirector.MusicLayer.Explore && layer2 == AudioDirector.MusicLayer.Tension && layer3 == AudioDirector.MusicLayer.Chase
+                                                                        && explore > 0.95f && tension > 0.95f && exploreLeft < 0.05f && chase > 0.95f,
+                  "calm → " + layer1 + " (" + explore.ToString("0.00") + "), lurker at 9 m → " + layer2 + " (" + tension.ToString("0.00") + ", explore left " + exploreLeft.ToString("0.00") + "), hunted → " + layer3 + " (" + chase.ToString("0.00") + ")");
+            Check("detected stinger", sting == bank.stingDetected, "last stinger " + (sting != null ? sting.name : "none"));
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-55f, 0f));
+            foreach (var e in lurkers) { e.gameObject.SetActive(true); e.Perception.Suppress(9999f); }
+
+            // HUD en exploración: vida llena, sin amenaza, 6 s después de entrar → ≤ 4 elementos a la vista.
+            var hp = player.GetComponent<PlayerHealth>();
+            hp.Restore();
+            Teleport(Ground(-24f, 0f));
+            GameFlow.Instance.SetObjective("Follow the creek north."); // texto nuevo: SetObjective ignora el mismo texto
+            yield return 1f;
+            float objectiveShown = GameFlow.Instance.ObjectiveAlpha;
+            yield return 5f;
+            var visible = VisibleHud();
+            float objectiveLater = GameFlow.Instance.ObjectiveAlpha;
+            ShotUI("P8_after_explore");
+            Check("HUD: ≤ 4 elements visible while exploring, no counters or state text", visible.Count <= 4 && GameObject.Find("StealthHud") == null && GameObject.Find("Resources") == null,
+                  visible.Count + " visible: " + string.Join(", ", visible));
+            GameFlow.Instance.Pause(true);
+            yield return null;
+            float objectivePaused = GameFlow.Instance.ObjectiveAlpha;
+            GameFlow.Instance.Pause(false);
+            Check("objective: short phrase for 4 s, then fades; visible in pause", objectiveShown > 0.95f && objectiveLater < 0.05f && objectivePaused > 0.95f,
+                  "\"" + GameFlow.Instance.Objective + "\": at 1 s " + objectiveShown.ToString("0.00") + ", at 6 s " + objectiveLater.ToString("0.00") + ", paused " + objectivePaused.ToString("0.00"));
+
+            // Vida: corazón oculto al 100%, visible al bajar; viñeta roja con poca vida.
+            var hud = Object.FindFirstObjectByType<UI.SurvivalHud>();
+            float heartFull = hud.HeartAlpha;
+            int haptics0 = Haptics.ImpactCount;
+            hp.TakeDamage(hp.Max * 0.75f);
+            yield return 0.6f;
+            float heartHurt = hud.HeartAlpha;
+            float vignette = GameObject.Find("LowHealthVignette").GetComponent<CanvasGroup>().alpha;
+            ShotUI("P8_after_lowhealth");
+            var fa = player.GetComponentInChildren<FatherAnimator>();
+            float limp = 0f;
+            Stick(new Vector2(0.6f, 0f));
+            float until = Time.time + 2f;
+            while (Time.time < until) { limp = Mathf.Max(limp, fa.Limp); yield return null; }
+            Stick(Vector2.zero);
+            Check("health: heart only below 100%, red vignette and limp when low", heartFull < 0.05f && heartHurt > 0.95f && vignette > 0.3f && limp > 0.5f,
+                  "heart at full " + heartFull.ToString("0.00") + ", hurt " + heartHurt.ToString("0.00") + ", vignette " + vignette.ToString("0.00") + ", limp " + limp.ToString("0.00"));
+            hp.Restore();
+
+            // Recoger: ícono + "+1" junto al botón OBJETO durante 1.2 s.
+            var inv = player.GetComponent<PlayerInventory>();
+            var stone = ItemsSetupBuilder.LoadItem("Stone");
+            while (inv.Count(stone) > 0) inv.TryRemove(stone, 1);
+            yield return 1.5f;
+            inv.Add(stone, 1);
+            yield return 0.2f;
+            bool shown = hud.PickupShown;
+            ShotUI("P8_after_pickup");
+            yield return 1.4f;
+            bool gone = !hud.PickupShown;
+            Check("pick-up notice: icon + \"+1\" for 1.2 s", shown && gone && stone.icon != null, "shown " + shown + ", gone after 1.6 s " + gone + ", icon " + (stone.icon != null ? stone.icon.name : "none"));
+
+            // Tipografía: una sola fuente (OFL) y ≥ 14 pt en todo el HUD.
+            var fonts = new HashSet<string>();
+            int minSize = 999;
+            foreach (var t in GameObject.Find("HUD").GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                if (t.GetComponentInParent<UI.DebugOverlay>(true) != null) continue; // herramienta de desarrollo, no HUD
+                fonts.Add(t.font != null ? t.font.name : "none");
+                minSize = Mathf.Min(minSize, t.fontSize);
+            }
+            int minPt = Mathf.CeilToInt(14f * 2.49f);
+            Check("one condensed OFL font, ≥ 14 pt", fonts.Count == 1 && fonts.Contains("BarlowCondensed-SemiBold") && minSize >= minPt,
+                  "fonts " + string.Join(",", fonts) + ", smallest " + minSize + " units (14 pt = " + minPt + ")");
+
+            // Hápticos: daño y recogida piden impactos (en el editor solo se cuentan).
+            Check("haptics on damage and pick-up", Haptics.ImpactCount - haptics0 >= 2, (Haptics.ImpactCount - haptics0) + " impacts requested");
+        }
+
+        /// <summary>Elementos de información del HUD a la vista (los controles táctiles no cuentan, salvo OBJETO con algo).</summary>
+        static List<string> VisibleHud()
+        {
+            var list = new List<string>();
+            float Alpha(string name)
+            {
+                var go = GameObject.Find(name);
+                if (go == null || !go.activeInHierarchy) return 0f;
+                float a = 1f;
+                foreach (var g in go.GetComponentsInParent<CanvasGroup>()) a *= g.alpha;
+                if (go.TryGetComponent(out UnityEngine.UI.Text t)) a *= string.IsNullOrEmpty(t.text) ? 0f : t.color.a;
+                return a;
+            }
+            foreach (var n in new[] { "Heart", "Objective", "Prompt", "Toast", "Pickup", "LowHealthVignette", "DamageFlash" })
+                if (Alpha(n) > 0.05f) list.Add(n);
+            var obj = Object.FindFirstObjectByType<UI.ObjectButton>();
+            if (obj != null && obj.GetComponent<CanvasGroup>().alpha > 0.5f) list.Add("ObjectButton");
+            var det = Object.FindFirstObjectByType<UI.DetectionIndicators>();
+            foreach (var e in EnemyController.Active)
+            {
+                var st = det.State(e);
+                if (st.arc || st.arrow) { list.Add("DetectionIndicator"); break; }
+            }
+            return list;
         }
 
         // ------------------------------------------------------------------ P7

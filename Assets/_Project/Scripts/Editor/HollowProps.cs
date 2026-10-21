@@ -697,7 +697,7 @@ namespace ProjectRidge.EditorTools
             // 3. Campamento: el mapa con la ruta a la camioneta.
             Make("Clue_Map", OnGround(t, Camp.x + 0.4f, Camp.z - 1.6f, 0.38f), -30f, "the map", "A TRAIL MAP",
                 "Pinned under a rock on the bench. A route drawn in red marker from the station to the access road, circled twice:\n\"RANGER TRUCK - RADIO\"\n\nUnder it, smaller, shakier: \"they only come when the light is on you\"",
-                "Reach the truck on the access road.", paper, new Vector3(0.42f, 0.01f, 0.3f));
+                "Reach the ranger truck.", paper, new Vector3(0.42f, 0.01f, 0.3f));
         }
 
         static void BuildCheckpoints(Terrain t)
@@ -719,11 +719,11 @@ namespace ProjectRidge.EditorTools
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
             // En los pasillos entre salas: lugares seguros, fuera de rutas y conos. El objetivo enseña el loop.
-            Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Red light takes you. Crouch (C) in the golden grass and wait for it to pass.");
-            Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek. Watch where it looks.");
-            Cp("CP_TwoLights", 0.2f, 0.7f, new Vector3(3f, 3f, 4.5f), "Learn the pattern. Move between the lights.");
+            Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Stay out of the red light.");
+            Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek.");
+            Cp("CP_TwoLights", 0.2f, 0.7f, new Vector3(3f, 3f, 4.5f), "Slip between the lights.");
             Cp("CP_Thicket", 24f, 0f, new Vector3(3f, 3f, 4.5f), "Find where they went.");
-            Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the truck on the access road.");
+            Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the ranger truck.");
             // Fuera de la ruta de S5 y de los reflectores del clímax (que se apagan al morir).
             Cp("CP_Radio", 58.6f, -2f, new Vector3(3f, 3f, 6f), "Use the truck's radio.");
         }

@@ -74,28 +74,28 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 6845c853f9b56b14dad1e170b38bc019, type: 3}
   - {fileID: 8300000, guid: 0bde2638373a6e049a6880d17848943e, type: 3}
   hurt: {fileID: 8300000, guid: 205bd3fb8266f30448db5be1cf8feceb, type: 3}
-  death: {fileID: 8300000, guid: a3d1906d536c8d744bb49cf785dfc115, type: 3}
+  death: {fileID: 8300000, guid: a3c7c6eef09a89e4d9cd3ae0b2d9163b, type: 3}
   heal: {fileID: 8300000, guid: e734826f3132b204abb5db8785cd4084, type: 3}
   pickup: {fileID: 8300000, guid: 437e3b394c6e66f43b779a2468febff4, type: 3}
   crateOpen: {fileID: 8300000, guid: d43c46b63209eb749978a962ef5f9e05, type: 3}
-  craft: {fileID: 8300000, guid: 406fcd1beb037c8459e0c7ee980ea9e3, type: 3}
+  craft: {fileID: 8300000, guid: 47a22216ba953d34abbe378d6b3f9af5, type: 3}
   clubSwing: {fileID: 8300000, guid: 0d2017efd48f97c428362c2179314495, type: 3}
   clubHit: {fileID: 8300000, guid: d7cbe6ba46abc9d458c1d593bc6f9bc6, type: 3}
-  clubBreak: {fileID: 8300000, guid: 3feddd3118230f447a7300bfb8a56b35, type: 3}
+  clubBreak: {fileID: 8300000, guid: 30a5a91a3073188488b46156cf355956, type: 3}
   flareShot: {fileID: 8300000, guid: 447ef2615071dcf4f8b86b10051ae096, type: 3}
-  flareBurnLoop: {fileID: 8300000, guid: a311b3e9fac8c504a81545e263ceff76, type: 3}
-  dryFire: {fileID: 8300000, guid: 1e5d2285d0341bc48bacd66c6c61f959, type: 3}
+  flareBurnLoop: {fileID: 8300000, guid: a96ee9cc8484e664798ca58cdd761944, type: 3}
+  dryFire: {fileID: 8300000, guid: ebafc98514bb61e4298159d437106a56, type: 3}
   lurkerSteps:
-  - {fileID: 8300000, guid: a402ddf611006834a98902a7d6400ee6, type: 3}
+  - {fileID: 8300000, guid: 3da07f932debf5a458730748ad57ae17, type: 3}
   - {fileID: 8300000, guid: 14f3fd43e9b52344fac6522af5adf6d1, type: 3}
   - {fileID: 8300000, guid: 89b3a72244562ce40a468df335e460ee, type: 3}
   lurkerClicks:
-  - {fileID: 8300000, guid: 6ab2400767ad19344ab6a8d67cd86444, type: 3}
+  - {fileID: 8300000, guid: 282f5f1c610b12140903accc28ca7e58, type: 3}
   - {fileID: 8300000, guid: 7db55aa31d7cfd34585d4a49ef1647b7, type: 3}
   - {fileID: 8300000, guid: 7f23d88dbf5d550409cf86e950975c80, type: 3}
   - {fileID: 8300000, guid: d9ae541192df2594b830a7a9676f2e9f, type: 3}
   lurkerScreech: {fileID: 8300000, guid: 17692f681c20c8d469c77091e260de98, type: 3}
-  lurkerAttack: {fileID: 8300000, guid: 65f3929776a03ae45b37a3c9e1a19d59, type: 3}
+  lurkerAttack: {fileID: 8300000, guid: 8858b08ac53841744b4b97212c2d9643, type: 3}
   lurkerGrowlLoop: {fileID: 8300000, guid: 9f4deaf6bacdf454cb5fd04f367ae106, type: 3}
   lurkerHurt: {fileID: 8300000, guid: c3c90e851092a334c8987e1b10743fad, type: 3}
   lurkerDeath: {fileID: 8300000, guid: e2bb0426ef97b344e9e633d57162dbb1, type: 3}
@@ -103,9 +103,381 @@ MonoBehaviour:
   checkpoint: {fileID: 8300000, guid: 9bc1f0a731b452245bf23be12dd4d331, type: 3}
   clueSting: {fileID: 8300000, guid: ca6713577026256428af6413d04a2c9e, type: 3}
   uiClick: {fileID: 8300000, guid: a68c6dbd9d716434292b3b47f0ec08af, type: 3}
-  radioStatic: {fileID: 8300000, guid: 88e3b45c93918244997e098dcc70d716, type: 3}
+  radioStatic: {fileID: 8300000, guid: 68c846b625686d54286d1d62051b603f, type: 3}
   radioVoice: {fileID: 8300000, guid: 9e8fafa5e8f2c65498c3f231eb657671, type: 3}
   radioLoop: {fileID: 8300000, guid: 5ff2d3412545c574dab7de9d6ede253d, type: 3}
-  stoneImpact: {fileID: 8300000, guid: 325610d3e1da52d4eaafec5b82fc27ab, type: 3}
+  stoneImpact: {fileID: 8300000, guid: 38bc8f9c7ea033c48984f660f7cfad84, type: 3}
   searchlightHumLoop: {fileID: 8300000, guid: 33c119e8b7bf6f241b7d6f34a460d586, type: 3}
   searchlightAlarm: {fileID: 8300000, guid: e0d2f3a55e52611458c35b2b0e8ff0b3, type: 3}
+  musicExplore: {fileID: 8300000, guid: c3314a7041b8cb6418477b64e0222d82, type: 3}
+  musicTension: {fileID: 8300000, guid: 29928ede4dd784d46b3cf379d948683a, type: 3}
+  musicChase: {fileID: 8300000, guid: 9d2022345792a6e4880d0f5138bd9746, type: 3}
+  tensionSuspicion: 0.3
+  tensionLurkerDistance: 12
+  tensionBeamDistance: 10
+  layerCrossfade: 1.5
+  stingClue: {fileID: 8300000, guid: 422cc83672fcd924d84067d95f1f1611, type: 3}
+  stingDetected: {fileID: 8300000, guid: 54a4b341c92ee8442bc964bd57edaf71, type: 3}
+  stingCapture: {fileID: 8300000, guid: 54a4b341c92ee8442bc964bd57edaf71, type: 3}
+  stingCheckpoint: {fileID: 8300000, guid: 3397e32aeec65914fab4e0eba2f247de, type: 3}
+  stingEnd: {fileID: 8300000, guid: 83c8857c1d57f1b4c91b0fb1b176b4b6, type: 3}
+  musicLufs: -20
+  effectsLufs: -16
+  ambientLufs: -24
+  gains:
+  - clip: {fileID: 8300000, guid: 0fbf879a411eba34d82c1dbbd449ba51, type: 3}
+    measuredLufs: -15.387592
+    gain: 0.37100488
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 866a1852e4cf8144883cff00e21e9d8f, type: 3}
+    measuredLufs: -23.62304
+    gain: 0.95752907
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 690228bd71c2f49409cbd8657c4ab307, type: 3}
+    measuredLufs: -16.029728
+    gain: 0.39947203
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 2289b4de55511d345811166f480f7c84, type: 3}
+    measuredLufs: -15.955377
+    gain: 0.39606717
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: dce05a93d20d7a1438d82ee8f3b8cbfc, type: 3}
+    measuredLufs: -14.79063
+    gain: 0.5489484
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 5f26aade2b8669647bec8ae41cd77d8b, type: 3}
+    measuredLufs: -18.92337
+    gain: 0.8834226
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 00d8d9daa5836864d9abb1ec03994991, type: 3}
+    measuredLufs: -20.37261
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: fd2f6b97fa312f94b9b773741e9ba4fb, type: 3}
+    measuredLufs: -21.086359
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: ec8123e36d7a5ba40952c858b612fb15, type: 3}
+    measuredLufs: -19.656069
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 22949a6f18fa7b0428fd4ff3608b7661, type: 3}
+    measuredLufs: -21.256716
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: f2f5fe31bee11f54fb735e8f150db2ca, type: 3}
+    measuredLufs: -21.42274
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 75458ebcbff647c42954221b053384b4, type: 3}
+    measuredLufs: -20.547989
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 5d84b82ef6d436b479b21e20c4126e6a, type: 3}
+    measuredLufs: -19.863773
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: e012ebfd39983ee458713287822c85c3, type: 3}
+    measuredLufs: -20.200142
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 8bee25716d9b87d44a2c3aaa55724e8d, type: 3}
+    measuredLufs: -19.291544
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: fbde4deefd8b3804ea0533da19575439, type: 3}
+    measuredLufs: -18.899376
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 5b2adbc8df069f74ea50d1245df698db, type: 3}
+    measuredLufs: -21.028437
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: a1bf91c0b0efa194ea9e45e16a12dddc, type: 3}
+    measuredLufs: -19.296957
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: a2afcd6b0be1ae54ab0cd52a19061fcf, type: 3}
+    measuredLufs: -25.680967
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 90f19e10295560a4495bd20713a9e301, type: 3}
+    measuredLufs: -24.882645
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: fab5005186361574caa60171be219c4b, type: 3}
+    measuredLufs: -25.476183
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 60a916d75cce3604fb7008759615fb16, type: 3}
+    measuredLufs: -25.960962
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: be57d8a174b858e4da24633051e1aecb, type: 3}
+    measuredLufs: -25.518377
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 292683c68ce03fc458959c86389ad2ca, type: 3}
+    measuredLufs: -17.829594
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 032fabb8d16268547b424a2f983d4cd8, type: 3}
+    measuredLufs: -17.927141
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: d0a41357ea8a7f940bdd76876b5d2c06, type: 3}
+    measuredLufs: -15.095742
+    gain: 0.9011293
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 64d97938785b1cc41804a5c1950b5339, type: 3}
+    measuredLufs: -15.352185
+    gain: 0.928131
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 681ac7fda864a7c4d84a9508e58008d6, type: 3}
+    measuredLufs: -17.898937
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 5a07cd7346043754f9e12dfd7f283694, type: 3}
+    measuredLufs: -15.748257
+    gain: 0.971433
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 5551a17e2d68bdf45bc4e80a73cc421a, type: 3}
+    measuredLufs: -18.36999
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 83b6f535387eab348a1fddd7329906b7, type: 3}
+    measuredLufs: -18.142782
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 632456585ea92ce44a0311b045d14ed1, type: 3}
+    measuredLufs: -18.648811
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 0b3f1fd97806f3a4898b1bf0d06a4c63, type: 3}
+    measuredLufs: -15.719282
+    gain: 0.9681978
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 5b52d1c340a33904388186ba5e60fda4, type: 3}
+    measuredLufs: -20.15208
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 4165a4ce90e131341aed47c16a3626bf, type: 3}
+    measuredLufs: -22.275885
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 41a0cc357145fa64290d0d6981a380b6, type: 3}
+    measuredLufs: -20.062899
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 0a462e440d6e47e479bdb8b5cfded9c7, type: 3}
+    measuredLufs: -22.113537
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 42131d04990ec5649834b993b5fcd9fb, type: 3}
+    measuredLufs: -22.761086
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 161c0d58cf36eec4fbc7538df862738b, type: 3}
+    measuredLufs: -19.27085
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 50097d6c499860b4aa4bf24b8da07da4, type: 3}
+    measuredLufs: -16.438435
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 18d4d93d8ac84ec4d9cb060515a35e6e, type: 3}
+    measuredLufs: -16.678925
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: d3895cd71caa33c43a56a9e8e2da6dd6, type: 3}
+    measuredLufs: -17.224733
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: eccdbe29737a70f41b1a97910aa267eb, type: 3}
+    measuredLufs: -20.517439
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 24c2f3a86fa814a418c30b576301e95e, type: 3}
+    measuredLufs: -15.388726
+    gain: 0.9320438
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 11a1a3b945082924296d9c9c7d2f8512, type: 3}
+    measuredLufs: -14.7129
+    gain: 0.86227345
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 6ea0e4ad048d0644a8ba59c2fdd493fe, type: 3}
+    measuredLufs: -15.11698
+    gain: 0.9033353
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 6845c853f9b56b14dad1e170b38bc019, type: 3}
+    measuredLufs: -14.45433
+    gain: 0.8369828
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 0bde2638373a6e049a6880d17848943e, type: 3}
+    measuredLufs: -15.316877
+    gain: 0.9243658
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 205bd3fb8266f30448db5be1cf8feceb, type: 3}
+    measuredLufs: -17.086643
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: a3c7c6eef09a89e4d9cd3ae0b2d9163b, type: 3}
+    measuredLufs: -19.79143
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: e734826f3132b204abb5db8785cd4084, type: 3}
+    measuredLufs: -15.530776
+    gain: 0.94741184
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 437e3b394c6e66f43b779a2468febff4, type: 3}
+    measuredLufs: -16.169905
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: d43c46b63209eb749978a962ef5f9e05, type: 3}
+    measuredLufs: -15.662531
+    gain: 0.9618925
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 47a22216ba953d34abbe378d6b3f9af5, type: 3}
+    measuredLufs: -17.331057
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 0d2017efd48f97c428362c2179314495, type: 3}
+    measuredLufs: -13.099296
+    gain: 0.7160853
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: d7cbe6ba46abc9d458c1d593bc6f9bc6, type: 3}
+    measuredLufs: -16.025091
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 30a5a91a3073188488b46156cf355956, type: 3}
+    measuredLufs: -21.028528
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 447ef2615071dcf4f8b86b10051ae096, type: 3}
+    measuredLufs: -14.885467
+    gain: 0.8795759
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: a96ee9cc8484e664798ca58cdd761944, type: 3}
+    measuredLufs: -21.40063
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: ebafc98514bb61e4298159d437106a56, type: 3}
+    measuredLufs: -23.716108
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 3da07f932debf5a458730748ad57ae17, type: 3}
+    measuredLufs: -22.537659
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 14f3fd43e9b52344fac6522af5adf6d1, type: 3}
+    measuredLufs: -24.295723
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 89b3a72244562ce40a468df335e460ee, type: 3}
+    measuredLufs: -24.010098
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 282f5f1c610b12140903accc28ca7e58, type: 3}
+    measuredLufs: -21.997902
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 7db55aa31d7cfd34585d4a49ef1647b7, type: 3}
+    measuredLufs: -16.67561
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 7f23d88dbf5d550409cf86e950975c80, type: 3}
+    measuredLufs: -16.64697
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: d9ae541192df2594b830a7a9676f2e9f, type: 3}
+    measuredLufs: -20.651922
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 17692f681c20c8d469c77091e260de98, type: 3}
+    measuredLufs: -13.658969
+    gain: 0.7637451
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 8858b08ac53841744b4b97212c2d9643, type: 3}
+    measuredLufs: -18.92658
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 9f4deaf6bacdf454cb5fd04f367ae106, type: 3}
+    measuredLufs: -14.769545
+    gain: 0.8679151
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: c3c90e851092a334c8987e1b10743fad, type: 3}
+    measuredLufs: -16.079676
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: e2bb0426ef97b344e9e633d57162dbb1, type: 3}
+    measuredLufs: -14.088068
+    gain: 0.80242306
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 2f3973dfa0a04fc49a72a496c47e7cff, type: 3}
+    measuredLufs: -13.91433
+    gain: 0.78653216
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 9bc1f0a731b452245bf23be12dd4d331, type: 3}
+    measuredLufs: -15.217867
+    gain: 0.91388875
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: ca6713577026256428af6413d04a2c9e, type: 3}
+    measuredLufs: -17.700909
+    gain: 0.76744175
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: a68c6dbd9d716434292b3b47f0ec08af, type: 3}
+    measuredLufs: -14.103427
+    gain: 0.8038432
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 68c846b625686d54286d1d62051b603f, type: 3}
+    measuredLufs: -15.172372
+    gain: 0.90911454
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 9e8fafa5e8f2c65498c3f231eb657671, type: 3}
+    measuredLufs: -1.8146377
+    gain: 0.19531333
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 5ff2d3412545c574dab7de9d6ede253d, type: 3}
+    measuredLufs: -5.918128
+    gain: 0.31326106
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 38bc8f9c7ea033c48984f660f7cfad84, type: 3}
+    measuredLufs: -26.117046
+    gain: 1
+    peakLimited: 1
+  - clip: {fileID: 8300000, guid: 33c119e8b7bf6f241b7d6f34a460d586, type: 3}
+    measuredLufs: -15.3101425
+    gain: 0.36771142
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: e0d2f3a55e52611458c35b2b0e8ff0b3, type: 3}
+    measuredLufs: -15.108198
+    gain: 0.9024225
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: c3314a7041b8cb6418477b64e0222d82, type: 3}
+    measuredLufs: -12.385032
+    gain: 0.4161516
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 29928ede4dd784d46b3cf379d948683a, type: 3}
+    measuredLufs: -19.972557
+    gain: 0.9968455
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 9d2022345792a6e4880d0f5138bd9746, type: 3}
+    measuredLufs: -19.949608
+    gain: 0.9942152
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 422cc83672fcd924d84067d95f1f1611, type: 3}
+    measuredLufs: -19.176012
+    gain: 0.9094956
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 54a4b341c92ee8442bc964bd57edaf71, type: 3}
+    measuredLufs: -13.874373
+    gain: 0.49399057
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 3397e32aeec65914fab4e0eba2f247de, type: 3}
+    measuredLufs: -20.04269
+    gain: 1
+    peakLimited: 0
+  - clip: {fileID: 8300000, guid: 83c8857c1d57f1b4c91b0fb1b176b4b6, type: 3}
+    measuredLufs: -19.946081
+    gain: 0.9938116
+    peakLimited: 0

@@ -26,6 +26,8 @@ namespace ProjectRidge.EditorTools
             if (AssetDatabase.LoadAssetAtPath<ProjectRidge.Core.AudioBank>("Assets/_Project/Data/AudioBank.asset") == null)
                 log.AppendLine(SoundSynth.Build());
             log.AppendLine(KenneyAudio.Assign());
+            log.AppendLine(MusicBuilder.Assign());
+            MusicBuilder.StreamLongMusic();
             log.AppendLine(SoundSynth.SetupScene());
             return log.ToString();
         }

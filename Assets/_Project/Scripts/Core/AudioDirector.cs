@@ -26,7 +26,17 @@ namespace ProjectRidge.Core
         [Tooltip("Volumen del gruñido-respiración al patrullar (relativo a enemy); al cazar va a 0.8.")]
         [Range(0f, 1f)] [SerializeField] private float prowlGrowlVolume = 0.3f;
 
-        private AudioSource musicCalm, musicChase, wind, forest, rain, heartbeat, ui, playerSfx;
+        private AudioSource musicExplore, musicTension, musicChase, wind, forest, rain, heartbeat, ui, playerSfx, stingSrc;
+
+        public enum MusicLayer { Explore, Tension, Chase, None }
+        /// <summary>Capa de música que suena ahora (POLISH_PASS 3.11).</summary>
+        public MusicLayer Layer { get; private set; } = MusicLayer.Explore;
+        /// <summary>Volumen actual de una capa (para las pruebas de crossfade).</summary>
+        public float LayerVolume(MusicLayer l) => l == MusicLayer.Explore ? musicExplore.volume : l == MusicLayer.Tension ? musicTension.volume : l == MusicLayer.Chase ? musicChase.volume : 0f;
+        /// <summary>Volumen objetivo de una capa activa (categoría música por la ganancia de loudness del clip).</summary>
+        public float LayerTarget(MusicLayer l) => bank.music * bank.Gain(l == MusicLayer.Explore ? bank.musicExplore : l == MusicLayer.Tension ? bank.musicTension : bank.musicChase);
+        /// <summary>Último stinger que sonó (para las pruebas).</summary>
+        public AudioClip LastSting { get; private set; }
         /// <summary>Corta el latido de golpe (la captura del OVNI: el corazón "se detiene").</summary>
         public static bool HeartbeatMuted;
         private AudioSource radio;
@@ -47,15 +57,18 @@ namespace ProjectRidge.Core
 
         private void Start()
         {
-            musicCalm = Loop("MusicCalm", bank.musicAmbientLoop, bank.music);
-            musicChase = Loop("MusicChase", bank.musicChaseLoop, 0f);
-            wind = Loop("Wind", bank.windLoop, bank.ambient * 0.8f);
-            forest = Loop("Forest", bank.forestLoop, bank.ambient * 0.6f);
-            rain = Loop("Rain", bank.rainLoop, bank.ambient * 0.55f);
+            musicExplore = Loop("MusicExplore", bank.musicExplore != null ? bank.musicExplore : bank.musicAmbientLoop, LayerTarget(MusicLayer.Explore));
+            musicTension = Loop("MusicTension", bank.musicTension, 0f);
+            musicChase = Loop("MusicChase", bank.musicChase != null ? bank.musicChase : bank.musicChaseLoop, 0f);
+            wind = Loop("Wind", bank.windLoop, bank.ambient * 0.8f * bank.Gain(bank.windLoop));
+            forest = Loop("Forest", bank.forestLoop, bank.ambient * 0.6f * bank.Gain(bank.forestLoop));
+            rain = Loop("Rain", bank.rainLoop, bank.ambient * 0.55f * bank.Gain(bank.rainLoop));
             heartbeat = Loop("Heartbeat", bank.heartbeatLoop, 0f);
             ui = Source2D("UI");
             ui.ignoreListenerPause = true;
             playerSfx = Source2D("PlayerSfx");
+            stingSrc = Source2D("Stingers");
+            stingSrc.ignoreListenerPause = true;
             for (int i = 0; i < 10; i++)
             {
                 var s = new GameObject("Sfx3D_" + i).AddComponent<AudioSource>();
@@ -92,8 +105,8 @@ namespace ProjectRidge.Core
             if (flow != null)
             {
                 flow.StateChanged += OnFlowState;
-                flow.CheckpointReached += () => UI(bank.checkpoint, 0.8f);
-                flow.Captured += () => UI(bank.ufoCapture, 1f);
+                flow.CheckpointReached += () => Stinger(bank.stingCheckpoint, bank.checkpoint, bank.music);
+                flow.Captured += () => { UI(bank.ufoCapture, 1f); Stinger(bank.stingCapture, null, bank.music * 1.2f, 0.8f); };
             }
         }
 
@@ -120,7 +133,7 @@ namespace ProjectRidge.Core
 
         private void OnRadioSquealed()
         {
-            if (radio != null) radio.PlayOneShot(bank.radioStatic, 0.9f);
+            if (radio != null) radio.PlayOneShot(bank.radioStatic, 0.9f * bank.Gain(bank.radioStatic));
         }
 
         private void OnRadioStarted()
@@ -132,7 +145,7 @@ namespace ProjectRidge.Core
             Configure3D(radio, 3f, 40f);
             radio.clip = bank.radioLoop;
             radio.loop = true;
-            radio.volume = bank.ui;
+            radio.volume = bank.ui * bank.Gain(bank.radioLoop);
             radio.Play();
             Sting(true);
         }
@@ -155,7 +168,7 @@ namespace ProjectRidge.Core
                 Configure3D(src, 2.5f, 20f);
                 src.clip = bank.searchlightHumLoop;
                 src.loop = true;
-                src.volume = bank.ambient * 0.9f;
+                src.volume = bank.ambient * 0.9f * bank.Gain(src.clip);
                 src.time = Random.Range(0f, 5f);
                 src.Play();
                 hums.Add((s, src));
@@ -173,7 +186,7 @@ namespace ProjectRidge.Core
                 Configure3D(s, 2f, 14f);
                 s.clip = bank.creekLoop;
                 s.loop = true;
-                s.volume = bank.ambient * 0.6f;
+                s.volume = bank.ambient * 0.6f * bank.Gain(s.clip);
                 s.time = Random.Range(0f, 8f);
                 s.Play();
             }
@@ -242,21 +255,36 @@ namespace ProjectRidge.Core
                 bool hunting = kv.Key != null && kv.Key.IsHunting;
                 anyHunting |= hunting;
                 if (kv.Value != null)
-                    kv.Value.volume = Mathf.MoveTowards(kv.Value.volume, hunting ? bank.enemy * 0.8f : kv.Key != null && !kv.Key.IsDead ? bank.enemy * prowlGrowlVolume : 0f, Time.unscaledDeltaTime * 1.5f);
+                    kv.Value.volume = Mathf.MoveTowards(kv.Value.volume, (hunting ? bank.enemy * 0.8f : kv.Key != null && !kv.Key.IsDead ? bank.enemy * prowlGrowlVolume : 0f) * bank.Gain(bank.lurkerGrowlLoop), Time.unscaledDeltaTime * 1.5f);
             }
 
             // Los grillos se callan cuando algo grande anda cerca.
             float nearest = float.MaxValue;
             foreach (var e in EnemyController.Active) nearest = Mathf.Min(nearest, Vector3.Distance(e.transform.position, player.transform.position));
             float crickets = Mathf.InverseLerp(6f, 16f, nearest);
-            forest.volume = Mathf.MoveTowards(forest.volume, bank.ambient * 0.6f * crickets, Time.unscaledDeltaTime * 0.6f);
+            forest.volume = Mathf.MoveTowards(forest.volume, bank.ambient * 0.6f * crickets * bank.Gain(bank.forestLoop), Time.unscaledDeltaTime * 0.6f);
 
             bool ending = GameFlow.Instance != null && GameFlow.Instance.Current == GameFlow.State.Ending;
             float fade = Time.unscaledDeltaTime / musicFade;
-            musicChase.volume = Mathf.MoveTowards(musicChase.volume, anyHunting && !ending ? bank.music : 0f, fade);
-            musicCalm.volume = Mathf.MoveTowards(musicCalm.volume, anyHunting || ending ? 0f : bank.music, fade * 0.5f);
-            bool danger = anyHunting || health.Current < health.Max * 0.35f;
-            heartbeat.volume = HeartbeatMuted ? 0f : Mathf.MoveTowards(heartbeat.volume, danger && !health.IsDead ? bank.player * 0.7f : 0f, fade);
+            // Capas (3.11): persecución si algo caza; tensión con sospecha, un Lurker cerca o un haz cerca; si no, explorar.
+            float suspicion = 0f;
+            foreach (var e in EnemyController.Active) suspicion = Mathf.Max(suspicion, e.Perception.Suspicion);
+            float beam = float.MaxValue;
+            foreach (var (light, _) in hums)
+                if (light != null && light.isActiveAndEnabled) beam = Mathf.Min(beam, Vector3.Distance(Flat(light.Spot), Flat(player.transform.position)));
+            Layer = ending ? MusicLayer.None
+                : anyHunting ? MusicLayer.Chase
+                : suspicion > bank.tensionSuspicion || nearest <= bank.tensionLurkerDistance || beam <= bank.tensionBeamDistance ? MusicLayer.Tension
+                : MusicLayer.Explore;
+            float layerFade = Time.unscaledDeltaTime / bank.layerCrossfade;
+            foreach (var l in new[] { MusicLayer.Explore, MusicLayer.Tension, MusicLayer.Chase })
+            {
+                var src = l == MusicLayer.Explore ? musicExplore : l == MusicLayer.Tension ? musicTension : musicChase;
+                float target = l == Layer ? LayerTarget(l) : 0f;
+                src.volume = Mathf.MoveTowards(src.volume, target, Mathf.Max(LayerTarget(l), 0.01f) * layerFade);
+            }
+            bool danger = anyHunting || Layer == MusicLayer.Tension || health.Current < health.Max * 0.35f;
+            heartbeat.volume = HeartbeatMuted ? 0f : Mathf.MoveTowards(heartbeat.volume, danger && !health.IsDead ? bank.player * 0.7f * bank.Gain(bank.heartbeatLoop) : 0f, fade);
             heartbeat.pitch = anyHunting ? 1.25f : 1f;
 
             if (health.Current > lastHealth + 0.5f && lastHealth > 0f && !health.IsDead && lastHealth < health.Max)
@@ -268,10 +296,11 @@ namespace ProjectRidge.Core
         {
             AudioListener.pause = s == GameFlow.State.Paused;
             if (s == GameFlow.State.Paused) UI(bank.uiClick, 0.6f);
-            if (s == GameFlow.State.Clue) UI(bank.clueSting, 0.9f);
+            if (s == GameFlow.State.Clue) Stinger(bank.stingClue, bank.clueSting, bank.music);
             if (s == GameFlow.State.Ending)
             {
                 UI(bank.radioStatic, 0.8f);
+                Stinger(bank.stingEnd, null, bank.music);
                 Invoke(nameof(PlayRadioVoice), 2.4f);
             }
         }
@@ -302,7 +331,7 @@ namespace ProjectRidge.Core
         {
             if (!force && Time.time - lastSting < alertStingCooldown) return;
             lastSting = Time.time;
-            UI(bank.alertSting, bank.music * 1.3f);
+            Stinger(bank.stingDetected, bank.alertSting, bank.music * 1.2f);
         }
 
         // ---------- Utilidades
@@ -366,17 +395,32 @@ namespace ProjectRidge.Core
         }
 
         private static AudioClip Pick(AudioClip[] clips) => clips != null && clips.Length > 0 ? clips[Random.Range(0, clips.Length)] : null;
+        private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
+
+        /// <summary>Stinger musical (3.11): el clip de la capa de música, o el sintetizado si falta.</summary>
+        private void Stinger(AudioClip clip, AudioClip fallback, float volume, float pitch = 1f)
+        {
+            var c = clip != null ? clip : fallback;
+            if (c == null) return;
+            LastSting = c;
+            stingSrc.pitch = pitch;
+            stingSrc.PlayOneShot(c, volume * bank.Gain(c));
+        }
+
+        // Toda reproducción pasa por la ganancia de loudness del clip (bank.Gain): cada archivo llega normalizado a
+        // su objetivo (música −20, efectos −16, ambiente −24 LUFS) y encima van los volúmenes de mezcla de siempre.
 
         private void PlayerSfx(AudioClip clip, float volume, float pitchJitter)
         {
             if (clip == null) return;
             playerSfx.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            playerSfx.PlayOneShot(clip, volume);
+            playerSfx.PlayOneShot(clip, volume * bank.Gain(clip));
         }
 
         private void UI(AudioClip clip, float volume)
         {
-            if (clip != null) ui.PlayOneShot(clip, volume * bank.ui / 0.7f);
+            if (clip == null) return;
+            ui.PlayOneShot(clip, volume * bank.ui / 0.7f * bank.Gain(clip));
         }
 
         private void At(AudioClip clip, Vector3 pos, float volume, float pitchJitter)
@@ -386,7 +430,7 @@ namespace ProjectRidge.Core
             poolIndex = (poolIndex + 1) % pool.Count;
             s.transform.position = pos;
             s.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            s.PlayOneShot(clip, volume);
+            s.PlayOneShot(clip, volume * bank.Gain(clip));
         }
 
         private void AtPitch(AudioClip clip, Vector3 pos, float volume, float pitch)
@@ -396,7 +440,7 @@ namespace ProjectRidge.Core
             poolIndex = (poolIndex + 1) % pool.Count;
             s.transform.position = pos;
             s.pitch = pitch;
-            s.PlayOneShot(clip, volume);
+            s.PlayOneShot(clip, volume * bank.Gain(clip));
         }
 
         private void OnBranch(Vector3 pos) => OnDebris(pos, KnockableProp.Surface.Wood, 1f);
@@ -407,11 +451,11 @@ namespace ProjectRidge.Core
             AtPitch(Pick(set), pos, bank.weapons * Mathf.Lerp(0.5f, 1f, strength), Random.Range(0.9f, 1.1f));
         }
 
-        private static void Voice(AudioSource s, AudioClip clip, float volume, float pitchJitter)
+        private void Voice(AudioSource s, AudioClip clip, float volume, float pitchJitter)
         {
             if (clip == null || s == null) return;
             s.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            s.PlayOneShot(clip, volume);
+            s.PlayOneShot(clip, volume * bank.Gain(clip));
         }
     }
 }

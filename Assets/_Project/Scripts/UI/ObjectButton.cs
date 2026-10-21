@@ -15,6 +15,8 @@ namespace ProjectRidge.UI
         [SerializeField] private PlayerItems items;
         [SerializeField] private Text label;
         [SerializeField] private Text count;
+        [Tooltip("Ícono del objeto activo; si el objeto no tiene, se muestra su nombre.")]
+        [SerializeField] private Image icon;
         [SerializeField] private CanvasGroup group;
         [Tooltip("Arrastre (unidades del canvas) a partir del cual deja de ser un toque y pasa a apuntar.")]
         [Min(1f)] [SerializeField] private float aimDeadzone = 24f;
@@ -77,7 +79,13 @@ namespace ProjectRidge.UI
             // Mantener sin moverse también apunta.
             if (down && !swiped && !items.Aiming && Time.unscaledTime - downTime > holdToAim) items.BeginAim();
             var a = items.Active;
-            label.text = a != null ? a.displayName.ToUpperInvariant() : "";
+            bool hasIcon = icon != null && a != null && a.icon != null;
+            if (icon != null)
+            {
+                icon.enabled = hasIcon;
+                if (hasIcon) icon.sprite = a.icon;
+            }
+            label.text = a != null && !hasIcon ? a.displayName.ToUpperInvariant() : "";
             int n = items.ActiveCount;
             count.text = n.ToString();
             group.alpha = n > 0 ? 1f : emptyAlpha;

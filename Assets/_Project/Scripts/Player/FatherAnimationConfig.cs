@@ -62,5 +62,13 @@ namespace ProjectRidge.Player
         [Tooltip("Cuánto puede bajar la cadera (m) para que el pie más bajo llegue al suelo.")]
         [Min(0f)] public float maxHipDrop = 0.35f;
         [Min(0.01f)] public float hipSmoothing = 12f;
+
+        [Header("Cojera con poca vida (3.12)")]
+        [Tooltip("Por debajo de esta fracción de vida cojea.")]
+        [Range(0f, 1f)] public float limpBelowHealth = 0.35f;
+        [Tooltip("Cuánto baja la cadera (m) al apoyar la pierna herida (la izquierda).")]
+        [Min(0f)] public float limpDip = 0.06f;
+        [Tooltip("Inclinación lateral (°) hacia la pierna herida al apoyarla.")]
+        [Min(0f)] public float limpTilt = 5f;
     }
 }

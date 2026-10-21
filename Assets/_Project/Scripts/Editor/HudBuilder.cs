@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,7 +10,7 @@ namespace ProjectRidge.EditorTools
 {
     /// <summary>
     /// Reconstruye el HUD de la escena activa: controles táctiles circulares y discretos (solo en móvil o editor)
-    /// y el indicador de sigilo SAFE / ALERT / HUNTED. Conserva el DebugOverlay.
+    /// y el HUD mínimo de 3.12 (corazón, viñeta, aviso de recogida, indicadores de los Lurker). Conserva el DebugOverlay.
     /// </summary>
     public static class HudBuilder
     {
@@ -19,7 +20,7 @@ namespace ProjectRidge.EditorTools
         [MenuItem("Project Ridge/HUD/Rebuild HUD in Active Scene")]
         public static string Build()
         {
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font = HudFont();
             var disc = SpriteAsset("UI_Disc", (u, v) => Disc(u, v, 1f));
             var ring = SpriteAsset("UI_Ring", (u, v) => Disc(u, v, 1f) - Disc(u, v, 0.86f));
             var white = SpriteAsset("UI_White", (u, v) => 1f);
@@ -93,11 +94,15 @@ namespace ProjectRidge.EditorTools
             var objectLabel = Label("Label", objectRt, new Vector2(0f, 14f), new Vector2(objectSize, 50f), "", 28, FontStyle.Bold);
             var objectCount = Label("Count", objectRt, new Vector2(0f, -40f), new Vector2(objectSize, 50f), "", 36, FontStyle.Bold);
             objectCount.color = new Color(1f, 0.86f, 0.6f, 0.95f);
+            var objectIcon = Img(Rect("Icon", objectRt, new Vector2(0.5f, 0.5f), new Vector2(0f, Pt(8f)), objectSize * 0.5f), null, new Color(0.95f, 0.92f, 0.86f, 0.95f), false);
+            objectIcon.preserveAspect = true;
+            var icons = ItemIcons();
             var ob = objectRt.gameObject.AddComponent<ProjectRidge.UI.ObjectButton>();
             var obso = new SerializedObject(ob);
             obso.FindProperty("items").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerItems>();
             obso.FindProperty("label").objectReferenceValue = objectLabel;
             obso.FindProperty("count").objectReferenceValue = objectCount;
+            obso.FindProperty("icon").objectReferenceValue = objectIcon;
             obso.FindProperty("group").objectReferenceValue = objectGroup;
             obso.FindProperty("cancelRadius").floatValue = objectSize * 0.5f;
             obso.FindProperty("aimDeadzone").floatValue = Pt(10f);
@@ -115,6 +120,11 @@ namespace ProjectRidge.EditorTools
             healFill.type = Image.Type.Filled;
             healFill.fillMethod = Image.FillMethod.Radial360;
             healFill.fillAmount = 0f;
+            // Vida (3.12): un corazón pequeño, solo con la vida < 100% o al tocarlo (lo maneja SurvivalHud).
+            var heartRt = Rect("Heart", healRt, new Vector2(0.5f, 0.5f), Vector2.zero, Pt(26f));
+            var heartImg = Img(heartRt, SpriteAsset("UI_Heart", Heart), Color.white, false);
+            var heartGroup = heartRt.gameObject.AddComponent<CanvasGroup>();
+            heartGroup.alpha = 0f;
             var hh = healRt.gameObject.AddComponent<ProjectRidge.UI.HoldToHeal>();
             var hso = new SerializedObject(hh);
             hso.FindProperty("healing").objectReferenceValue = playerGo.GetComponent<ProjectRidge.Player.PlayerHealing>();
@@ -122,27 +132,32 @@ namespace ProjectRidge.EditorTools
             hso.ApplyModifiedPropertiesWithoutUndo();
 
             // --- Vida y recursos (arriba a la izquierda), aviso de interacción y mensajes (abajo al centro)
+            // 3.12: sin contadores permanentes ni textos de estado. Viñeta roja con poca vida (pantalla completa).
+            var vignetteOld = canvas.transform.Find("LowHealthVignette");
+            if (vignetteOld != null) Object.DestroyImmediate(vignetteOld.gameObject);
+            var vignetteRt = Stretch("LowHealthVignette", canvas.transform);
+            vignetteRt.SetAsFirstSibling();
+            Img(vignetteRt, SpriteAsset("UI_Vignette", (u, v) => Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.42f, 0.98f, Vector2.Distance(new Vector2(u, v), new Vector2(0.5f, 0.5f)) * 1.41f))),
+                new Color(0.55f, 0f, 0f, 1f), false);
+            var vignette = vignetteRt.gameObject.AddComponent<CanvasGroup>();
+            vignette.alpha = 0f;
+            vignette.blocksRaycasts = false;
+
             var survival = Stretch("SurvivalHud", safe);
-            var healthBg = Rect("HealthBg", survival, new Vector2(0f, 1f), new Vector2(170f, -48f), 0f);
-            healthBg.sizeDelta = new Vector2(240f, 6f);
-            Img(healthBg, white, new Color(1f, 1f, 1f, 0.14f), false);
-            var healthRt = Rect("HealthFill", healthBg, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
-            healthRt.anchorMin = Vector2.zero; healthRt.anchorMax = Vector2.one; healthRt.offsetMin = healthRt.offsetMax = Vector2.zero;
-            var healthFill = Img(healthRt, white, new Color(0.86f, 0.82f, 0.74f, 0.9f), false);
-            healthFill.type = Image.Type.Filled;
-            healthFill.fillMethod = Image.FillMethod.Horizontal;
-            healthFill.fillOrigin = (int)Image.OriginHorizontal.Left;
-            var resources = Label("Resources", survival, Vector2.zero, new Vector2(420f, 28f), "", 17, FontStyle.Bold);
-            Anchor(resources.rectTransform, new Vector2(0f, 1f), new Vector2(260f, -76f));
-            resources.alignment = TextAnchor.MiddleLeft;
-            var weapon = Label("Weapon", survival, Vector2.zero, new Vector2(420f, 26f), "", 16, FontStyle.Bold);
-            Anchor(weapon.rectTransform, new Vector2(0f, 1f), new Vector2(260f, -100f));
-            weapon.alignment = TextAnchor.MiddleLeft;
-            weapon.color = new Color(1f, 1f, 1f, 0.7f);
-            var prompt = Label("Prompt", survival, Vector2.zero, new Vector2(600f, 34f), "", 22, FontStyle.Bold);
-            Anchor(prompt.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f));
-            var toast = Label("Toast", survival, Vector2.zero, new Vector2(600f, 30f), "", 19, FontStyle.Normal);
-            Anchor(toast.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 196f));
+            var prompt = Label("Prompt", survival, Vector2.zero, new Vector2(900f, 50f), "", 22, FontStyle.Bold);
+            Anchor(prompt.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, Pt(64f)));
+            var toast = Label("Toast", survival, Vector2.zero, new Vector2(900f, 50f), "", 19, FontStyle.Normal);
+            Anchor(toast.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, Pt(84f)));
+            // Aviso de recogida: ícono + "+1" a la izquierda del botón OBJETO, 1.2 s.
+            var pickupRt = Rect("Pickup", survival, br, new Vector2(-Pt(248f), Pt(160f)), 0f);
+            pickupRt.sizeDelta = new Vector2(Pt(70f), Pt(30f));
+            var pickupGroup = pickupRt.gameObject.AddComponent<CanvasGroup>();
+            pickupGroup.alpha = 0f;
+            var pickupIcon = Img(Rect("Icon", pickupRt, new Vector2(0f, 0.5f), new Vector2(Pt(14f), 0f), Pt(26f)), null, new Color(1f, 0.92f, 0.78f, 1f), false);
+            pickupIcon.preserveAspect = true;
+            var pickupLabel = Label("Count", pickupRt, Vector2.zero, new Vector2(Pt(70f), Pt(30f)), "+1", 24, FontStyle.Bold);
+            Anchor(pickupLabel.rectTransform, new Vector2(1f, 0.5f), new Vector2(-Pt(18f), 0f));
+            pickupLabel.color = new Color(1f, 0.92f, 0.78f, 1f);
 
             var survivalHud = survival.gameObject.AddComponent<ProjectRidge.UI.SurvivalHud>();
             var sso = new SerializedObject(survivalHud);
@@ -150,19 +165,24 @@ namespace ProjectRidge.EditorTools
             sso.FindProperty("health").objectReferenceValue = player;
             sso.FindProperty("inventory").objectReferenceValue = player.GetComponent<ProjectRidge.Items.PlayerInventory>();
             sso.FindProperty("interactor").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInteractor>();
-            var items = sso.FindProperty("shownItems");
-            items.arraySize = ShownItems.Length;
-            for (int i = 0; i < ShownItems.Length; i++)
-                items.GetArrayElementAtIndex(i).objectReferenceValue =
-                    AssetDatabase.LoadAssetAtPath<ProjectRidge.Items.ItemDefinition>("Assets/_Project/Data/Items/" + ShownItems[i] + ".asset");
-            sso.FindProperty("healthFill").objectReferenceValue = healthFill;
-            sso.FindProperty("resourcesLabel").objectReferenceValue = resources;
-            sso.FindProperty("weaponLabel").objectReferenceValue = weapon;
-            sso.FindProperty("combat").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerCombat>();
+            sso.FindProperty("healHold").objectReferenceValue = hh;
+            sso.FindProperty("heart").objectReferenceValue = heartGroup;
+            sso.FindProperty("heartImage").objectReferenceValue = heartImg;
+            sso.FindProperty("lowHealthVignette").objectReferenceValue = vignette;
+            sso.FindProperty("pickup").objectReferenceValue = pickupGroup;
+            sso.FindProperty("pickupIcon").objectReferenceValue = pickupIcon;
+            sso.FindProperty("pickupLabel").objectReferenceValue = pickupLabel;
             sso.FindProperty("promptLabel").objectReferenceValue = prompt;
             sso.FindProperty("toastLabel").objectReferenceValue = toast;
             sso.FindProperty("damageFlash").objectReferenceValue = flash;
             sso.ApplyModifiedPropertiesWithoutUndo();
+            foreach (var kv in icons)
+            {
+                var item = AssetDatabase.LoadAssetAtPath<ProjectRidge.Items.ItemDefinition>("Assets/_Project/Data/Items/" + kv.Key + ".asset");
+                if (item == null) continue;
+                item.icon = kv.Value;
+                EditorUtility.SetDirty(item);
+            }
 
             // --- Indicadores de detección sobre los Lurker (y flecha en el borde si están fuera de cámara).
             var arrowSprite = SpriteAsset("UI_Arrow", (u, v) => Mathf.Clamp01((v * 0.9f - Mathf.Abs(u - 0.5f) * 1.8f + 0.05f) * 40f) * (v < 0.92f ? 1f : 0f));
@@ -182,33 +202,8 @@ namespace ProjectRidge.EditorTools
             dso.FindProperty("edgeInset").floatValue = Pt(26f);
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            // --- Indicador de sigilo (arriba al centro)
-            var hud = Rect("StealthHud", safe, new Vector2(0.5f, 1f), new Vector2(0f, -62f), 0f);
-            hud.sizeDelta = new Vector2(420f, 90f);
-            var group = hud.gameObject.AddComponent<CanvasGroup>();
-            group.interactable = false;
-            group.blocksRaycasts = false;
-            var state = Label("State", hud, new Vector2(0f, 18f), new Vector2(420f, 36f), "SAFE", 28, FontStyle.Bold);
-            var barBg = Rect("MeterBg", hud, new Vector2(0.5f, 0.5f), new Vector2(0f, -8f), 0f);
-            barBg.sizeDelta = new Vector2(240f, 5f);
-            Img(barBg, white, new Color(1f, 1f, 1f, 0.14f), false);
-            var fillRt = Rect("MeterFill", barBg, new Vector2(0.5f, 0.5f), Vector2.zero, 0f);
-            fillRt.anchorMin = Vector2.zero; fillRt.anchorMax = Vector2.one; fillRt.offsetMin = fillRt.offsetMax = Vector2.zero;
-            var fill = Img(fillRt, white, Color.white, false);
-            fill.type = Image.Type.Filled;
-            fill.fillMethod = Image.FillMethod.Horizontal;
-            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
-            fill.fillAmount = 0f;
-            var detail = Label("Detail", hud, new Vector2(0f, -30f), new Vector2(420f, 24f), "", 16, FontStyle.Normal);
-
-            var stealth = hud.gameObject.AddComponent<ProjectRidge.UI.StealthHud>();
-            var so = new SerializedObject(stealth);
-            so.FindProperty("stateLabel").objectReferenceValue = state;
-            so.FindProperty("detailLabel").objectReferenceValue = detail;
-            so.FindProperty("meterFill").objectReferenceValue = fill;
-            so.FindProperty("group").objectReferenceValue = group;
-            so.FindProperty("ufoExposure").objectReferenceValue = Object.FindFirstObjectByType<ProjectRidge.AI.UFOExposure>();
-            so.ApplyModifiedPropertiesWithoutUndo();
+            // Sin indicador de sigilo arriba (SAFE/HIDDEN/ALERT/HUNTED, 3.12): la lectura la dan los ojos e indicadores
+            // de los Lurker (P5) y el agacharse del papá en la vegetación.
 
             var scene = EditorSceneManager.GetActiveScene();
             EditorSceneManager.MarkSceneDirty(scene);
@@ -221,7 +216,7 @@ namespace ProjectRidge.EditorTools
         [MenuItem("Project Ridge/HUD/Rebuild Game Flow UI in Active Scene")]
         public static string BuildFlow()
         {
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            font = HudFont();
             var white = SpriteAsset("UI_White", (u, v) => 1f);
             var disc = SpriteAsset("UI_Disc", (u, v) => Disc(u, v, 1f));
             var canvas = GameObject.Find("HUD").transform;
@@ -236,9 +231,10 @@ namespace ProjectRidge.EditorTools
 
             if (!safe.TryGetComponent(out CanvasGroup hudGroup)) hudGroup = safe.gameObject.AddComponent<CanvasGroup>();
 
-            var objective = Label("Objective", (RectTransform)safe, Vector2.zero, new Vector2(520f, 26f), "", 16, FontStyle.Italic);
-            Anchor(objective.rectTransform, new Vector2(0f, 1f), new Vector2(310f, -126f));
-            objective.alignment = TextAnchor.MiddleLeft;
+            // Objetivo (3.12): una frase corta arriba al centro; GameFlow la muestra 4 s y en pausa.
+            var objective = Label("Objective", (RectTransform)safe, Vector2.zero, new Vector2(1100f, 60f), "", 40, FontStyle.Normal);
+            Anchor(objective.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -Pt(30f)));
+            objective.alignment = TextAnchor.MiddleCenter;
 
             var flow = Stretch("Flow", canvas);
 
@@ -456,7 +452,41 @@ namespace ProjectRidge.EditorTools
         /// <summary>Ancho de la zona del joystick flotante (fracción de la pantalla, desde la izquierda).</summary>
         const float StickAreaWidth = 0.45f;
 
-        static readonly string[] ShownItems = { "Medkit", "Flare", "Stone" };
+        /// <summary>Corazón (curva implícita clásica), con borde suave.</summary>
+        static float Heart(float u, float v)
+        {
+            float x = (u - 0.5f) * 2.6f, y = (v - 0.45f) * 2.6f;
+            float a = x * x + y * y - 1f;
+            float f = a * a * a - x * x * y * y * y;
+            return Mathf.Clamp01(-f * 6f);
+        }
+
+        /// <summary>Íconos de los objetos (siluetas simples, blancas; el color lo da la Image).</summary>
+        static Dictionary<string, Sprite> ItemIcons()
+        {
+            float Box(float u, float v, float cx, float cy, float hw, float hh) =>
+                Mathf.Clamp01((Mathf.Min(hw - Mathf.Abs(u - cx), hh - Mathf.Abs(v - cy))) * 60f);
+            return new Dictionary<string, Sprite>
+            {
+                // Piedra: canto rodado irregular.
+                { "Stone", SpriteAsset("UI_Icon_Stone", (u, v) =>
+                {
+                    float x = (u - 0.5f) / 0.42f, y = (v - 0.42f) / 0.3f;
+                    float r = Mathf.Sqrt(x * x + y * y) - 0.08f * Mathf.Sin(Mathf.Atan2(y, x) * 3f + 0.7f);
+                    return Mathf.Clamp01((1f - r) * 20f);
+                }) },
+                // Bengala: cartucho y llama.
+                { "Flare", SpriteAsset("UI_Icon_Flare", (u, v) =>
+                {
+                    float body = Box(u, v, 0.5f, 0.32f, 0.11f, 0.24f);
+                    float fx = (u - 0.5f) / 0.13f, fy = (v - 0.7f) / 0.2f;
+                    float flame = Mathf.Clamp01((1f - Mathf.Sqrt(fx * fx * (1f + fy) + fy * fy)) * 12f) * (v > 0.55f ? 1f : 0f);
+                    return Mathf.Max(body, flame);
+                }) },
+                // Botiquín: cruz.
+                { "Medkit", SpriteAsset("UI_Icon_Medkit", (u, v) => Mathf.Max(Box(u, v, 0.5f, 0.5f, 0.12f, 0.36f), Box(u, v, 0.5f, 0.5f, 0.36f, 0.12f))) },
+            };
+        }
 
         static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pos)
         {
@@ -473,6 +503,12 @@ namespace ProjectRidge.EditorTools
             return img;
         }
 
+        /// <summary>Única fuente del HUD (3.12): Barlow Condensed SemiBold, OFL (ver ASSETS.md).</summary>
+        static Font HudFont() => AssetDatabase.LoadAssetAtPath<Font>("Assets/ThirdParty/Fonts/BarlowCondensed/BarlowCondensed-SemiBold.ttf");
+
+        /// <summary>Tamaño mínimo de texto: 14 pt en un iPhone de 6.1" (3.12).</summary>
+        static int MinFont => Mathf.CeilToInt(Pt(14f));
+
         static Text Label(string name, RectTransform parent, Vector2 pos, Vector2 size, string text, int fontSize, FontStyle style)
         {
             var rt = Rect(name, parent, new Vector2(0.5f, 0.5f), pos, 0f);
@@ -480,8 +516,10 @@ namespace ProjectRidge.EditorTools
             var t = rt.gameObject.AddComponent<Text>();
             t.font = font;
             t.text = text;
-            t.fontSize = fontSize;
-            t.fontStyle = style;
+            t.fontSize = Mathf.Max(fontSize, MinFont);
+            // La fuente ya es semi negrita: sin negrita sintética encima.
+            t.fontStyle = style == FontStyle.Italic ? FontStyle.Italic : FontStyle.Normal;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
             t.alignment = TextAnchor.MiddleCenter;
             t.color = new Color(1f, 1f, 1f, 0.85f);
             t.raycastTarget = false;

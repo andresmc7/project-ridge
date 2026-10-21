@@ -51,6 +51,9 @@ namespace ProjectRidge.Core
 
         [Header("Textos")]
         [SerializeField] private string firstObjective = "Find a way through the forest.";
+        [Tooltip("Segundos que se ve el objetivo al cambiar (al entrar a una sala nueva); luego se desvanece. En pausa se ve siempre.")]
+        [Min(0f)] [SerializeField] private float objectiveShowSeconds = 4f;
+        [Min(0.01f)] [SerializeField] private float objectiveFadeSeconds = 0.8f;
         [TextArea] [SerializeField] private string[] endingLines =
         {
             "The radio crackles to life.",
@@ -62,7 +65,10 @@ namespace ProjectRidge.Core
 
         private Vector3 checkpointPos;
         private Quaternion checkpointRot;
-        private float objectiveFlash;
+        private float objectiveFlash, objectiveUntil;
+        /// <summary>Opacidad actual del objetivo (para las pruebas).</summary>
+        public float ObjectiveAlpha => objectiveLabel != null ? objectiveLabel.color.a : 0f;
+        public string Objective => objectiveLabel != null ? objectiveLabel.text : "";
 
         public State Current { get; private set; } = State.Title;
         public event Action<State> StateChanged;
@@ -242,6 +248,7 @@ namespace ProjectRidge.Core
             if (string.IsNullOrEmpty(text) || objectiveLabel.text == text) return;
             objectiveLabel.text = text;
             objectiveFlash = 1f;
+            objectiveUntil = Time.unscaledTime + objectiveShowSeconds + objectiveFadeSeconds;
         }
 
         public void ReachCheckpoint(Transform point, string objective)
@@ -259,11 +266,11 @@ namespace ProjectRidge.Core
 
         private void Update()
         {
-            if (objectiveFlash > 0f)
-            {
-                objectiveFlash = Mathf.Max(0f, objectiveFlash - Time.unscaledDeltaTime * 0.5f);
-                objectiveLabel.color = Color.Lerp(new Color(0.85f, 0.85f, 0.8f, 0.7f), new Color(1f, 0.9f, 0.6f, 1f), objectiveFlash);
-            }
+            // Una frase corta que aparece al cambiar (4 s) y se desvanece; en pausa vuelve a verse (3.12).
+            objectiveFlash = Mathf.Max(0f, objectiveFlash - Time.unscaledDeltaTime * 0.5f);
+            var c = Color.Lerp(new Color(0.88f, 0.86f, 0.8f, 1f), new Color(1f, 0.9f, 0.6f, 1f), objectiveFlash);
+            c.a = Current == State.Paused ? 1f : Mathf.Clamp01((objectiveUntil - Time.unscaledTime) / objectiveFadeSeconds);
+            objectiveLabel.color = c;
         }
 
         // ---------- Muerte y captura
