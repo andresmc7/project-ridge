@@ -110,7 +110,7 @@ namespace ProjectRidge.EditorTools
                 if (wallH < 0.6f) continue;
                 Vector3 tangent = Vector3.Cross(Vector3.up, face);
 
-                if (rng.NextDouble() >= 0.2) // si no, hueco: se ve la tierra oscura del talud
+                if (rng.NextDouble() >= 0.1) // si no, hueco: se ve la tierra oscura del talud
                 {
                     int v = rng.Next(rockSource.Length);
                     Vector3 baseSize = RockSize(v, true);
@@ -135,7 +135,7 @@ namespace ProjectRidge.EditorTools
                     blocks++;
                 }
                 // Matas colgando del borde de arriba (rompen la línea del escalón).
-                if (rng.NextDouble() < 0.55)
+                if (rng.NextDouble() < 0.85) // casi siempre: un borde recto se leía como una losa (comparación P6)
                 {
                     var top = new Vector3(p.x, high - 0.05f, p.z) - face * R(0.4f, 0.9f) + tangent * R(-0.5f, 0.5f);
                     edgeBushes.Add((top, R(0f, 360f), R(0.6f, 1.05f)));

@@ -9,9 +9,9 @@ using UnityEngine.Rendering;
 namespace ProjectRidge.EditorTools
 {
     /// <summary>
-    /// Personajes con el cuerpo base de Quaternius (CC0) y clips de la Universal Animation Library:
-    /// - El papá: ropa generada desde la malla del cuerpo (camisa de franela, chaleco acolchado, jeans, botas) por
-    ///   regiones de huesos, inflada y suavizada; pelo, barba, cejas; garrote, linterna, pistola de bengalas, mochila.
+    /// Personajes con clips de la Universal Animation Library de Quaternius (CC0):
+    /// - El papá: cuerpo de MakeHuman generado con MPFB2 (Tools/Blender/make_father.py; chaqueta, camisa, jeans,
+    ///   botas, pelo corto, barba de tres días, ≤15k triángulos); garrote, linterna, pistola de bengalas, mochila.
     /// - El Lurker: el mismo esqueleto con extremidades, cuello y dedos alargados, cuerpo adelgazado y cráneo
     ///   estirado (malla re-horneada en la nueva pose + avatar humanoide propio), piel oscura y húmeda, ojos rojos.
     /// Los Animator Controllers se generan aquí. Reemplaza el "Visual" del jugador y de cada Lurker en la escena activa.
@@ -19,14 +19,14 @@ namespace ProjectRidge.EditorTools
     public static class CharacterBuilder
     {
         const string OutDir = "Assets/_Project/Art/Characters";
-        const string HairDir = QuaterniusImport.Root + "/BaseCharacters/Hair";
-        const string TexDir = QuaterniusImport.Root + "/BaseCharacters/Textures";
 
         [MenuItem("Project Ridge/Characters/Rebuild Characters in Active Scene")]
         public static string Build()
         {
             PolyHavenMaterialBuilder.EnsureFolder(OutDir);
             var log = new System.Text.StringBuilder();
+            if (((ModelImporter)AssetImporter.GetAtPath(MakeHumanImport.Body)).animationType != ModelImporterAnimationType.Human)
+                log.AppendLine(MakeHumanImport.Configure());
             var fatherCtrl = FatherController();
             var lurkerCtrl = LurkerController();
 
@@ -70,72 +70,6 @@ namespace ProjectRidge.EditorTools
             return m;
         }
 
-        enum Region { Skin, Shirt, Pants, Boots, Hands }
-
-        static Region RegionOf(string bone)
-        {
-            if (bone.StartsWith("foot") || bone.StartsWith("ball")) return Region.Boots;
-            if (bone.StartsWith("thigh") || bone.StartsWith("calf") || bone == "pelvis") return Region.Pants;
-            if (bone.StartsWith("spine") || bone.StartsWith("clavicle") || bone.StartsWith("upperarm") || bone.StartsWith("lowerarm")) return Region.Shirt;
-            if (bone.StartsWith("hand") || bone.Contains("thumb") || bone.Contains("index") || bone.Contains("middle") || bone.Contains("ring") || bone.Contains("pinky")) return Region.Hands;
-            return Region.Skin;
-        }
-
-        static int Dominant(BoneWeight w)
-        {
-            int b = w.boneIndex0; float best = w.weight0;
-            if (w.weight1 > best) { best = w.weight1; b = w.boneIndex1; }
-            if (w.weight2 > best) { best = w.weight2; b = w.boneIndex2; }
-            if (w.weight3 > best) { b = w.boneIndex3; }
-            return b;
-        }
-
-        /// <summary>Vecinos por posición (soldando costuras de UV) para suavizar sin abrir grietas.</summary>
-        static (int[] weld, List<int>[] neighbors) Adjacency(Vector3[] v, int[] tris)
-        {
-            var map = new Dictionary<Vector3Int, int>();
-            var weld = new int[v.Length];
-            for (int i = 0; i < v.Length; i++)
-            {
-                var key = Vector3Int.RoundToInt(v[i] * 10000f);
-                if (!map.TryGetValue(key, out int id)) { id = map.Count; map[key] = id; }
-                weld[i] = id;
-            }
-            var nb = new List<int>[map.Count];
-            for (int i = 0; i < nb.Length; i++) nb[i] = new List<int>();
-            for (int t = 0; t < tris.Length; t += 3)
-                for (int k = 0; k < 3; k++)
-                {
-                    int a = weld[tris[t + k]], b = weld[tris[t + (k + 1) % 3]];
-                    if (!nb[a].Contains(b)) nb[a].Add(b);
-                    if (!nb[b].Contains(a)) nb[b].Add(a);
-                }
-            return (weld, nb);
-        }
-
-        /// <summary>Suaviza (Laplaciano) solo los vértices marcados, por posición soldada.</summary>
-        static void Smooth(Vector3[] v, int[] tris, bool[] mask, int iterations, float lambda)
-        {
-            var (weld, nb) = Adjacency(v, tris);
-            var pos = new Vector3[nb.Length];
-            var m = new bool[nb.Length];
-            for (int i = 0; i < v.Length; i++) { pos[weld[i]] = v[i]; m[weld[i]] |= mask[i]; }
-            for (int it = 0; it < iterations; it++)
-            {
-                var next = (Vector3[])pos.Clone();
-                for (int i = 0; i < pos.Length; i++)
-                {
-                    if (!m[i] || nb[i].Count == 0) continue;
-                    Vector3 avg = Vector3.zero;
-                    foreach (int j in nb[i]) avg += pos[j];
-                    avg /= nb[i].Count;
-                    next[i] = Vector3.Lerp(pos[i], avg, lambda);
-                }
-                pos = next;
-            }
-            for (int i = 0; i < v.Length; i++) v[i] = pos[weld[i]];
-        }
-
         // ------------------------------------------------------------------ Materiales
 
         static Material Mat(string name, Texture2D albedo, Texture2D normal, Color color, float smoothness, float tiling = 1f)
@@ -143,6 +77,13 @@ namespace ProjectRidge.EditorTools
             string path = OutDir + "/" + name + ".mat";
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, path); }
+            // Al reutilizar el asset, nada de una versión anterior debe sobrevivir (mapas, emisión, recorte).
+            m.shaderKeywords = System.Array.Empty<string>();
+            foreach (var t in new[] { "_MetallicGlossMap", "_OcclusionMap", "_EmissionMap", "_SpecGlossMap" }) m.SetTexture(t, null);
+            m.SetColor("_EmissionColor", Color.black);
+            m.SetFloat("_AlphaClip", 0f);
+            m.SetFloat("_Cull", 2f);
+            m.renderQueue = -1;
             m.SetTexture("_BaseMap", albedo);
             m.SetColor("_BaseColor", color);
             m.SetTextureScale("_BaseMap", new Vector2(tiling, tiling));
@@ -152,7 +93,18 @@ namespace ProjectRidge.EditorTools
             return m;
         }
 
-        static Texture2D Tex(string file) => AssetDatabase.LoadAssetAtPath<Texture2D>(TexDir + "/" + file);
+        /// <summary>Recorte alfa a dos caras (tarjetas de pelo y cejas).</summary>
+        static Material Cutout(Material m)
+        {
+            m.SetFloat("_AlphaClip", 1f);
+            m.SetFloat("_Cutoff", 0.45f);
+            m.EnableKeyword("_ALPHATEST_ON");
+            m.SetFloat("_Cull", 0f);
+            m.renderQueue = (int)RenderQueue.AlphaTest;
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
         static Texture2D PH(string id, string map) => AssetDatabase.LoadAssetAtPath<Texture2D>(PolyHavenMaterialBuilder.Find(PolyHavenMaterialBuilder.TexturesRoot + "/" + id, id + "_" + map));
 
         // ------------------------------------------------------------------ El papá
@@ -166,112 +118,53 @@ namespace ProjectRidge.EditorTools
             var old = player.transform.Find("Visual");
             if (old != null) Object.DestroyImmediate(old.gameObject);
 
-            var body = InstantiateBody(player.transform, 9, "Visual");
-            var smr = BodyRenderer(body);
-            var src = smr.sharedMesh;
-            var bones = smr.bones;
-            var v = src.vertices;
-            var n = src.normals;
-            var bw = src.boneWeights;
-            var tris = src.triangles;
+            // Cuerpo generado con MPFB2 (Tools/Blender/make_father.py): una malla, una submalla por pieza.
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(MakeHumanImport.Body);
+            var body = (GameObject)Object.Instantiate(prefab, player.transform, false);
+            body.name = "Visual";
+            foreach (var t in body.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 9;
+            var smr = body.GetComponentInChildren<SkinnedMeshRenderer>();
 
-            // Región por vértice según el hueso dominante; la región de cada triángulo, por mayoría.
-            var region = new Region[v.Length];
-            for (int i = 0; i < v.Length; i++) region[i] = RegionOf(bones[Dominant(bw[i])].name);
-            var lists = new Dictionary<Region, List<int>>();
-            foreach (Region r in System.Enum.GetValues(typeof(Region))) lists[r] = new List<int>();
-            for (int t = 0; t < tris.Length; t += 3)
+            // Piel con SSS falso: la emisión toma el propio difuso teñido de rojo, así la piel en sombra no se
+            // vuelve gris (la luz "atraviesa" orejas y nariz). Ropa con normal + AO; botas mojadas (más lisas).
+            var skin = Mat("Father_Skin", MakeHumanImport.Tex("Father_Skin_D.png"), null, Color.white, 0.38f);
+            skin.SetTexture("_EmissionMap", skin.GetTexture("_BaseMap"));
+            skin.SetColor("_EmissionColor", new Color(0.055f, 0.016f, 0.01f));
+            skin.EnableKeyword("_EMISSION");
+            // Con "None" Unity marca la emisión como negra y quita _EMISSION al validar el material.
+            skin.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            var suit = Mat("Father_Clothes", MakeHumanImport.Tex("Father_male_casualsuit05_D.png"), MakeHumanImport.Tex("Father_male_casualsuit05_N.png"), new Color(0.9f, 0.88f, 0.84f), 0.12f);
+            suit.SetTexture("_OcclusionMap", MakeHumanImport.Tex("Father_male_casualsuit05_AO.png"));
+            suit.SetFloat("_OcclusionStrength", 1f);
+            suit.EnableKeyword("_OCCLUSIONMAP");
+            var boots = Mat("Father_Boots", MakeHumanImport.Tex("Father_toigo_ankle_boots_male_D.png"), MakeHumanImport.Tex("Father_toigo_ankle_boots_male_N.png"), new Color(0.62f, 0.55f, 0.5f), 0.62f);
+            var hair = Cutout(Mat("Father_Hair", MakeHumanImport.Tex("Father_short02_D.png"), null, new Color(0.7f, 0.62f, 0.55f), 0.3f));
+            var brows = Cutout(Mat("Father_Brows", MakeHumanImport.Tex("Father_eyebrow001_D.png"), null, Color.white, 0.2f));
+            var eyes = Mat("Father_Eyes", MakeHumanImport.Tex("Father_low-poly_D.png"), null, Color.white, 0.85f);
+            var byPiece = new Dictionary<string, Material>
             {
-                Region a = region[tris[t]], b = region[tris[t + 1]], c = region[tris[t + 2]];
-                Region r = a == b || a == c ? a : b == c ? b : a;
-                lists[r == Region.Hands ? Region.Skin : r].AddRange(new[] { tris[t], tris[t + 1], tris[t + 2] });
-            }
-
-            // Inflar la ropa y suavizar la musculatura bajo la tela.
-            var nv = (Vector3[])v.Clone();
-            var clothMask = new bool[v.Length];
-            for (int i = 0; i < v.Length; i++)
-            {
-                float push = region[i] == Region.Shirt ? 0.009f : region[i] == Region.Pants ? 0.007f : region[i] == Region.Boots ? 0.022f : 0f;
-                nv[i] += n[i] * push;
-                clothMask[i] = region[i] == Region.Shirt || region[i] == Region.Pants;
-            }
-            Smooth(nv, tris, clothMask, 6, 0.55f);
-
-            var mesh = Object.Instantiate(src);
-            mesh.vertices = nv;
-            mesh.subMeshCount = 4;
-            mesh.SetTriangles(lists[Region.Skin], 0);
-            mesh.SetTriangles(lists[Region.Shirt], 1);
-            mesh.SetTriangles(lists[Region.Pants], 2);
-            mesh.SetTriangles(lists[Region.Boots], 3);
-            mesh.RecalculateNormals();
-            mesh.RecalculateTangents();
-            mesh = SaveMesh(mesh, "Father_Body");
-
-            // Chaleco: cáscara del torso (sin brazos), más separada y lisa.
-            var vestTris = new List<int>();
-            for (int t = 0; t < tris.Length; t += 3)
-            {
-                bool torso = true;
-                for (int k = 0; k < 3; k++)
-                {
-                    string bn = bones[Dominant(bw[tris[t + k]])].name;
-                    torso &= bn.StartsWith("spine") || bn.StartsWith("clavicle");
-                }
-                if (torso) vestTris.AddRange(new[] { tris[t], tris[t + 1], tris[t + 2] });
-            }
-            var vv = (Vector3[])nv.Clone();
-            var vestMask = new bool[v.Length];
-            foreach (int i in vestTris) vestMask[i] = true;
-            for (int i = 0; i < vv.Length; i++) if (vestMask[i]) vv[i] += n[i] * 0.022f;
-            Smooth(vv, tris, vestMask, 10, 0.6f);
-            var vest = Object.Instantiate(src);
-            vest.vertices = vv;
-            vest.subMeshCount = 1;
-            vest.SetTriangles(vestTris, 0);
-            vest.RecalculateNormals();
-            vest.RecalculateTangents();
-            vest = SaveMesh(vest, "Father_Vest");
-
-            var skin = Mat("Father_Skin", Tex("T_Superhero_Male_Ligh.png"), Tex("T_Superhero_Male_Normal.png"), new Color(0.92f, 0.86f, 0.82f), 0.32f);
-            var flannel = Mat("Father_Flannel", PH("fabric_pattern_07", "diff"), PH("fabric_pattern_07", "nor_gl"), new Color(0.8f, 0.7f, 0.66f), 0.15f, 9f);
-            var jeans = Mat("Father_Jeans", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.55f, 0.6f, 0.72f), 0.15f, 5f);
-            var boots = Mat("Father_Boots", PH("leather_red_02", "diff"), PH("leather_red_02", "nor_gl"), new Color(0.45f, 0.31f, 0.21f), 0.4f, 6f);
-            var vestMat = Mat("Father_Vest", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.42f, 0.44f, 0.3f), 0.1f, 4f);
-            vestMat.SetFloat("_Cull", 0f);
-            smr.sharedMesh = mesh;
-            smr.sharedMaterials = new[] { skin, flannel, jeans, boots };
+                { "Body", skin }, { "male_casualsuit05", suit }, { "toigo_ankle_boots_male", boots },
+                { "short02", hair }, { "eyebrow001", brows }, { "low-poly", eyes },
+            };
+            smr.sharedMaterials = smr.sharedMaterials.Select(m => byPiece.TryGetValue(m.name, out var mine) ? mine : skin).ToArray();
             smr.updateWhenOffscreen = false;
             smr.shadowCastingMode = ShadowCastingMode.On;
 
-            var vestGo = Object.Instantiate(smr.gameObject, smr.transform.parent);
-            vestGo.name = "Vest";
-            var vsmr = vestGo.GetComponent<SkinnedMeshRenderer>();
-            vsmr.sharedMesh = vest;
-            vsmr.sharedMaterials = new[] { vestMat };
-
-            // Ojos y cejas del propio modelo; pelo y barba colgados del hueso de la cabeza.
-            var hair = Mat("Father_Hair", Tex("T_Hair_1_BaseColor.png"), Tex("T_Hair_1_Normal.png"), new Color(0.42f, 0.32f, 0.26f), 0.25f);
-            foreach (var r in body.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                if (r.name == "Eyes") r.sharedMaterial = Mat("Father_Eyes", Tex("T_Eye_Brown.png"), Tex("T_Eye_Normal.png"), Color.white, 0.8f);
-                if (r.name == "Eyebrows") r.sharedMaterial = hair;
-            }
             if (!body.TryGetComponent(out Animator anim)) anim = body.AddComponent<Animator>();
-            anim.avatar = AssetDatabase.LoadAllAssetsAtPath(QuaterniusImport.Body).OfType<Avatar>().First();
+            anim.avatar = AssetDatabase.LoadAllAssetsAtPath(MakeHumanImport.Body).OfType<Avatar>().First();
             anim.runtimeAnimatorController = ctrl;
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            var headBone = anim.GetBoneTransform(HumanBodyBones.Head);
-            AttachHair(headBone, "Hair_SimpleParted", hair);
-            AttachHair(headBone, "Hair_Beard", hair);
+            // Frente del cuerpo en la pose de enlace (de talón a punta del pie): ahí se colocan mochila y funda.
+            var footL = anim.GetBoneTransform(HumanBodyBones.LeftFoot);
+            var toesL = anim.GetBoneTransform(HumanBodyBones.LeftToes);
+            Vector3 front = Vector3.ProjectOnPlane(toesL.position - footL.position, Vector3.up).normalized;
 
             // Props.
             var bark = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_pine_bark.mat");
             var handR = anim.GetBoneTransform(HumanBodyBones.RightHand);
             var handL = anim.GetBoneTransform(HumanBodyBones.LeftHand);
-            var spine3 = anim.GetBoneTransform(HumanBodyBones.UpperChest);
+            var spine3 = anim.GetBoneTransform(HumanBodyBones.UpperChest) ?? anim.GetBoneTransform(HumanBodyBones.Chest);
             var club = Prop(handR, "Club", ChunkyMeshGenerator.Limb("P_Club", 0.72f, 0.028f, 0.052f, 8), bark);
             Orient(club.transform, handR, anim, new Vector3(0f, -0.02f, 0.03f));
             var gunMat = Mat("Father_FlareGun", null, null, new Color(0.85f, 0.3f, 0.06f), 0.45f);
@@ -283,12 +176,12 @@ namespace ProjectRidge.EditorTools
             Orient(torch.transform, handL, anim, new Vector3(0f, 0.01f, 0.05f), forwardAlongFingers: true);
             var pack = Mat("Father_Backpack", PH("denim_fabric", "diff"), PH("denim_fabric", "nor_gl"), new Color(0.4f, 0.32f, 0.24f), 0.1f, 3f);
             var backpack = Prop(spine3, "Backpack", ChunkyMeshGenerator.Rock("P_Backpack", 3, new Vector3(0.34f, 0.44f, 0.18f), 0.85f, 0.02f), pack);
-            // En la pose de enlace el modelo mira hacia -Z del Visual: la espalda queda hacia +Z.
-            backpack.transform.position = spine3.position + body.transform.forward * 0.19f - Vector3.up * 0.2f;
-            backpack.transform.rotation = body.transform.rotation;
+            // La mochila va a la espalda (opuesta al frente de la pose de enlace).
+            backpack.transform.position = spine3.position + -front * 0.19f - Vector3.up * 0.2f;
+            backpack.transform.rotation = Quaternion.LookRotation(-front, Vector3.up);
             // Funda del garrote: cruzado sobre la mochila, el mango asoma por encima del hombro derecho (se alcanza
-            // por encima del hombro) y la punta baja hacia la cadera izquierda. El modelo mira a -Z: su derecha es -X.
-            Vector3 back = body.transform.forward, right = -body.transform.right;
+            // por encima del hombro) y la punta baja hacia la cadera izquierda. Derecha del personaje = up x frente.
+            Vector3 back = -front, right = Vector3.Cross(Vector3.up, front);
             var sheath = new GameObject("ClubSheath").transform;
             sheath.SetParent(spine3, false);
             sheath.position = spine3.position + back * 0.3f + right * 0.16f + Vector3.up * 0.16f;
@@ -347,28 +240,6 @@ namespace ProjectRidge.EditorTools
                 aso.FindProperty("fatherAnimator").objectReferenceValue = fa;
                 aso.ApplyModifiedPropertiesWithoutUndo();
             }
-        }
-
-        static void AttachHair(Transform head, string file, Material mat)
-        {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HairDir + "/" + file + ".fbx");
-            var tmp = (GameObject)Object.Instantiate(prefab);
-            var fbxHead = tmp.GetComponentsInChildren<Transform>().First(t => t.name == "Head");
-            var renderer = tmp.GetComponentsInChildren<Renderer>().First();
-            var mf = renderer.GetComponent<MeshFilter>();
-            Mesh mesh = mf != null ? mf.sharedMesh : (renderer as SkinnedMeshRenderer).sharedMesh;
-            // Transformación de la malla relativa al hueso de la cabeza en el FBX (misma pose de enlace que el cuerpo).
-            Matrix4x4 rel = fbxHead.worldToLocalMatrix * renderer.transform.localToWorldMatrix;
-            Object.DestroyImmediate(tmp);
-            var go = new GameObject(file);
-            go.layer = head.gameObject.layer;
-            go.transform.SetParent(head, false);
-            go.transform.localPosition = rel.GetColumn(3);
-            go.transform.localRotation = rel.rotation;
-            go.transform.localScale = rel.lossyScale;
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = mat;
         }
 
         static GameObject Prop(Transform parent, string name, Mesh mesh, Material mat)
@@ -520,7 +391,7 @@ namespace ProjectRidge.EditorTools
                 if (all[i].name == asset.boneNames[i]) all[i].localPosition = asset.bonePositions[i];
 
             var (skinA, skinN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Skin, 66);
-            var skin = Mat("Lurker_Skin", skinA, skinN, new Color(0.55f, 0.55f, 0.6f), 0.55f, 3f);
+            var skin = Mat("Lurker_Skin", skinA, skinN, new Color(0.46f, 0.47f, 0.5f), 0.7f, 3f); // oscura y mojada
             var eye = Mat("Lurker_Eye", null, null, new Color(0.3f, 0.02f, 0.02f), 0.9f);
             eye.EnableKeyword("_EMISSION");
             eye.SetColor("_EmissionColor", new Color(2f, 0.1f, 0.05f));

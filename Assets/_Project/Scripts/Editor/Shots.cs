@@ -145,7 +145,7 @@ namespace ProjectRidge.EditorTools
             copy.transform.SetPositionAndRotation(new Vector3(0f, 400f, 0f), Quaternion.identity);
             var anim = copy.GetComponent<Animator>();
             foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>()) mb.enabled = false;
-            foreach (var smr in copy.GetComponentsInChildren<SkinnedMeshRenderer>()) smr.forceMatrixRecalculationPerRender = true;
+            foreach (var smr in copy.GetComponentsInChildren<SkinnedMeshRenderer>()) { smr.forceMatrixRecalculationPerRender = true; smr.updateWhenOffscreen = true; }
             var camGo = new GameObject("PoseCam");
             var cam = camGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
@@ -165,6 +165,8 @@ namespace ProjectRidge.EditorTools
             var playable = UnityEngine.Animations.AnimationClipPlayable.Create(graph, clip);
             playable.SetApplyFootIK(true);
             output.SetSourcePlayable(playable);
+            // La primera evaluación del grafo no llega a los huesos: se descarta para que la celda 0 no salga en pose de enlace.
+            graph.Evaluate();
 
             var sheet = new Texture2D(cell * times.Length, cell, TextureFormat.RGB24, false);
             var rt = RenderTexture.GetTemporary(cell, cell, 24, RenderTextureFormat.ARGB32);

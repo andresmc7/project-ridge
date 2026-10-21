@@ -63,3 +63,17 @@ Fuente: Kenney "Impact Sounds" 1.0 (https://kenney.nl/assets/impact-sounds), des
 | `footstep_grass_000–004`, `footstep_wood_000–004`, `footstep_concrete_000–004` | Pisadas |
 | `impactPunch_heavy_000–004`, `impactSoft_heavy_000–004` | Golpes de cuerpo |
 | `impactWood_light_000–004`, `impactPlank_medium_000–004`, `impactMetal_light_000–004` | Escombros |
+
+## MakeHuman / MPFB2 (el papá, POLISH P6)
+
+Herramientas (no entran al proyecto, viven en `_incoming/`, ignorado por git): Blender 4.2.9 LTS portable (GPL; https://download.blender.org/release/Blender4.2/, sha256 `223cd22a…99cb` verificado) y la extensión **MPFB 2.0.18** (GPL v3; https://extensions.blender.org/add-ons/mpfb/, sha256 `c075b3e9…2dad` verificado). La salida de MPFB/MakeHuman no hereda la GPL: según el FAQ oficial de MPFB, los assets base (malla, targets, pieles) son **CC0** y los modelos hechos con MPFB pueden usarse en un juego de código cerrado (https://static.makehumancommunity.org/mpfb/faq/use_in_closed_source.html; cambio de licencia de 2020: https://static.makehumancommunity.org/oldsite/faq/what_changed_regarding_the_license_in_2020.html).
+
+Generado con `Tools/Blender/make_father.py` (fuente de verdad; re-ejecutable) → `Assets/ThirdParty/MakeHuman/Father/` (FBX + texturas a 1k + `father_mh.json`). 14 462 triángulos, rig `game_engine` (Humanoid en Unity). Barba de tres días y barro pintados por el script sobre las texturas. Fecha: 2026-10-21.
+
+| Asset | Pack | Autor | Licencia | Link del pack |
+|---|---|---|---|---|
+| Malla base MakeHuman, piel `middleage_caucasian_male`, ojos `low-poly` + material `brown`, ceja `eyebrow001`, pelo `short02` | makehuman_system_assets | MakeHuman team (Data Collection AB, Joel Palmius, Jonas Hauquier) | CC0 | https://files.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip |
+| Ropa `male_casualsuit05` (chaqueta, camisa, jeans) | makehuman_system_assets | MakeHuman team | CC0 | (mismo zip) |
+| Botas `toigo_ankle_boots_male` | shoes01 | MargaretToigo | CC0 | https://files.makehumancommunity.org/asset_packs/shoes01/shoes01_cc0.zip |
+
+Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (CC-BY; si se usaran habría que acreditar a sus autores).

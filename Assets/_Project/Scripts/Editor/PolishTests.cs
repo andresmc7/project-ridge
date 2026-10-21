@@ -50,6 +50,7 @@ namespace ProjectRidge.EditorTools
                 "P3" => P3(),
                 "P4" => P4(),
                 "P5" => P5(),
+                "P6" => P6(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -662,6 +663,83 @@ namespace ProjectRidge.EditorTools
             Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side");
             player.GetComponent<PlayerHealth>().Restore();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
+
+        // ------------------------------------------------------------------ P6
+
+        static IEnumerator P6()
+        {
+            yield return PassTitle();
+            Calm();
+            var visual = player.transform.Find("Visual");
+            var anim = visual.GetComponent<Animator>();
+            var smr = visual.GetComponentInChildren<SkinnedMeshRenderer>();
+
+            // Papá nuevo (MakeHuman), mismo controlador y clips, <= 15k triángulos en total.
+            int tris = 0;
+            foreach (var r in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                UnityEngine.Mesh m = r is SkinnedMeshRenderer s ? s.sharedMesh : r.TryGetComponent(out MeshFilter mf) ? mf.sharedMesh : null;
+                if (m != null && r.gameObject.activeInHierarchy && r.name != "Club" && r.name != "FlareGun" && r.name != "Torch" && r.name != "Backpack") tris += m.triangles.Length / 3;
+            }
+            string avatarPath = AssetDatabase.GetAssetPath(anim.avatar);
+            Check("new dad: MakeHuman body, humanoid, <= 15k tris", avatarPath == MakeHumanImport.Body && anim.avatar.isHuman && tris <= 15000,
+                  "avatar " + System.IO.Path.GetFileName(avatarPath) + ", human " + anim.avatar.isHuman + ", body tris " + tris);
+            string ctrlPath = AssetDatabase.GetAssetPath(anim.runtimeAnimatorController);
+            Check("same animations (Father.controller, UAL clips)", ctrlPath.EndsWith("/Father.controller"), "controller " + ctrlPath);
+
+            // Anima de verdad: caminando, los pies se separan y se cruzan (el retarget funciona).
+            Teleport(Ground(-54f, 0f));
+            yield return 1f;
+            var footL = anim.GetBoneTransform(HumanBodyBones.LeftFoot);
+            var footR = anim.GetBoneTransform(HumanBodyBones.RightFoot);
+            var head = anim.GetBoneTransform(HumanBodyBones.Head);
+            float standHead = head.position.y - player.transform.position.y;
+            float minGap = 9f, maxGap = -9f;
+            Stick(new Vector2(0.55f, 0f));
+            float limit = Time.time + 2f;
+            while (Time.time < limit)
+            {
+                Vector3 fwd = player.transform.forward;
+                float gap = Vector3.Dot(footL.position - footR.position, fwd);
+                minGap = Mathf.Min(minGap, gap); maxGap = Mathf.Max(maxGap, gap);
+                yield return null;
+            }
+            Shot("P6_after");
+            Stick(Vector2.zero);
+            Check("walk cycle drives the new skeleton", minGap < -0.15f && maxGap > 0.15f && standHead > 1.5f,
+                  "left-right foot gap along travel " + minGap.ToString("0.00") + "…" + maxGap.ToString("0.00") + " m, head " + standHead.ToString("0.00") + " m");
+
+            // Materiales: piel con SSS falso, ropa con normales y AO, botas mojadas, pelo recortado; mochila y funda.
+            var mats = smr.sharedMaterials;
+            Material ByName(string n) => System.Array.Find(mats, x => x.name == n);
+            var skin = ByName("Father_Skin"); var cloth = ByName("Father_Clothes"); var boots = ByName("Father_Boots"); var hair = ByName("Father_Hair");
+            bool matsOk = skin != null && skin.IsKeywordEnabled("_EMISSION") && cloth != null && cloth.IsKeywordEnabled("_NORMALMAP") && cloth.GetTexture("_OcclusionMap") != null
+                          && boots != null && boots.GetFloat("_Smoothness") >= 0.5f && hair != null && hair.IsKeywordEnabled("_ALPHATEST_ON");
+            bool props = Find(visual, "Backpack") != null && Find(visual, "ClubSheath") != null;
+            Check("materials + backpack with sheathed club", matsOk && props, "materials " + string.Join(",", System.Array.ConvertAll(mats, x => x.name)) + ", backpack+sheath " + props);
+
+            // Lurker: piel oscura y mojada, sin ropa, extremidades >= 15% más largas, cuello largo, ojos pequeños
+            // emisivos, silueta asimétrica.
+            var lurker = Object.FindFirstObjectByType<EnemyController>();
+            var lvis = lurker.transform.Find("Visual");
+            var lsmr = System.Array.Find(lvis.GetComponentsInChildren<SkinnedMeshRenderer>(), r => r.name == "SuperHero_Male");
+            var baseBody = AssetDatabase.LoadAssetAtPath<GameObject>(QuaterniusImport.Body).transform;
+            float Ratio(string bone) => Find(lvis, bone).localPosition.magnitude / Find(baseBody, bone).localPosition.magnitude;
+            float arm = (Ratio("lowerarm_l") + Ratio("hand_l")) * 0.5f, armR = (Ratio("lowerarm_r") + Ratio("hand_r")) * 0.5f;
+            float leg = (Ratio("calf_l") + Ratio("foot_l")) * 0.5f, neck = Ratio("Head");
+            var eyes = System.Array.Find(lvis.GetComponentsInChildren<SkinnedMeshRenderer>(true), r => r.name == "Eyes");
+            float eyeSize = eyes.bounds.size.magnitude;
+            var lskin = lsmr.sharedMaterial;
+            bool lurkerOk = lsmr.sharedMaterials.Length == 1 && lskin.GetFloat("_Smoothness") >= 0.6f && lskin.GetColor("_BaseColor").grayscale < 0.55f
+                            && arm >= 1.15f && leg >= 1.15f && neck >= 1.5f && Mathf.Abs(arm - armR) > 0.05f
+                            && eyes.sharedMaterial.IsKeywordEnabled("_EMISSION") && eyeSize < 0.25f;
+            Check("lurker: wet dark skin, no clothes, long limbs/neck, small glowing eyes, asymmetric", lurkerOk,
+                  "materials " + lsmr.sharedMaterials.Length + ", smoothness " + lskin.GetFloat("_Smoothness").ToString("0.00") + ", arm x" + arm.ToString("0.00") + " (right x" + armR.ToString("0.00") + "), leg x" + leg.ToString("0.00") + ", neck x" + neck.ToString("0.00") + ", eyes " + (eyeSize * 100f).ToString("0") + " cm");
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-50f, 1.5f));
+            Teleport(Ground(-53f, -0.5f));
+            yield return 1.2f;
+            Shot("P6_after_lurker");
         }
 
         // ------------------------------------------------------------------ P4

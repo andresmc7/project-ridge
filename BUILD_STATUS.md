@@ -2,6 +2,23 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-21 — POLISH PASS P6: personajes nuevos (papá MakeHuman, Lurker húmedo)
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P6")` → **5/5 PASS**; regresión `PolishTests.Run("P3")` → **6/6 PASS** (papá 10.0–11.5% del alto, sombra 55%, luces 3.4%). Capturas: `P6_before.png`, `P6_before_pose.png`, `P6_after.png`, `P6_after_pose.png`, `P6_after_pose_front.png`, `P6_after_lurker.png`, `P6_after_lurker_side.png`, `compare_P6.png`.
+
+- **Ruta A funcionó** (sin pasar a la B): Blender 4.2.9 portable + MPFB 2.0.18 en modo headless. `Tools/Blender/make_father.py` genera al papá (38 años, complexión media, pelo corto, barba de tres días, chaqueta de trabajo + camisa + jeans de `male_casualsuit05`, botines `toigo_ankle_boots_male`), rig `game_engine`, texturas a 1k y lo exporta a `Assets/ThirdParty/MakeHuman/Father/`. **14 462 triángulos** (≤ 15k), una malla con 6 submallas (un solo SkinnedMeshRenderer).
+- **Mismas animaciones** (probado): Humanoid, mismo `Father.controller` y clips UAL; caminando los pies se cruzan ±0.8 m a lo largo del avance (el retarget funciona).
+- **Materiales** (probado): piel con SSS falso (emisión = difuso teñido de rojo; ojo: con `globalIlluminationFlags = None` Unity quitaba `_EMISSION`), ropa con normal + AO, botas mojadas (suavidad 0.62), barro pintado por el script en el bajo de los jeans y las botas, pelo y cejas con recorte alfa. Mochila con el garrote enfundado (sigue en la funda al caminar, probado en juego).
+- `Mat()` del generador ahora limpia mapas y palabras clave de la versión anterior del asset (las botas arrastraban el mapa metálico del cuero viejo).
+- **Lurker** (probado): piel oscura y mojada (suavidad 0.70), sin ropa (un material), brazos ×1.50/×1.40 (asimétrico), piernas ×1.20, cuello ×2.10, ojos emisivos de 14 cm (a escala 1.3).
+- `Shots.PoseSheet`: la primera celda salía en pose de enlace (la primera evaluación del grafo no llega a los huesos); arreglado.
+- **Comparación con la referencia** (`compare_P6.png`), 5 diferencias:
+  1. Las terrazas del nivel se leen como losas oscuras y planas con borde recto (en la referencia el borde es roca y vegetación irregular). *Atacada en parte*: más rocas (huecos 20% → 10%) y matas en el 85% del borde (antes 55%); la losa sigue leyéndose → queda como la diferencia nº 1 para P9.
+  2. Dominante verde azulada en todo el cuadro; la referencia es tierra y ámbar con el verde solo en los haces. *Atacada*: balance de blancos 14 → 20, sombras menos verdes, niebla casi neutra (P3 sigue 6/6).
+  3. Lluvia en primer plano con gotas blancas gruesas que ensucian la lectura (la referencia no tiene). *Atacada*: alfa 0.32 → 0.18 y gotas más finas.
+  4. El Lurker se lee como silueta negra; el de la referencia tiene brillos húmedos pálidos que dibujan la anatomía.
+  5. El plano medio está vacío; la referencia tiene utilería narrativa (campamento, muelle, agua con reflejos) en cada plano.
+- `UNVERIFIED`: rendimiento del nuevo papá en iPhone (14.5k tris + 6 materiales en un SkinnedMeshRenderer); calidad de la piel bajo la linterna de cerca (la cámara nunca se acerca tanto).
+
 ## 2026-10-21 — POLISH PASS P5: legibilidad de la IA sin conos pintados
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P5")` → **5/5 PASS**. Capturas: `P5_before.png` (cono rojo en el suelo), `P5_after_patrol.png`, `P5_after_detecting.png`, `P5_after_hunting.png`, `P5_after_edge_arrow.png`.
 

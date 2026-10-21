@@ -169,7 +169,7 @@ namespace ProjectRidge.EditorTools
             // Niebla de escena: densa, claustrofóbica, fría.
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.045f, 0.055f, 0.05f); // verde musgo oscuro, no azul marino (comparación con la referencia, P3)
+            RenderSettings.fogColor = new Color(0.05f, 0.052f, 0.045f); // musgo casi neutro (P3: no azul marino; P6: menos verde)
             RenderSettings.fogDensity = 0.012f; // velo leve: la niebla espesa va baja, en tarjetas sobre las zonas hondas
             Camera.main.backgroundColor = RenderSettings.fogColor;
 
@@ -401,9 +401,9 @@ namespace ProjectRidge.EditorTools
             ca.postExposure.Override(GradingExposure); ca.contrast.Override(GradingContrast); ca.saturation.Override(-6f);
             // Balance algo cálido: la referencia es tierra y musgo con luz de farol, no un azul uniforme.
             var wb = Get<WhiteBalance>();
-            wb.temperature.Override(14f); wb.tint.Override(-4f);
+            wb.temperature.Override(20f); wb.tint.Override(-2f); // más cálido tras la comparación P6 (el cuadro era verde azulado)
             var smh = Get<ShadowsMidtonesHighlights>();
-            smh.shadows.Override(new Vector4(0.82f, 1.0f, 0.97f, -0.02f));     // sombras verde azulado oscuro
+            smh.shadows.Override(new Vector4(0.9f, 0.97f, 0.93f, -0.02f));     // sombras musgo oscuro, apenas verdes
             smh.midtones.Override(new Vector4(0.97f, 1f, 1f, 0f));
             smh.highlights.Override(new Vector4(1.12f, 1.0f, 0.84f, 0.03f));     // luces altas cálidas
             var lgg = Get<LiftGammaGain>();
@@ -739,10 +739,10 @@ namespace ProjectRidge.EditorTools
             var p = player.transform;
 
             // Llovizna alrededor del jugador (bosque recién llovido).
-            var rainMat = FxMaterial("FX_Rain", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.7f, 0.8f, 0.9f, 0.32f), true);
+            var rainMat = FxMaterial("FX_Rain", "Universal Render Pipeline/Particles/Unlit", dot, new Color(0.7f, 0.78f, 0.85f, 0.18f), true); // tenue: en primer plano, gotas blancas gruesas tapaban la escena (comparación P6)
             var rain = Emitter(parent, "Drizzle", rainMat, ps =>
             {
-                var m = ps.main; m.startLifetime = 0.85f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.02f, 0.035f); m.maxParticles = 900;
+                var m = ps.main; m.startLifetime = 0.85f; m.startSpeed = 0f; m.startSize = new ParticleSystem.MinMaxCurve(0.014f, 0.024f); m.maxParticles = 900;
                 var e = ps.emission; e.rateOverTime = 520f;
                 var s = ps.shape; s.shapeType = ParticleSystemShapeType.Box; s.scale = new Vector3(26f, 1f, 26f);
                 var v = ps.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
