@@ -184,8 +184,8 @@ namespace ProjectRidge.EditorTools
             normal = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GetAssetPath(normal));
 
             var water = m.water;
-            water.SetColor("_BaseColor", new Color(0.03f, 0.085f, 0.1f));
-            water.SetFloat("_Smoothness", 0.95f);
+            water.SetColor("_BaseColor", new Color(0.025f, 0.06f, 0.055f));
+            water.SetFloat("_Smoothness", 0.62f); // con la luna a contraluz, 0.95 era una franja plateada que dominaba el cuadro
             water.SetFloat("_Metallic", 0f);
             water.SetTexture("_BumpMap", normal);
             water.SetTextureScale("_BumpMap", new Vector2(1.5f, 1.5f));

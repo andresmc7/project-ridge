@@ -19,6 +19,21 @@ namespace ProjectRidge.CameraRig
         [Tooltip("Damping de posición del Follow. 0 = rígido.")]
         [Range(0f, 5f)] public float positionDamping = 0.3f;
 
+        [Header("Mirar adelante (POLISH_PASS 3.6)")]
+        [Tooltip("Metros que el encuadre se adelanta en la dirección de avance.")]
+        [Min(0f)] public float lookAhead = 1.5f;
+        [Tooltip("Suavizado del adelanto (s).")]
+        [Min(0.01f)] public float lookAheadSmoothing = 0.4f;
+
+        [Header("Amenaza: la cámara se aleja y encuadra entre el papá y la amenaza")]
+        [Min(1f)] public float threatDistance = 14.5f;
+        [Tooltip("Peso de la amenaza en el encuadre (0 = solo el papá).")]
+        [Range(0f, 1f)] public float threatWeight = 0.3f;
+        [Tooltip("Un haz del OVNI a esta distancia (m) cuenta como amenaza (un Lurker en Chase siempre cuenta).")]
+        [Min(0f)] public float threatBeamRadius = 10f;
+        [Tooltip("Tiempo (s) del cambio de encuadre al entrar o salir de la amenaza.")]
+        [Min(0.01f)] public float threatBlendTime = 0.8f;
+
         [Header("Oclusión (árboles/rocas que tapan al jugador)")]
         [Range(0f, 1f)] public float occludedAlpha = 0.22f;
         [Tooltip("Alfa por segundo al desvanecer/reaparecer.")]

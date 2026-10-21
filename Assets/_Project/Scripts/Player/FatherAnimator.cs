@@ -30,7 +30,7 @@ namespace ProjectRidge.Player
 
         [Header("Ajustes")]
         [Tooltip("Inclinación hacia abajo de la linterna (grados).")]
-        [SerializeField] private float flashlightPitch = 16f;
+        [SerializeField] private float flashlightPitch = 26f;
         [SerializeField] private float flashlightFollow = 10f;
         [Tooltip("Altura del pie (m) por debajo de la cual cuenta como apoyado.")]
         [SerializeField] private float footContact = 0.11f;

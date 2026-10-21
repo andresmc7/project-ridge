@@ -22,3 +22,6 @@ Registro de decisiones ambiguas resueltas en modo autónomo (ver `docs/POLISH_PA
 - 2026-10-20 — Pose de shock procedural (`ShockPose`) y crepitar eléctrico generado por código mientras no haya clip "Electrocuted" de Mixamo ni un sample CC0. — 3.4 lo permite ("o, mientras no exista, una pose procedural").
 - 2026-10-20 — El plugin de hápticos de iOS entra ya en P2 (no en P8). — La captura lo usa; sin el plugin, el build de iOS fallaría al enlazar `RidgeHapticContinuous`.
 - 2026-10-20 — El forcejeo cuenta cualquier tecla o botón y los toques de pantalla. — 3.4 pide "toques rápidos en cualquier parte"; en control y teclado, cualquier botón es lo equivalente.
+- 2026-10-20 — Cámara a 17.5 m (no 12.5) con 42° y FOV 35. — Medido en juego: a 12.5 m el papá de pie ocupaba el 16% del alto; el spec manda "mídelo y ajusta" hasta 10–12%. La distancia de amenaza sube en la misma proporción (20 m).
+- 2026-10-20 — Charcos de farol naranjas aunque el histograma quede en 2.4% de luces (objetivo 3%). — Amarillos llegaban a 3.3% pero se veían verdosos sobre el pasto; el número se recupera en P4 con los hitos de luz por sala.
+- 2026-10-20 — Exposición 3.7 / contraste 18 elegidos midiendo el histograma (2.1 dejaba 88% de la imagen en negro casi sin medios tonos).

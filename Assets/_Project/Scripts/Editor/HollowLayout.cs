@@ -7,7 +7,7 @@ namespace ProjectRidge.EditorTools
     /// encuentro de sigilo con su patrón (reflectores rojos, Lurkers) y sus escondites (pasto alto). El loop:
     /// esconderse en la entrada, observar el patrón completo, avanzar de escondite en escondite, checkpoint.
     ///
-    /// Cámara fija mirando al norte (yaw 0, pitch 55). Regla de oclusión: nada puede tapar el suelo caminable; un
+    /// Cámara fija mirando al norte (yaw 0, pitch 42). Regla de oclusión: nada puede tapar el suelo caminable; un
     /// objeto a s metros al sur del área caminable puede medir como mucho ~1.43·s (tan 55°). Los bordes del lado
     /// de la cámara son cornisas bajas; los del norte, acantilados altos con bosque encima.
     /// </summary>
@@ -19,7 +19,7 @@ namespace ProjectRidge.EditorTools
         const int HeightRes = 513, AlphaRes = 512;
 
         /// <summary>tan(pitch de la cámara): cuánto puede medir algo por cada metro que está al sur de lo caminable.</summary>
-        const float OcclusionSlope = 1.19f; // tan(50°): inclinación de la cámara
+        const float OcclusionSlope = 0.9f; // tan(42°): inclinación de la cámara (POLISH_PASS 3.6)
 
         struct Room
         {

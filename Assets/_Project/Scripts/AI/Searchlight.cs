@@ -26,6 +26,8 @@ namespace ProjectRidge.AI
         [SerializeField] private bool startActive = true;
         [SerializeField] private Renderer spotVolume;
         [SerializeField] private Renderer beamVisual;
+        [Tooltip("Polvo suspendido dentro del haz (sigue al círculo).")]
+        [SerializeField] private ParticleSystem dust;
 
         public static readonly List<Searchlight> Active = new List<Searchlight>();
         /// <summary>Empezó a llenarse la exposición (para audio y HUD).</summary>
@@ -233,6 +235,12 @@ namespace ProjectRidge.AI
                 block.SetColor(ColorId, c);
                 block.SetFloat(AlarmId, alarm);
                 spotVolume.SetPropertyBlock(block);
+            }
+            if (dust != null)
+            {
+                dust.transform.position = Spot + Vector3.up * 1.6f;
+                var main = dust.main;
+                main.startColor = new Color(c.r, c.g, c.b, 0.55f);
             }
             if (beamVisual != null)
             {

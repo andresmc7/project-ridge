@@ -98,6 +98,41 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>El objeto se vuelve semitransparente cuando tapa al papá (paredes del refugio, camioneta).</summary>
+        /// <summary>Polvo suspendido dentro del haz de un reflector (POLISH_PASS 3.10): motas lentas que lo hacen físico.</summary>
+        static ParticleSystem BeamDust(Transform parent, float radius)
+        {
+            var go = new GameObject("Dust");
+            go.transform.SetParent(parent, false);
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.loop = true;
+            main.startLifetime = 3f;
+            main.startSpeed = 0.05f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.06f);
+            main.maxParticles = 40;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            var emission = ps.emission;
+            emission.rateOverTime = 13f;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(radius * 1.3f, 3f, radius * 1.3f);
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.strength = 0.12f;
+            noise.frequency = 0.4f;
+            var col = ps.colorOverLifetime;
+            col.enabled = true;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                      new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(1f, 0.7f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var r = go.GetComponent<ParticleSystemRenderer>();
+            r.sharedMaterial = FxMaterial("FX_BeamDust", "Universal Render Pipeline/Particles/Unlit", SoftDot(), Color.white, true);
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            return ps;
+        }
+
         static void MakeFadeable(GameObject go)
         {
             var rs = go.GetComponentsInChildren<MeshRenderer>();
@@ -410,6 +445,9 @@ namespace ProjectRidge.EditorTools
 
         // ---------- Postes guía del sendero, troncos caídos como cobertura, árboles secos.
 
+        /// <summary>Diámetro (m) del charco de luz cálida bajo cada farol del sendero.</summary>
+        const float WarmPoolSize = 3.4f;
+
         static int BuildTrailDressing(Transform parent, Terrain t, Mats m, List<Vector3> blockers)
         {
             var g = new GameObject("TrailDressing").transform;
@@ -417,6 +455,13 @@ namespace ProjectRidge.EditorTools
             var orange = Tinted(m.planks, "Hollow_TrailBlaze", new Color(1f, 0.55f, 0.25f));
             orange.EnableKeyword("_EMISSION");
             orange.SetColor("_EmissionColor", new Color(0.35f, 0.12f, 0.03f));
+            var lantern = Tinted(m.planks, "Hollow_TrailLantern", new Color(1f, 0.8f, 0.55f));
+            lantern.EnableKeyword("_EMISSION");
+            lantern.SetColor("_EmissionColor", new Color(1f, 0.62f, 0.28f) * 9f);
+            // Sin la bandera de GI, URP descarta la emisión ("EmissiveIsBlack") y el farol se veía negro.
+            lantern.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            orange.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            var warmPool = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(2.6f, 0.57f, 0.08f, 0.9f), true); // naranja de farol: HDR en RGB y alfa < 1 (en aditivo el alfa multiplica y saturaba a amarillo)
             // Postes con marca naranja a la salida de cada sala: dicen "por aquí" sin texto.
             foreach (var c in Corridors)
             {
@@ -427,6 +472,20 @@ namespace ProjectRidge.EditorTools
                 var post = Group(g, "TrailMarker", p, Random.Range(0f, 360f));
                 LogPiece(post, "Post", 1.2f, 0.07f, m, new Vector3(0f, 0.55f, 0f), new Vector3(-90f, 0f, 0f), false);
                 Board(post, "Blaze", new Vector3(0.16f, 0.2f, 0.16f), orange, new Vector3(0f, 0.95f, 0f), Vector3.zero, false);
+                // Farol en la punta y un charco de luz cálida en el suelo (aditivo, sin luz dinámica): "las luces cálidas
+                // marcan el camino" (POLISH_PASS 3.9) y son las islas de luz de las salas sin haces (3.10).
+                Board(post, "Lantern", new Vector3(0.14f, 0.18f, 0.14f), lantern, new Vector3(0f, 1.28f, 0f), Vector3.zero, false);
+                var pool = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Object.DestroyImmediate(pool.GetComponent<Collider>());
+                pool.name = "WarmPool";
+                pool.transform.SetParent(post, false);
+                pool.transform.localPosition = new Vector3(0f, 0.04f, 0f);
+                pool.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                pool.transform.localScale = Vector3.one * WarmPoolSize;
+                var pr = pool.GetComponent<MeshRenderer>();
+                pr.sharedMaterial = warmPool;
+                pr.shadowCastingMode = ShadowCastingMode.Off;
+                pr.receiveShadows = false;
             }
 
             // Troncos caídos de diseño.
@@ -683,6 +742,8 @@ namespace ProjectRidge.EditorTools
             if (pool == null) { pool = new Material(Shader.Find("ProjectRidge/LightPool")); AssetDatabase.CreateAsset(pool, poolPath); }
             pool.SetTexture("_NoiseTex", noise);
             pool.SetColor("_Color", cfg.color);
+            pool.SetFloat("_RimWidth", 0.03f);   // borde fino que parpadea (no un neón grueso)
+            pool.SetFloat("_RimIntensity", 1.8f);
             EditorUtility.SetDirty(pool);
 
             string beamPath = FxDir + "/FX_SearchBeam.mat";
@@ -736,6 +797,7 @@ namespace ProjectRidge.EditorTools
                 so.FindProperty("startActive").boolValue = d.startActive;
                 so.FindProperty("spotVolume").objectReferenceValue = pr;
                 so.FindProperty("beamVisual").objectReferenceValue = br;
+                so.FindProperty("dust").objectReferenceValue = BeamDust(go.transform, cfg.spotRadius);
                 so.ApplyModifiedPropertiesWithoutUndo();
                 go.transform.position = OnGround(t, d.route[0].x, d.route[0].y);
                 built[d.name] = s;

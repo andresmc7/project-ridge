@@ -28,6 +28,8 @@ Shader "Hidden/ProjectRidge/TiltShift"
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
             float _FocusY, _Band, _Feather, _MaxRadius, _Corners, _Highlight;
+            // Plano focal en el papá (global, lo pone TiltShiftFocus cada frame); si nadie lo pone, se usa _FocusY.
+            float _TiltFocusY;
 
             #define TAPS 20
 
@@ -37,7 +39,8 @@ Shader "Hidden/ProjectRidge/TiltShift"
                 float2 uv = input.texcoord;
                 half4 center = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
 
-                float dy = abs(uv.y - _FocusY);
+                float focusY = _TiltFocusY > 0.0 ? _TiltFocusY : _FocusY;
+                float dy = abs(uv.y - focusY);
                 float dx = abs(uv.x - 0.5);
                 float m = saturate((dy - _Band) / _Feather);
                 m = max(m, saturate((dx - 0.36) / 0.16) * saturate((dy - _Band * 0.4) / _Feather) * _Corners);

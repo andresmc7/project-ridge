@@ -169,8 +169,8 @@ namespace ProjectRidge.EditorTools
             // Niebla de escena: densa, claustrofóbica, fría.
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(0.055f, 0.07f, 0.085f);
-            RenderSettings.fogDensity = 0.024f;
+            RenderSettings.fogColor = new Color(0.045f, 0.055f, 0.05f); // verde musgo oscuro, no azul marino (comparación con la referencia, P3)
+            RenderSettings.fogDensity = 0.012f; // velo leve: la niebla espesa va baja, en tarjetas sobre las zonas hondas
             Camera.main.backgroundColor = RenderSettings.fogColor;
 
             int cards = FogCards(root, t, noise);
@@ -307,11 +307,11 @@ namespace ProjectRidge.EditorTools
         {
             var moon = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
             if (moon == null) { log.AppendLine("no moon"); return; }
-            moon.color = new Color(0.6f, 0.71f, 0.92f);
-            moon.intensity = 2.1f;
+            moon.color = new Color(0.66f, 0.74f, 0.8f); // fría pero poco saturada: la escena no debe teñirse de azul
+            moon.intensity = 1.35f; // baja: la luz fuerte sale de las islas (linterna, faroles, haces), no del cielo
             moon.shadows = LightShadows.Soft;
             moon.shadowStrength = 0.9f;
-            moon.transform.rotation = Quaternion.Euler(36f, 62f, 0f); // baja, desde atrás-izquierda: sombras largas que cruzan las salas (luz y oscuridad)
+            moon.transform.rotation = Quaternion.Euler(30f, 200f, 0f); // contraluz (POLISH_PASS 3.10): desde el fondo hacia la cámara, recorta siluetas
             moon.cookie = CloudCookie();
             if (!moon.TryGetComponent(out UniversalAdditionalLightData _)) moon.gameObject.AddComponent<UniversalAdditionalLightData>();
             if (!moon.TryGetComponent(out CloudShadows _)) moon.gameObject.AddComponent<CloudShadows>();
@@ -320,9 +320,9 @@ namespace ProjectRidge.EditorTools
             cs.FindProperty("velocity").vector2Value = new Vector2(0.25f, 0.1f);
             cs.ApplyModifiedPropertiesWithoutUndo();
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.19f, 0.24f, 0.33f); // sombras oscuras: la luz de luna recorta manchas claras
-            RenderSettings.ambientEquatorColor = new Color(0.07f, 0.085f, 0.11f);
-            RenderSettings.ambientGroundColor = new Color(0.035f, 0.04f, 0.045f);
+            RenderSettings.ambientSkyColor = new Color(0.11f, 0.13f, 0.14f); // 40% menos que antes: el 60% de la pantalla en sombra profunda
+            RenderSettings.ambientEquatorColor = new Color(0.05f, 0.052f, 0.045f);
+            RenderSettings.ambientGroundColor = new Color(0.021f, 0.024f, 0.027f);
             // Sin skybox, los reflejos usaban un cubemap viejo y brillante: charcos y superficies mojadas
             // reflejan ahora un cielo nocturno tenue con el halo de la luna.
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
@@ -372,6 +372,17 @@ namespace ProjectRidge.EditorTools
             return cube;
         }
 
+        /// <summary>Exposición y contraste del grading (ajustados midiendo el histograma de las capturas, P3).</summary>
+        public static float GradingExposure = 3.7f, GradingContrast = 18f;
+
+        /// <summary>QA (P3): prueba otra exposición/contraste sobre el perfil de post.</summary>
+        public static void TuneGrading(float exposure, float contrast)
+        {
+            GradingExposure = exposure;
+            GradingContrast = contrast;
+            SetupGrading();
+        }
+
         static void SetupGrading()
         {
             var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/_Project/Art/LookDev/LookDev_PostFX.asset");
@@ -385,20 +396,26 @@ namespace ProjectRidge.EditorTools
             Get<Tonemapping>().mode.Override(TonemappingMode.ACES);
             var ca = Get<ColorAdjustments>();
             // Oscuridad legible: medios tonos visibles (media de luminancia ~0.2 medida en captura), negros solo en los bordes.
-            ca.postExposure.Override(2.55f); ca.contrast.Override(14f); ca.saturation.Override(-8f);
+            // POLISH_PASS 3.10: más oscuro y con más contraste; el histograma de la captura debe dar >= 50% de píxeles con
+            // luminancia < 0.08 y >= 3% por encima de 0.6 (islas de luz).
+            ca.postExposure.Override(GradingExposure); ca.contrast.Override(GradingContrast); ca.saturation.Override(-6f);
+            // Balance algo cálido: la referencia es tierra y musgo con luz de farol, no un azul uniforme.
+            var wb = Get<WhiteBalance>();
+            wb.temperature.Override(14f); wb.tint.Override(-4f);
             var smh = Get<ShadowsMidtonesHighlights>();
-            smh.shadows.Override(new Vector4(0.86f, 0.99f, 1.06f, 0f));     // sombras verde-azuladas
+            smh.shadows.Override(new Vector4(0.82f, 1.0f, 0.97f, -0.02f));     // sombras verde azulado oscuro
             smh.midtones.Override(new Vector4(0.97f, 1f, 1f, 0f));
-            smh.highlights.Override(new Vector4(1.07f, 1.0f, 0.9f, 0.02f));     // luces prácticas cálidas
+            smh.highlights.Override(new Vector4(1.12f, 1.0f, 0.84f, 0.03f));     // luces altas cálidas
             var lgg = Get<LiftGammaGain>();
-            lgg.lift.Override(new Vector4(0.98f, 1f, 1.03f, 0.01f));
+            lgg.lift.Override(new Vector4(0.98f, 1f, 1.03f, 0f)); // sin elevar el negro: +0.01 lineal subía todo el piso a ~0.1 en pantalla (P3)
             var grain = Get<FilmGrain>();
             grain.type.Override(FilmGrainLookup.Medium2); grain.intensity.Override(0.32f); grain.response.Override(0.75f);
             Get<ChromaticAberration>().intensity.Override(0.12f);
             var vig = Get<Vignette>();
             vig.intensity.Override(0.36f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
             var bloom = Get<Bloom>();
-            bloom.threshold.Override(0.85f); bloom.intensity.Override(0.9f); bloom.clamp.Override(6f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f)); // clamp: sin tope, la linterna a medio metro de una pared se volvía un disco blanco gigante
+            // Umbral bajo e intensidad alta: las islas de luz brillan alrededor (P3: >= 3% de píxeles > 0.6).
+            bloom.threshold.Override(0.7f); bloom.intensity.Override(1.6f); bloom.clamp.Override(6f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f)); // clamp: sin tope, la linterna a medio metro de una pared se volvía un disco blanco gigante
             var dof = Get<DepthOfField>(); // reemplazado por el tilt-shift (pase propio)
             dof.mode.Override(DepthOfFieldMode.Off);
             dof.gaussianStart.Override(17f); dof.gaussianEnd.Override(34f); dof.gaussianMaxRadius.Override(1.2f);
@@ -440,11 +457,15 @@ namespace ProjectRidge.EditorTools
             if (t == null) return;
             var l = t.GetComponent<Light>();
             // Linterna de mano: haz con anillo (cookie), alcance medio, sombras suaves (una de las dos luces con sombra).
-            l.intensity = 6f; // con la exposición actual, 16 era un cono gigante que aplanaba la escena
-            l.range = 11f;
-            l.spotAngle = 42f;
-            l.innerSpotAngle = 22f;
-            l.color = new Color(1f, 0.93f, 0.82f);
+            l.intensity = 30f; // isla de luz cálida en el suelo (P3: histograma >= 3% de luces); el disco blanco lo evitan el tope del bloom y el origen adelantado
+            l.range = 14f;
+            l.spotAngle = 52f;
+            l.innerSpotAngle = 20f; // halo suave: borde ancho, sin disco duro
+            l.colorTemperature = 3200f;
+            l.useColorTemperature = true;
+            GraphicsSettings.lightsUseLinearIntensity = true;
+            GraphicsSettings.lightsUseColorTemperature = true;
+            l.color = new Color(1f, 0.95f, 0.88f);
             l.cookie = BeamCookie();
             l.shadows = LightShadows.Soft;
         }

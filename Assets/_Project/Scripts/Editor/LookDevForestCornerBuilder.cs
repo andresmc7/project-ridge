@@ -145,32 +145,25 @@ namespace ProjectRidge.EditorTools
             return m;
         }
 
-        /// <summary>Copia transparente de un material URP Lit, para el desvanecido por oclusión de cámara.</summary>
+        /// <summary>
+        /// Copia "DitherFade" de un material, para el desvanecido por oclusión de cámara (POLISH_PASS 3.6): se perfora
+        /// con dithering en vez de volverse transparente. Mantiene textura, color, color de vértice y recorte.
+        /// </summary>
         internal static Material FadedVariant(Material src)
         {
             string path = AssetDatabase.GetAssetPath(src).Replace(".mat", "_Faded.mat");
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, path); }
-            else m.CopyPropertiesFromMaterial(src);
-            if (src.shader.name != "Universal Render Pipeline/Lit")
-            {
-                // Shaders propios (viento): la versión desvanecida usa URP Lit transparente con las mismas texturas.
-                m.shader = Shader.Find("Universal Render Pipeline/Lit");
-                m.SetTexture("_BaseMap", src.GetTexture("_BaseMap"));
-                m.SetColor("_BaseColor", src.GetColor("_BaseColor"));
-                if (src.HasProperty("_BumpMap") && src.GetTexture("_BumpMap") != null) { m.SetTexture("_BumpMap", src.GetTexture("_BumpMap")); m.EnableKeyword("_NORMALMAP"); }
-                m.SetFloat("_Smoothness", src.GetFloat("_Smoothness"));
-            }
-            m.SetFloat("_Surface", 1f);
-            m.SetFloat("_Blend", 0f);
-            m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-            m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
-            m.SetFloat("_ZWrite", 0f);
-            m.SetFloat("_AlphaClip", 0f);
-            m.DisableKeyword("_ALPHATEST_ON");
-            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            m.SetOverrideTag("RenderType", "Transparent");
-            m.renderQueue = (int)RenderQueue.Transparent;
+            if (m == null) { m = new Material(Shader.Find("ProjectRidge/DitherFade")); AssetDatabase.CreateAsset(m, path); }
+            m.shader = Shader.Find("ProjectRidge/DitherFade");
+            m.SetTexture("_BaseMap", src.HasProperty("_BaseMap") ? src.GetTexture("_BaseMap") : null);
+            if (src.HasProperty("_BaseMap")) { m.SetTextureScale("_BaseMap", src.GetTextureScale("_BaseMap")); m.SetTextureOffset("_BaseMap", src.GetTextureOffset("_BaseMap")); }
+            m.SetColor("_BaseColor", src.HasProperty("_BaseColor") ? src.GetColor("_BaseColor") : Color.white);
+            m.SetFloat("_UseVertexColor", src.HasProperty("_UseVertexColor") ? src.GetFloat("_UseVertexColor") : 0f);
+            bool clipTex = src.IsKeywordEnabled("_ALPHATEST_ON") || (src.HasProperty("_AlphaClip") && src.GetFloat("_AlphaClip") > 0.5f) || src.renderQueue == (int)RenderQueue.AlphaTest;
+            m.SetFloat("_AlphaClipTex", clipTex ? 1f : 0f);
+            m.SetFloat("_Cutoff", src.HasProperty("_Cutoff") ? src.GetFloat("_Cutoff") : 0.5f);
+            m.SetFloat("_Fade", 1f);
+            m.renderQueue = (int)RenderQueue.AlphaTest;
             EditorUtility.SetDirty(m);
             return m;
         }

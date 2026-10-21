@@ -60,6 +60,54 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>
+        /// Histograma de una captura (POLISH_PASS 3.10): fracción de píxeles con luminancia &lt; 0.08 (sombra profunda) y
+        /// &gt; 0.6 (islas de luz), y la media. Luminancia Rec.709 sobre los valores del PNG (sRGB 0–1).
+        /// </summary>
+        public static (float dark, float bright, float mean) Histogram(string file)
+        {
+            var tex = new Texture2D(2, 2);
+            tex.LoadImage(File.ReadAllBytes(file));
+            var px = tex.GetPixels32();
+            int dark = 0, bright = 0;
+            double sum = 0;
+            foreach (var c in px)
+            {
+                float l = (0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b) / 255f;
+                if (l < 0.08f) dark++;
+                if (l > 0.6f) bright++;
+                sum += l;
+            }
+            Object.DestroyImmediate(tex);
+            return (dark / (float)px.Length, bright / (float)px.Length, (float)(sum / px.Length));
+        }
+
+        /// <summary>Dos imágenes lado a lado a la misma altura (comparación con la imagen objetivo).</summary>
+        public static string SideBySide(string left, string right, string outFile, int height = 720)
+        {
+            Texture2D Load(string f) { var t = new Texture2D(2, 2); t.LoadImage(File.ReadAllBytes(f)); return t; }
+            var a = Load(left);
+            var b = Load(right);
+            int wa = Mathf.RoundToInt(a.width * height / (float)a.height), wb = Mathf.RoundToInt(b.width * height / (float)b.height);
+            var outTex = new Texture2D(wa + wb + 8, height, TextureFormat.RGB24, false);
+            var fill = new Color32[outTex.width * height];
+            outTex.SetPixels32(fill);
+            void Blit(Texture2D src, int x0, int w)
+            {
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < w; x++)
+                        outTex.SetPixel(x0 + x, y, src.GetPixelBilinear((x + 0.5f) / w, (y + 0.5f) / height));
+            }
+            Blit(a, 0, wa);
+            Blit(b, wa + 8, wb);
+            outTex.Apply();
+            File.WriteAllBytes(outFile, outTex.EncodeToPNG());
+            Object.DestroyImmediate(a);
+            Object.DestroyImmediate(b);
+            Object.DestroyImmediate(outTex);
+            return outFile;
+        }
+
+        /// <summary>
         /// Hoja de poses: muestrea un clip sobre un cuerpo (con su Animator) en varios instantes y los pone en fila,
         /// vistos de lado a 3.2 m. Para revisar clips sin entrar en play mode.
         /// </summary>

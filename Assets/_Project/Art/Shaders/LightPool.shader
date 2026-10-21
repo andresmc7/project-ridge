@@ -72,6 +72,11 @@ Shader "ProjectRidge/LightPool"
                 float core = 1.0 - r * r;
                 core *= core;
                 float rim = smoothstep(1.0 - _RimWidth * 2.0, 1.0 - _RimWidth, r) * (1.0 - smoothstep(1.0 - _RimWidth * 0.5, 1.0, r));
+                // Borde fino que parpadea (POLISH_PASS 3.10) y caída suave hacia adentro desde el borde.
+                float ang = atan2(local.z, local.x);
+                float flick = 0.6 + 0.4 * sin(_Time.y * 23.0 + ang * 3.0) * sin(_Time.y * 7.3 + ang);
+                rim *= flick;
+                core += smoothstep(0.45, 1.0, r) * (1.0 - smoothstep(0.97, 1.0, r)) * 0.35;
                 float height = 1.0 - saturate(abs(local.y) * 2.0 - 0.6) ;  // se apaga hacia arriba y abajo del volumen
                 height *= facing;
 

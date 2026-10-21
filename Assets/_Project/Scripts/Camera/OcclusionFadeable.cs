@@ -4,12 +4,13 @@ using UnityEngine;
 namespace ProjectRidge.CameraRig
 {
     /// <summary>
-    /// Objeto que se vuelve semitransparente cuando tapa al jugador (árboles, rocas grandes).
-    /// Cambia a materiales "faded" (transparentes) solo mientras está desvanecido; el resto del tiempo usa los opacos.
+    /// Objeto que se desvanece cuando tapa al jugador (árboles, rocas grandes, paredes).
+    /// Cambia a materiales "faded" (DitherFade: perforados con dithering, no transparentes) solo mientras está
+    /// desvanecido; el resto del tiempo usa los opacos.
     /// </summary>
     public class OcclusionFadeable : MonoBehaviour
     {
-        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int Fade = Shader.PropertyToID("_Fade");
         public static readonly List<OcclusionFadeable> All = new List<OcclusionFadeable>();
 
         [SerializeField] private Renderer[] renderers;
@@ -78,7 +79,7 @@ namespace ProjectRidge.CameraRig
             }
             if (!usingFaded) return;
 
-            block.SetColor(BaseColor, new Color(1f, 1f, 1f, alpha));
+            block.SetFloat(Fade, alpha);
             foreach (var r in renderers) r.SetPropertyBlock(block);
         }
     }

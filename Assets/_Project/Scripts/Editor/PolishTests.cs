@@ -47,6 +47,7 @@ namespace ProjectRidge.EditorTools
                 "P0" => P0(),
                 "P1" => P1(),
                 "P2" => P2(),
+                "P3" => P3(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -465,6 +466,111 @@ namespace ProjectRidge.EditorTools
         }
 
         static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
+
+        // ------------------------------------------------------------------ P3
+
+        /// <summary>Alto del papá en pantalla (fracción del alto de la imagen) con la cámara de juego.</summary>
+        static float DadScreenHeight()
+        {
+            var anim = player.GetComponentInChildren<FatherAnimator>().GetComponent<Animator>();
+            var cam = Camera.main;
+            Vector3 head = anim.GetBoneTransform(HumanBodyBones.Head).position + Vector3.up * 0.14f;
+            Vector3 foot = player.transform.position;
+            return Mathf.Abs(cam.WorldToViewportPoint(head).y - cam.WorldToViewportPoint(foot).y);
+        }
+
+        /// <summary>Puntos de paso del sendero (fuera de la vegetación: el papá de pie), uno por sala.</summary>
+        public static readonly Vector2[] LookSpots = { new Vector2(-55f, 0f), new Vector2(-24f, 0f), new Vector2(-1.5f, 0.2f), new Vector2(24f, 0f), new Vector2(47.6f, -0.5f) };
+
+        static IEnumerator P3()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var rig = Object.FindFirstObjectByType<ProjectRidge.CameraRig.IsoCameraRig>();
+
+            // Escala del personaje y luz: en varias salas, quieto.
+            float hMin = 1f, hMax = 0f, darkSum = 0f, brightSum = 0f;
+            int n = 0;
+            foreach (var s in LookSpots)
+            {
+                Teleport(Ground(s.x, s.y));
+                yield return 1.5f;
+                float h = DadScreenHeight();
+                hMin = Mathf.Min(hMin, h); hMax = Mathf.Max(hMax, h);
+                string file = ProgressDir + "P3_after_" + n + ".png";
+                Shots.Capture(file, player.transform.position);
+                var (dark, bright, mean) = Shots.Histogram(file);
+                Debug.Log("POLISH: P3 shot " + n + " at " + s + ": dad " + (h * 100f).ToString("0.0") + "% of height, dark " + (dark * 100f).ToString("0") + "%, bright " + (bright * 100f).ToString("0.0") + "%, mean " + mean.ToString("0.000"));
+                darkSum += dark; brightSum += bright;
+                n++;
+            }
+            Check("dad is 10–12% of screen height", hMin >= 0.095f && hMax <= 0.125f, "range " + (hMin * 100f).ToString("0.0") + "–" + (hMax * 100f).ToString("0.0") + "%");
+            float darkAvg = darkSum / n, brightAvg = brightSum / n;
+            Check("histogram: >= 50% deep shadow, >= 3% light islands", darkAvg >= 0.5f && brightAvg >= 0.03f, "dark " + (darkAvg * 100f).ToString("0") + "%, bright " + (brightAvg * 100f).ToString("0.0") + "% (average of " + n + " shots)");
+
+            // Mirar adelante: corriendo a la derecha, el encuadre se adelanta ~1.5 m.
+            Teleport(Ground(-54f, 0f));
+            yield return 1f;
+            var cam = Camera.main.transform;
+            float idleOffset = cam.position.x - player.transform.position.x;
+            yield return Hold(new Vector2(0.9f, 0f), 2f);
+            float runOffset = cam.position.x - player.transform.position.x;
+            Stick(Vector2.zero);
+            float ahead = runOffset - idleOffset;
+            Check("look-ahead in the direction of travel", ahead > 0.9f && ahead < 2.2f, "camera leads by " + ahead.ToString("0.00") + " m");
+            yield return 1f;
+
+            // Foco del tilt-shift en el papá.
+            float focus = Shader.GetGlobalFloat("_TiltFocusY");
+            float dadY = Camera.main.WorldToViewportPoint(player.transform.position + Vector3.up * 0.9f).y;
+            Check("tilt-shift focus follows the dad", Mathf.Abs(focus - dadY) < 0.04f, "focus " + focus.ToString("0.00") + ", dad at " + dadY.ToString("0.00"));
+
+            // Amenaza: Lurker en Chase → la cámara se aleja y encuadra entre los dos.
+            EnemyController lurker = null;
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (e.name == "Lurker") lurker = e;
+            lurker.gameObject.SetActive(true);
+            Teleport(Ground(-13f, 0f));
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-7f, 0f));
+            yield return 2f; // que la cámara llegue tras el salto
+            float distBefore = Vector3.Distance(cam.position, player.transform.position + Vector3.up);
+            lurker.Perception.Suppress(0f);
+            player.GetComponent<PlayerHealth>().Restore();
+            lurker.AlertTo(player.transform.position);
+            float blend = 0f, distThreat = 0f;
+            float limit = Time.time + 6f;
+            while (Time.time < limit)
+            {
+                if (lurker.IsHunting) { blend = rig.ThreatBlend; distThreat = Vector3.Distance(cam.position, player.transform.position + Vector3.up); }
+                if (blend > 0.95f) break;
+                yield return null;
+            }
+            lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
+            Check("threat pulls the camera back", blend > 0.95f && distThreat > distBefore + 1f, "blend " + blend.ToString("0.00") + ", distance " + distBefore.ToString("0.0") + " → " + distThreat.ToString("0.0") + " m");
+            lurker.gameObject.SetActive(false);
+            player.GetComponent<PlayerHealth>().Restore();
+            yield return 1.5f;
+
+            // Lo que tapa al papá se desvanece con dithering (no transparencia).
+            ProjectRidge.CameraRig.OcclusionFadeable tree = null;
+            foreach (var f in ProjectRidge.CameraRig.OcclusionFadeable.All)
+            {
+                var p = f.transform.position;
+                if (p.x > -50f && p.x < 50f && NavMesh.SamplePosition(p + Vector3.forward * 1.6f, out NavMeshHit hit, 0.4f, NavMesh.AllAreas)) { tree = f; break; }
+            }
+            float target = 1f;
+            string shader = "none";
+            if (tree != null)
+            {
+                Teleport(Ground(tree.transform.position.x, tree.transform.position.z + 1.6f));
+                yield return 1.2f;
+                target = tree.TargetAlpha;
+                shader = tree.Renderers[0].sharedMaterial.shader.name;
+                Shot("P3_after_dither");
+            }
+            Check("occluder fades with dithering", tree != null && target < 1f && shader == "ProjectRidge/DitherFade", (tree != null ? tree.name + " at " + tree.transform.position : "no fadeable") + ", alpha " + target + ", shader " + shader);
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
+        }
 
         // ------------------------------------------------------------------ P2
 

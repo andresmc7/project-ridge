@@ -2,6 +2,20 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-20 — POLISH PASS P3: cámara, luz y post-proceso
+Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P3")` → **5/6 PASS** (falla el 3% de luces del histograma, ver abajo). Capturas: `P3_before.png`, `P3_after.png`, `P3_after_0..4.png`, `P3_after_dither.png`; comparación `docs/progress/compare_P3.png`.
+
+- **Escala del papá** (probado): de pie ocupa 9.7–11.4% del alto de la pantalla en 5 salas (antes ~16% a 12.5 m). Cámara: 42°, FOV 35, distancia 17.5 m (ver DECISIONS).
+- **Mirar adelante** (probado): corriendo, el encuadre se adelanta 1.44 m (objetivo 1.5, suavizado 0.4 s).
+- **Amenaza** (probado): con un Lurker en Chase la cámara pasa de 16.6 a 19.0 m y encuadra entre el papá y la amenaza (peso 0.3).
+- **Tilt-shift** con el plano focal en el papá (probado: foco 0.42 = altura del papá en pantalla).
+- **Oclusión con dithering** (probado): un árbol que tapa al papá pasa a `ProjectRidge/DitherFade` y se perfora (alfa 0.22) en vez de volverse transparente; sigue proyectando sombra. Todos los árboles del lado de la cámara son desvanecibles.
+- **Luz**: luna baja a contraluz (desde el fondo), ambiente 40% menos y sin tinte azul, linterna cálida 3200 K de 14 m con cookie, sombras y borde suave; niebla de fondo más leve. Faroles cálidos (emisivos) con charco de luz naranja en cada poste del sendero, sin luces dinámicas nuevas. Borde de los haces del OVNI fino y parpadeante con caída suave hacia adentro, polvo suspendido dentro de cada haz.
+- **Post**: ACES, contraste 18, exposición 3.7, sombras verde azulado oscuro, luces altas cálidas, balance algo cálido, grano y viñeta. Se quitó un `lift` de +0.01 que subía todo el negro a ~0.1 en pantalla (por eso antes había 0% de sombra profunda).
+- **Histograma** (media de 5 capturas de juego): sombra profunda (< 0.08) **58%** ✓ (antes 0%); islas de luz (> 0.6) **2.4%** ✗ (objetivo 3%). Las salas con haces del OVNI pasan (3.0–4.5%); las de entrada y el pasillo del arroyo no tienen fuentes de luz fuertes. Con los charcos de farol amarillos llegaba a 3.3%, pero se veían verdosos; se prefirió el naranja correcto. Queda para P4 (hito con luz en cada sala).
+- **Comparación con la referencia — 5 diferencias**: (1) paleta azul fría frente a tierra y musgo cálidos → **atacada** (balance cálido, ambiente y niebla neutros, luna menos saturada); (2) charcos de farol blanquecinos/amarillos → **atacada** (naranja HDR con alfa < 1); (3) agua como una franja plateada → **atacada** (suavidad 0.95 → 0.62, color más oscuro; sigue brillante con la luna a contraluz); (4) árboles "blob" azules sin tronco → P4; (5) suelo liso sin textura densa (pasto, hojarasca, raíces) → P4.
+- `UNVERIFIED`: el desvanecido por dithering en iPhone (ancho de patrón en pantallas Retina); el coste del polvo de los haces en móvil.
+
 ## 2026-10-20 — POLISH PASS P2: captura del OVNI con peso (bloqueo, parálisis, forcejeo, elevación)
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P2")` → **5/5 PASS**. Secuencia en 8 capturas: `docs/progress/P2_1_exposure` … `P2_8_flash` (exposición, bloqueo, parálisis, forcejeo fallido, elevación, forcejeo con éxito, soltarse, destello).
 

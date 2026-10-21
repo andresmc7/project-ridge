@@ -114,18 +114,32 @@ namespace ProjectRidge.EditorTools
             EditorBuildSettings.scenes = list.ToArray();
         }
 
-        /// <summary>Cámara de diorama: mira al norte (como Zelda), alta y fija. Sin oclusión que desvanecer.</summary>
+        /// <summary>Cámara de diorama 3/4 (POLISH_PASS 3.6): mira al norte, 42°, cerca; lo que tape al papá se desvanece con dithering.</summary>
         static void SetupCamera()
         {
             var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.CameraRig.IsoCameraConfig>("Assets/_Project/Data/IsoCameraConfig.asset");
             if (cfg == null) return;
             cfg.yaw = 0f;
-            cfg.pitch = 50f;
-            cfg.distance = 18.5f;
-            cfg.fieldOfView = 38f;
-            cfg.framingOffset = 2.2f;
+            cfg.pitch = 42f;
+            cfg.distance = 17.5f; // medido: a 12.5 m el papá de pie ocupaba el 16% del alto; a 17.5 m, ~11% (POLISH_PASS 3.6 pide 10–12%)
+            cfg.threatDistance = 20f; // misma proporción que 14.5 / 12.5 del spec
+            cfg.fieldOfView = 35f;
+            cfg.framingOffset = 1.2f;
             cfg.positionDamping = 0.12f; // cámara pegada al papá: sin deriva flotante
             EditorUtility.SetDirty(cfg);
+
+            // Lo que tape al papá se desvanece (dithering) y el tilt-shift enfoca su altura en pantalla.
+            var cam = Camera.main.gameObject;
+            var player = Object.FindFirstObjectByType<ProjectRidge.Player.PlayerController>();
+            if (!cam.TryGetComponent(out ProjectRidge.CameraRig.CameraOcclusionFader fader)) fader = cam.AddComponent<ProjectRidge.CameraRig.CameraOcclusionFader>();
+            var fso = new SerializedObject(fader);
+            fso.FindProperty("config").objectReferenceValue = cfg;
+            fso.FindProperty("target").objectReferenceValue = player.transform;
+            fso.ApplyModifiedPropertiesWithoutUndo();
+            if (!cam.TryGetComponent(out ProjectRidge.CameraRig.TiltShiftFocus focus)) focus = cam.AddComponent<ProjectRidge.CameraRig.TiltShiftFocus>();
+            var tso = new SerializedObject(focus);
+            tso.FindProperty("target").objectReferenceValue = player.transform;
+            tso.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // ------------------------------------------------------------------ Materiales
@@ -444,7 +458,9 @@ namespace ProjectRidge.EditorTools
                 bool close = false;
                 foreach (var q in placed) if ((Flat(q) - Flat(p)).sqrMagnitude < minGap * minGap) { close = true; break; }
                 if (close) continue;
-                Spawn(round ? RoundTreePrefab(variant, m) : TreePrefab(variant, m), parent, p, R(0f, 360f), scale);
+                var tree = Spawn(round ? RoundTreePrefab(variant, m) : TreePrefab(variant, m), parent, p, R(0f, 360f), scale);
+                // Red de seguridad: si el encuadre (mirar adelante, amenaza) lo pone delante del papá, se desvanece con dithering.
+                if (!north) MakeFadeable(tree);
                 placed.Add(p);
             }
             return placed.Count;
