@@ -45,6 +45,12 @@ namespace ProjectRidge.EditorTools
 
         const int MaxFailures = 8;
         const float Margin = 0.7f, MaxWait = 75f;
+        /// <summary>Segundos tras llegar hasta quedar agachado y oculto (frenada animada + agacharse solo en la vegetación).</summary>
+        const float ArrivalSettle = 0.9f;
+        /// <summary>Segundos que se pierden al arrancar desde parado (clip de arranque con avance por root motion).</summary>
+        const float StartLatency = 0.6f;
+        /// <summary>Márgenes sobre la vista del Lurker (con la patrulla predicha exacta bastan unos pocos).</summary>
+        const float ViewDistanceMargin = 1f, ViewAngleMargin = 12f;
         static PlayerMovementConfig Movement => AssetDatabase.LoadAssetAtPath<PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
         static float JogSpeed => Movement.jogSpeed;
         /// <summary>Inclinación del stick al ir "con cuidado": caminar (no sigiloso, que es demasiado lento para el bot).</summary>
@@ -56,7 +62,14 @@ namespace ProjectRidge.EditorTools
         static int actions, objects;
 
         static int index;
-        static bool needResync;
+        static bool needResync, aimingThrow;
+        static int committedUntil = -1;
+        /// <summary>Por qué el último tramo evaluado no era seguro (para el informe si se atasca).</summary>
+        static string unsafeReason = "";
+        /// <summary>Hacia dónde lanzar la piedra de distracción: al norte, fuera de la ruta (si cae delante, el Lurker la busca
+        /// justo junto al escondite siguiente).</summary>
+        static readonly Vector3 ThrowAim = Vector3.forward;
+        const float AimTilt = 0.25f;
         static float stateSince, lastProgress, startTime;
         static bool moving;
         static Vector3 lastPos;
@@ -82,7 +95,7 @@ namespace ProjectRidge.EditorTools
             if (keyboard == null) keyboard = InputSystem.AddDevice<Keyboard>("BotKeyboard");
             player = Object.FindFirstObjectByType<PlayerController>();
             visibility = player.GetComponent<PlayerVisibility>();
-            index = 0; deaths = 0; captures = 0; moving = false; report.Clear();
+            index = 0; deaths = 0; captures = 0; moving = false; aimingThrow = false; committedUntil = -1; report.Clear();
             startTime = stateSince = lastProgress = Time.time;
             lastPos = player.transform.position;
             Searchlight.PlayerCaught += OnCaught;
@@ -111,6 +124,8 @@ namespace ProjectRidge.EditorTools
         static void Backtrack()
         {
             moving = false;
+            aimingThrow = false;
+            committedUntil = -1;
             Stick(Vector2.zero);
             stateSince = Time.time + 5.5f; // la secuencia de muerte/captura dura ~5 s
             lastProgress = stateSince;
@@ -157,30 +172,42 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>¿Se puede ir de a hasta b ahora mismo sin pisar luz ni entrar en el cono de un Lurker?</summary>
-        static bool LegIsSafe(Vector3 a, Vector3 b, float speed)
+        static bool LegIsSafe(Vector3 a, Vector3 b, float speed) => LegIsSafe(a, b, speed, 0f, true, true, out _);
+
+        /// <summary>
+        /// Tramo que empieza en t0 (s desde ahora). fromRest: arranca parado (giro en el sitio y clip de arranque);
+        /// last: termina ahí (frenada y agacharse). Devuelve la duración del tramo para encadenar el siguiente.
+        /// </summary>
+        static bool LegIsSafe(Vector3 a, Vector3 b, float speed, float t0, bool fromRest, bool last, out float duration)
         {
             float length = Vector3.Distance(Flat(a), Flat(b));
-            float duration = length / speed + 0.4f;
+            // Parado y con un giro grande, el papá gira en el sitio antes de avanzar (P7): se queda en a ese tiempo.
+            float turn = 0f;
+            float angle = Vector3.Angle(Flat(player.transform.forward), Flat(b) - Flat(a));
+            if (fromRest && angle > Movement.standingTurnAngle)
+                turn = Mathf.Lerp(Movement.standingTurnTime90, Movement.standingTurnTime180, Mathf.InverseLerp(90f, 180f, angle));
+            // Arrancar caminando desde parado usa el clip de arranque (P7): ~1 s hasta la velocidad de crucero.
+            float travel = length / speed + (fromRest ? StartLatency : 0f);
+            duration = turn + travel + (last ? ArrivalSettle : 0f);
             for (float t = 0f; t <= duration; t += 0.1f)
             {
-                Vector3 p = Vector3.Lerp(a, b, Mathf.Clamp01(t / Mathf.Max(0.01f, duration - 0.4f)));
+                Vector3 p = Vector3.Lerp(a, b, Mathf.Clamp01((t - turn) / Mathf.Max(0.01f, travel)));
                 foreach (var s in Searchlight.Active)
                 {
-                    Vector3 spot = s.SpotAt(t + 0.15f);
-                    if (new Vector2(p.x - spot.x, p.z - spot.z).magnitude < s.Radius * s.Config.detectionFraction + Margin) return false;
+                    Vector3 spot = s.SpotAt(t0 + t + 0.15f);
+                    if (new Vector2(p.x - spot.x, p.z - spot.z).magnitude < s.Radius * s.Config.detectionFraction + Margin) { unsafeReason = "light " + s.name + " at t+" + (t0 + t).ToString("0.0"); return false; }
                 }
                 foreach (var e in EnemyController.Active)
                 {
                     if (e.IsDead) continue;
-                    if (e.State != EnemyState.Patrol) return false;
-                    Vector3 to = p - e.transform.position;
+                    if (e.State != EnemyState.Patrol) { unsafeReason = e.name + " is " + e.State; return false; }
+                    // Predicción exacta de la patrulla (puntos, velocidad y pausas: EnemyController.PredictPatrol).
+                    e.PredictPatrol(t0 + t, out Vector3 ep, out Vector3 fwd);
+                    Vector3 to = p - ep;
                     to.y = 0f;
                     float d = to.magnitude;
-                    if (d < e.Config.proximityRadius + 0.8f) return false;
-                    if (d < e.Config.viewDistance + 1.5f && Vector3.Angle(e.transform.forward, to) < e.Config.viewAngle * 0.5f + 25f) return false;
-                    // Si viene hacia aquí, esperar: en pocos segundos estará más cerca.
-                    var agent = e.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                    if (agent != null && agent.hasPath && d < 7f && Vector3.Dot(agent.velocity, -to) > 0.3f) return false;
+                    if (d < e.Config.proximityRadius + 0.8f) { unsafeReason = e.name + " too close at t+" + (t0 + t).ToString("0.0"); return false; }
+                    if (d < e.Config.viewDistance + ViewDistanceMargin && Vector3.Angle(fwd, to) < e.Config.viewAngle * 0.5f + ViewAngleMargin) { unsafeReason = e.name + " would see at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
                 }
             }
             return true;
@@ -213,18 +240,38 @@ namespace ProjectRidge.EditorTools
             Vector3 pos = player.transform.position;
             Vector3 to = Flat(step.at) - Flat(pos);
 
+            // Lanzar: primero girar (solo con el stick, poco inclinado) hacia la dirección de distracción y luego OBJETO.
+            if (aimingThrow)
+            {
+                if (Vector3.Angle(Flat(player.transform.forward), ThrowAim) > 8f) { Stick(new Vector2(ThrowAim.x, ThrowAim.z) * AimTilt); return; }
+                Stick(Vector2.zero);
+                aimingThrow = false;
+                Tap(Key.Q);
+                objects++;
+                Log("OBJECT (throw) at " + pos);
+                index++;
+                stateSince = Time.time + 1.2f;
+                return;
+            }
+
             if (Vector3.Distance(Flat(pos), Flat(lastPos)) > 0.3f) { lastPos = pos; lastProgress = Time.time; }
-            if (Time.time - lastProgress > MaxWait) { Log("STUCK at step " + index + " (" + step.kind + " " + step.at + ") pos " + pos); Finish(false); return; }
+            if (Time.time - lastProgress > MaxWait) { Log("STUCK at step " + index + " (" + step.kind + " " + step.at + ") pos " + pos + " — last reason: " + unsafeReason); Finish(false); return; }
 
             if (moving)
             {
+                // Punto de paso de un tramo ya aprobado: seguir sin frenar (sin giro en el sitio ni frenada a la vista).
+                if (to.magnitude < 0.6f && step.kind == Kind.Pass && index < committedUntil)
+                {
+                    index++;
+                    return;
+                }
                 if (to.magnitude < 0.45f)
                 {
                     moving = false;
                     Stick(Vector2.zero);
                     stateSince = Time.time + 0.15f;
                     if (step.kind == Kind.Take) { Tap(Key.E); actions++; Log("ACTION (take) at " + step.at); stateSince = Time.time + 1.6f; }
-                    if (step.kind == Kind.Throw) { Tap(Key.Q); objects++; Log("OBJECT (throw) at " + step.at); stateSince = Time.time + 1.2f; }
+                    if (step.kind == Kind.Throw) { aimingThrow = true; Log("aiming the stone away from the route (north)"); return; }
                     if (step.kind == Kind.Radio)
                     {
                         Tap(Key.E);
@@ -246,9 +293,20 @@ namespace ProjectRidge.EditorTools
                 return;
             }
 
-            // Escondido (o de paso): esperar una ventana segura para el siguiente tramo.
-            float v = step.sneak ? WalkSpeed : JogSpeed;
-            if (!LegIsSafe(pos, step.at, v)) return; // quieto en el pastizal: el papá ya está agachado y oculto
+            // Escondido: esperar una ventana segura para todo el tramo hasta el próximo escondite (los puntos "Pass"
+            // intermedios están a la vista: no se espera en ellos, se pasa de largo).
+            int end = index;
+            while (end < Route.Length - 1 && Route[end].kind == Kind.Pass) end++;
+            Vector3 from = pos;
+            float t0 = 0f;
+            for (int i = index; i <= end; i++)
+            {
+                float v = Route[i].sneak ? WalkSpeed : JogSpeed;
+                if (!LegIsSafe(from, Route[i].at, v, t0, i == index, i == end, out float d)) return; // quieto y oculto en el pastizal
+                t0 += d;
+                from = Route[i].at;
+            }
+            committedUntil = end;
             moving = true;
         }
     }

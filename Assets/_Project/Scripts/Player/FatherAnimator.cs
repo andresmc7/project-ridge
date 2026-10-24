@@ -203,7 +203,7 @@ namespace ProjectRidge.Player
             foreach (var e in ProjectRidge.AI.EnemyController.Active)
                 threat |= (e.transform.position - transform.position).sqrMagnitude < r2;
             tension = Mathf.MoveTowards(tension, threat ? 1f : 0f, dt / animConfig.tenseBlendTime);
-            animator.SetFloat(TensionId, tension);
+            animator.SetFloat(TensionId, tension * animConfig.tenseIdleWeight);
         }
 
         /// <summary>

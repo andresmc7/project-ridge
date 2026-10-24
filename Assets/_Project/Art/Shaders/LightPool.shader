@@ -76,7 +76,9 @@ Shader "ProjectRidge/LightPool"
                 float ang = atan2(local.z, local.x);
                 float flick = 0.6 + 0.4 * sin(_Time.y * 23.0 + ang * 3.0) * sin(_Time.y * 7.3 + ang);
                 rim *= flick;
-                core += smoothstep(0.45, 1.0, r) * (1.0 - smoothstep(0.97, 1.0, r)) * 0.35;
+                // Brillo leve hacia el borde que vuelve a cero antes del límite: sin el corte duro que hacía que el
+                // círculo se leyera como un disco sólido ("balde") desde la cámara a 42°.
+                core += smoothstep(0.5, 0.88, r) * (1.0 - smoothstep(0.88, 1.0, r)) * 0.2;
                 float height = 1.0 - saturate(abs(local.y) * 2.0 - 0.6) ;  // se apaga hacia arriba y abajo del volumen
                 height *= facing;
 

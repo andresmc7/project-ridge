@@ -32,6 +32,7 @@ Material:
     - _CameraFade: 2
     - _Density: 0.07
     - _EdgePower: 2.2
+    - _GroundFade: 2.5
     - _Intensity: 0.6
     - _LengthFalloff: 0.8
     - _NoiseScale: 0.18

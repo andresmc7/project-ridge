@@ -36,6 +36,8 @@ namespace ProjectRidge.Player
         [Min(0f)] public float lookAroundRepeat = 9f;
         [Tooltip("Con un Lurker a menos de esta distancia (m), idle tenso (encorvado, respiración rápida).")]
         [Min(0f)] public float tenseRadius = 14f;
+        [Tooltip("Peso máximo del idle tenso sobre el normal: a 1 el estilo \"BentForward\" lo dobla casi a la mitad.")]
+        [Range(0f, 1f)] public float tenseIdleWeight = 0.5f;
         [Tooltip("Segundos para entrar o salir del idle tenso.")]
         [Min(0.01f)] public float tenseBlendTime = 0.8f;
 

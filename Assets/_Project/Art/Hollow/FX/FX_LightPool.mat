@@ -30,9 +30,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alarm: 0
-    - _Intensity: 1.6
+    - _Intensity: 0.95
     - _NoiseScale: 0.35
-    - _RimIntensity: 1.8
+    - _RimIntensity: 1.3
     - _RimWidth: 0.03
     m_Colors:
     - _Color: {r: 1, g: 0.12, b: 0.07, a: 1}

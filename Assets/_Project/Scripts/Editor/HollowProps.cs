@@ -446,7 +446,7 @@ namespace ProjectRidge.EditorTools
         // ---------- Postes guía del sendero, troncos caídos como cobertura, árboles secos.
 
         /// <summary>Diámetro (m) del charco de luz cálida bajo cada farol del sendero.</summary>
-        const float WarmPoolSize = 3.4f;
+        const float WarmPoolSize = 4.2f; // P9: sin el brillo blanco del arroyo faltaban islas de luz (histograma de P3)
 
         static int BuildTrailDressing(Transform parent, Terrain t, Mats m, List<Vector3> blockers)
         {
@@ -743,7 +743,8 @@ namespace ProjectRidge.EditorTools
             pool.SetTexture("_NoiseTex", noise);
             pool.SetColor("_Color", cfg.color);
             pool.SetFloat("_RimWidth", 0.03f);   // borde fino que parpadea (no un neón grueso)
-            pool.SetFloat("_RimIntensity", 1.8f);
+            pool.SetFloat("_RimIntensity", 1.3f);
+            pool.SetFloat("_Intensity", 0.95f); // P9: a 1.6 el relleno saturaba y el círculo parecía un disco macizo (con el borde suave basta 0.95)
             EditorUtility.SetDirty(pool);
 
             string beamPath = FxDir + "/FX_SearchBeam.mat";
@@ -758,6 +759,7 @@ namespace ProjectRidge.EditorTools
             beam.SetFloat("_CameraFade", 6f);
             beam.SetFloat("_EdgePower", 1.4f);
             beam.SetFloat("_LengthFalloff", 0.6f);
+            beam.SetFloat("_GroundFade", 2.5f); // contacto suave con el suelo (P9: el "balde" rojo)
             EditorUtility.SetDirty(beam);
 
             var cone = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/_Project/Art/Meshes/UFO_BeamCone.asset");

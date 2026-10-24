@@ -233,6 +233,57 @@ namespace ProjectRidge.AI
             agent.SetDestination(patrolPoints[patrolIndex].position);
         }
 
+        /// <summary>
+        /// Dónde estará y hacia dónde mirará dentro de t segundos si sigue patrullando (recta entre puntos a la velocidad
+        /// de patrulla, la pausa en cada punto mirando hacia la dirección del punto). Para el bot de QA y las ayudas;
+        /// devuelve false si no está patrullando.
+        /// </summary>
+        public bool PredictPatrol(float t, out Vector3 position, out Vector3 facing)
+        {
+            position = transform.position;
+            facing = transform.forward;
+            if (State != EnemyState.Patrol || patrolPoints.Length == 0) return false;
+            int idx = patrolIndex;
+            float wait = waitTimer;
+            bool waiting = Arrived();
+            float speed = Mathf.Max(0.01f, config.patrolSpeed);
+            for (int guard = 0; guard < 32 && t > 0f; guard++)
+            {
+                var point = patrolPoints[idx];
+                if (!waiting)
+                {
+                    Vector3 to = point.position - position;
+                    to.y = 0f;
+                    float d = to.magnitude;
+                    if (d > 1e-3f)
+                    {
+                        facing = to / d;
+                        float step = Mathf.Min(d, speed * t);
+                        position += facing * step;
+                        t -= step / speed;
+                        if (step < d) return true;
+                    }
+                    waiting = true;
+                    wait = 0f;
+                    continue;
+                }
+                // En la parada gira (a la velocidad angular del agente) desde hacia donde llegó hasta la dirección del
+                // punto: barre lo que hay entre medio.
+                Vector3 pointFacing = Vector3.ProjectOnPlane(point.forward, Vector3.up).normalized;
+                float remain = config.patrolPause - wait;
+                if (t < remain)
+                {
+                    facing = Vector3.RotateTowards(facing, pointFacing, agent.angularSpeed * Mathf.Deg2Rad * t, 0f);
+                    return true;
+                }
+                facing = pointFacing;
+                t -= remain;
+                idx = (idx + 1) % patrolPoints.Length;
+                waiting = false;
+            }
+            return true;
+        }
+
         private int NearestPatrolIndex()
         {
             int best = 0;

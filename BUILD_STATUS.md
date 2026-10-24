@@ -2,6 +2,32 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-23 — POLISH PASS P9: pase final (bot, haces, agua, build de Windows)
+Editor (play mode vía Unity MCP) y build de Windows. Capturas: `P9_after.png`, `P9_after_beam.png`, `P9_after_creek.png`, `compare_P9.png`.
+
+**Aceptación de P9 — resultado honesto:**
+- **Nivel completo sin ayuda con el bot: NO PASA.** `LoopBot.Run()` (solo stick + ACCIÓN + OBJETO) llega como máximo a **x = 49 (sala 5, el campamento) con 2 muertes** y se atasca 75 s esperando una ventana hacia el escondite (52, −4.6): el reflector S4_Gate barre la salida y Lurker_C se detiene en la esquina (54.8, 0.2) mirando al punto de reaparición. Otras corridas mueren 9 veces en el escondite justo después del puente (sala 2). El resultado varía entre corridas según el ritmo de cuadros. `UNVERIFIED`: que el nivel se pueda terminar; las salas 1–4 sí se cruzaron en corridas reales.
+- Lo que se arregló en el bot (QA, no el juego): cuenta el giro en el sitio y el arranque animado de P7 al calcular la ventana, mira el tramo completo hasta el próximo escondite (no espera a la vista en los puntos de paso), lanza la piedra de distracción lejos de la ruta (antes atraía al Lurker al escondite siguiente) y predice la patrulla exacta (`EnemyController.PredictPatrol`: puntos, velocidad, pausas y el giro en cada parada). Al atascarse informa el motivo.
+- **Lista de la sección 4:**
+  - [ ] 60 s sin animaciones que patinen o floten a 0.25×: `UNVERIFIED` (revisados a 0.25× arranque y frenada; no una partida de 60 s).
+  - [x] Ningún objeto en la mano sin motivo: el garrote va enfundado al moverse (P0) y solo sale con amenaza; la linterna, con la luz encendida.
+  - [ ] Anticipación, contacto, recuperación y sonido en toda acción: en parte. Los golpes y la captura tienen las tres fases; que todo "suene bien" es `UNVERIFIED` (nadie escuchó la mezcla).
+  - [ ] Terminar el nivel en táctil con dos pulgares: `UNVERIFIED` (el bot no lo termina; sin prueba en iPhone).
+  - [~] Mismo "mundo" que `target_look.png`: paleta y escala cercanas; terrazas y plano medio todavía lejos (ver diferencias).
+  - [x] 0 errores y 0 advertencias propias en la consola: en las últimas corridas solo aparece la advertencia de cuenta de Unity AI (no es del proyecto). El build tenía 2 advertencias de shaders propios (`_FORWARD_PLUS` obsoleto en DitherFade y MossyRock): corregidas, build final con 0.
+- **Haz del OVNI** (probado en captura): el "balde" rojo era la base ancha del cono cortada por el terreno + el círculo del suelo con un borde duro. El haz se apaga en los últimos 2.5 m antes de la superficie (contacto suave por profundidad de escena) y el círculo pierde el anillo de borde duro y baja de 1.6 a 0.95 de intensidad.
+- **Agua del arroyo** (probado en captura): el blanco quemado aguas arriba del puente era el brillo especular de la luna (seguía con suavidad 0.15). Sin brillo especular directo y con el reflejo del entorno se lee como agua oscura.
+- **Regresión P3** (probado): **5/6**. Histograma: sombra 54%, luces 3.0% (los charcos de los faroles crecen de 3.4 a 4.2 m: el brillo del agua contaba como "isla de luz"). Escala del papá: 9.7–11.1% en 4 de 5 puntos; en (24, 0) se queda agachado (sigilo automático) y mide 7.5%: causa no confirmada. La prueba ahora espera a que se levante antes de medir.
+- Idle tenso limitado al 50% sobre el idle normal (a 100% el estilo "BentForward" lo doblaba).
+- **Build de Windows** `Builds/Windows/ProjectRidge.exe` (358 MB, 0 errores, 0 advertencias): arrancado 35 s, sin excepciones en `Player.log`. `runInBackground` restaurado a 0 antes del build.
+- **Comparación con la referencia** (`compare_P9.png`), 5 diferencias:
+  1. Terrazas que se leen como losas oscuras de borde recto. *No atacada*: requiere rehacer la forma del nivel (navmesh, escondites, pruebas de P4).
+  2. Plano medio vacío frente a la utilería narrativa de la referencia (campamento, muelle, agua con reflejos).
+  3. Cuadro más oscuro y verde que el ámbar de la referencia. *Atacada en parte*: charcos de farol más grandes (más islas cálidas).
+  4. Arroyo blanco quemado. *Atacada*: sin especular directo.
+  5. Haz y círculo rojos que parecían un objeto sólido. *Atacada*: contacto suave y círculo sin borde duro.
+- `UNVERIFIED` de todo el pase que sigue abierto: rendimiento en iPhone/iPad, hápticos en dispositivo, mezcla de audio escuchada, controles táctiles en dispositivo, safe areas de iPad.
+
 ## 2026-10-21 — POLISH PASS P8: música por capas, loudness, HUD mínimo y hápticos
 Editor, play mode vía Unity MCP. Prueba: `PolishTests.Run("P8")` → **9/9 PASS**. Capturas: `P8_before.png` (copia de `P5_after_hunting.png`, el HUD anterior: no se tomó una captura propia antes de cambiar), `P8_after_explore.png`, `P8_after_lowhealth.png`, `P8_after_pickup.png`.
 

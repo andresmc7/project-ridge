@@ -16,6 +16,7 @@ Shader "ProjectRidge/VolumetricBeam"
         _CameraFade ("Camera Fade (m)", Float) = 6
         _EdgePower ("Edge Softness", Float) = 2.2
         _LengthFalloff ("Length Falloff", Float) = 0.8
+        _GroundFade ("Ground Contact Fade (m along the view ray)", Float) = 2.5
     }
 
     SubShader
@@ -46,6 +47,7 @@ Shader "ProjectRidge/VolumetricBeam"
                 float _CameraFade;
                 float _EdgePower;
                 float _LengthFalloff;
+                float _GroundFade;
             CBUFFER_END
             TEXTURE2D(_NoiseTex); SAMPLER(sampler_NoiseTex);
 
@@ -138,6 +140,10 @@ Shader "ProjectRidge/VolumetricBeam"
                     radial = pow(radial, _EdgePower);                                   // núcleo denso, borde suave
                     float u = saturate(along / len);
                     float lengthFade = lerp(1.0, 0.3, pow(max(u, 1e-4), _LengthFalloff)) * smoothstep(0.0, 0.06, u);
+                    // Contacto suave con el suelo (y lo que tape el haz): la densidad se apaga en los últimos metros del rayo
+                    // antes de la superficie. Sin esto la base ancha del cono, cortada por el terreno, se leía como un
+                    // balde rojo macizo desde la cámara a 42°.
+                    lengthFade *= saturate((tScene - t) / max(_GroundFade, 1e-3));
                     float camFade = saturate((t - _ProjectionParams.y) / _CameraFade);
                     acc += radial * lengthFade * camFade * (0.45 + 0.9 * Dust(x, time));
                 }

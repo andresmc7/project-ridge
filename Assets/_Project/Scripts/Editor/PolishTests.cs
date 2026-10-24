@@ -503,6 +503,9 @@ namespace ProjectRidge.EditorTools
             {
                 Teleport(Ground(s.x, s.y));
                 yield return 1.5f;
+                // La escala se mide de pie: si el sigilo automático lo agachó (un haz pasando cerca), esperar a que se levante.
+                float standBy = Time.time + 8f;
+                while (player.IsCrouching && Time.time < standBy) yield return 0.2f;
                 float h = DadScreenHeight();
                 hMin = Mathf.Min(hMin, h); hMax = Mathf.Max(hMax, h);
                 string file = ProgressDir + "P3_after_" + n + ".png";

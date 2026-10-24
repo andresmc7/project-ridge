@@ -185,7 +185,11 @@ namespace ProjectRidge.EditorTools
 
             var water = m.water;
             water.SetColor("_BaseColor", new Color(0.025f, 0.06f, 0.055f));
-            water.SetFloat("_Smoothness", 0.62f); // con la luna a contraluz, 0.95 era una franja plateada que dominaba el cuadro
+            water.SetFloat("_Smoothness", 0.6f);
+            // Sin brillo especular directo: con la luna a contraluz el reflejo de la luna quemaba el arroyo en blanco (aun
+            // con suavidad 0.15). Queda el reflejo del entorno, que lo lee como agua oscura (P9).
+            water.SetFloat("_SpecularHighlights", 0f);
+            water.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
             water.SetFloat("_Metallic", 0f);
             water.SetTexture("_BumpMap", normal);
             water.SetTextureScale("_BumpMap", new Vector2(1.5f, 1.5f));
