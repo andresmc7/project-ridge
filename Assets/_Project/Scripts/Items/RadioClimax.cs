@@ -19,6 +19,8 @@ namespace ProjectRidge.Items
         [Tooltip("Ruido de la radio (m): llega a los Lurker del campamento.")]
         [SerializeField] private float noiseRadius = 28f;
         [SerializeField] private float noiseInterval = 6f;
+        [Tooltip("Segundos de estática antes del primer chillido: tiempo para llegar al pasto antes de que los Lurker giren hacia la radio (si no, el que está cerca ve al papá parado junto a ella).")]
+        [Min(0f)] [SerializeField] private float firstSquealDelay = 3f;
         [SerializeField] private PlayerHealth playerHealth;
         [Tooltip("Reflectores que se encienden solo durante la transmisión.")]
         [SerializeField] private Searchlight[] climaxLights;
@@ -79,7 +81,7 @@ namespace ProjectRidge.Items
             var flow = GameFlow.Instance;
             SetRush(true);
             float end = Time.time + duration;
-            float nextNoise = Time.time;
+            float nextNoise = Time.time + firstSquealDelay;
             while (Time.time < end)
             {
                 // Lo atrapó el OVNI o murió: se corta y se puede reintentar desde el checkpoint.

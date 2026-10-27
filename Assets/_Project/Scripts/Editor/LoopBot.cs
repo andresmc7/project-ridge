@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.AI;
 
 namespace ProjectRidge.EditorTools
 {
@@ -28,7 +29,7 @@ namespace ProjectRidge.EditorTools
         }
 
         // Ruta de escondite en escondite (ver HollowLayout.HidePatches). sneak = caminar en vez de trotar (Lurkers oyen).
-        static readonly Step[] Route =
+        static readonly Step[] Waypoints =
         {
             new Step(Kind.Pass, -61.2f, 0.8f), new Step(Kind.Pass, -58.2f, 0.8f), new Step(Kind.Pass, -55f, 0f), new Step(Kind.Pass, -48.5f, 0f),
             new Step(Kind.Hide, -42f, -0.4f), new Step(Kind.Hide, -38f, 1.4f), new Step(Kind.Hide, -34f, -0.8f),
@@ -40,8 +41,30 @@ namespace ProjectRidge.EditorTools
             new Step(Kind.Hide, 28.6f, -2.6f, true), new Step(Kind.Pass, 32.4f, 1.2f, true), new Step(Kind.Hide, 36f, 0.7f, true),
             new Step(Kind.Hide, 43f, 1.4f, true), new Step(Kind.Pass, 47.6f, -0.5f, true),
             new Step(Kind.Hide, 52f, -4.6f, true), new Step(Kind.Hide, 57.4f, -3.3f, true), new Step(Kind.Hide, 62.4f, -0.7f, true),
-            new Step(Kind.Radio, 65.2f, -0.9f, true), new Step(Kind.Survive, 62.4f, -0.7f, true),
+            new Step(Kind.Radio, 65.2f, -0.9f, true), new Step(Kind.Survive, 60.3f, -5.7f),
         };
+
+        /// <summary>
+        /// Ruta que sigue el bot: los puntos de diseño más las esquinas del NavMesh entre ellos (en línea recta el bot
+        /// cortaba esquinas contra los bordes invisibles, p. ej. la entrada al campamento, y se quedaba empujando a la vista).
+        /// </summary>
+        static readonly List<Step> Route = new List<Step>();
+
+        static void BuildRoute()
+        {
+            Route.Clear();
+            var path = new NavMeshPath();
+            for (int i = 0; i < Waypoints.Length; i++)
+            {
+                var w = Waypoints[i];
+                if (i > 0 && NavMesh.SamplePosition(Waypoints[i - 1].at, out var from, 2f, NavMesh.AllAreas)
+                          && NavMesh.SamplePosition(w.at, out var to, 2f, NavMesh.AllAreas)
+                          && NavMesh.CalculatePath(from.position, to.position, NavMesh.AllAreas, path))
+                    for (int c = 1; c < path.corners.Length - 1; c++)
+                        Route.Add(new Step(Kind.Pass, path.corners[c].x, path.corners[c].z, w.sneak));
+                Route.Add(w);
+            }
+        }
 
         const int MaxFailures = 8;
         const float Margin = 0.7f, MaxWait = 75f;
@@ -95,7 +118,9 @@ namespace ProjectRidge.EditorTools
             if (keyboard == null) keyboard = InputSystem.AddDevice<Keyboard>("BotKeyboard");
             player = Object.FindFirstObjectByType<PlayerController>();
             visibility = player.GetComponent<PlayerVisibility>();
-            index = 0; deaths = 0; captures = 0; moving = false; aimingThrow = false; committedUntil = -1; report.Clear();
+            BuildRoute();
+            Log("route: " + Waypoints.Length + " design points + " + (Route.Count - Waypoints.Length) + " NavMesh corners");
+            index = 0; deaths = 0; captures = 0; moving = false; aimingThrow = false; committedUntil = -1; report.Clear(); lastStates.Clear(); nextStatus = 0f;
             startTime = stateSince = lastProgress = Time.time;
             lastPos = player.transform.position;
             Searchlight.PlayerCaught += OnCaught;
@@ -103,6 +128,28 @@ namespace ProjectRidge.EditorTools
             Tap(Key.Space); // título
             EditorApplication.update += Tick;
             Debug.Log("BOT: start");
+        }
+
+        /// <summary>
+        /// Igual que Run, pero empieza en el último checkpoint con x ≤ startX (para estudiar una sala sin recorrer
+        /// todo el nivel). Retoma la ruta desde el paso más cercano.
+        /// </summary>
+        public static void RunFrom(float startX, float stopX = float.MaxValue)
+        {
+            Run(stopX);
+            if (player == null) return;
+            Transform best = null;
+            foreach (var cp in Object.FindObjectsByType<Checkpoint>(FindObjectsSortMode.None))
+                if (cp.transform.position.x <= startX && (best == null || cp.transform.position.x > best.position.x)) best = cp.transform;
+            if (best == null) return;
+            var body = player.GetComponent<CharacterController>();
+            body.enabled = false;
+            player.transform.SetPositionAndRotation(best.position, best.rotation);
+            body.enabled = true;
+            lastPos = player.transform.position;
+            index = Route.Count - 1;
+            needResync = true;
+            Log("starting at checkpoint " + best.name + " " + best.position);
         }
 
         static void OnCaught(Searchlight s)
@@ -146,6 +193,25 @@ namespace ProjectRidge.EditorTools
             string line = "BOT t=" + (Time.time - startTime).ToString("0.0") + " " + s;
             report.Add(line);
             Debug.Log(line);
+        }
+
+        static readonly Dictionary<EnemyController, EnemyState> lastStates = new Dictionary<EnemyController, EnemyState>();
+        static float nextStatus;
+
+        /// <summary>Informe: cada cambio de estado de un Lurker (con distancia al papá) y un estado general cada 5 s.</summary>
+        static void LogEnemyChanges()
+        {
+            Vector3 p = player.transform.position;
+            foreach (var e in EnemyController.Active)
+            {
+                if (lastStates.TryGetValue(e, out var s) && s == e.State) continue;
+                if (lastStates.ContainsKey(e) || e.State != EnemyState.Patrol)
+                    Log(e.name + " -> " + e.State + " at " + e.transform.position + ", " + Vector3.Distance(Flat(e.transform.position), Flat(p)).ToString("0.0") + " m from the player (crouched " + player.IsCrouching + ")");
+                lastStates[e] = e.State;
+            }
+            if (Time.time < nextStatus) return;
+            nextStatus = Time.time + 5f;
+            Log("status: step " + index + " moving " + moving + " pos " + p);
         }
 
         static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
@@ -220,6 +286,7 @@ namespace ProjectRidge.EditorTools
             if (flow != null && flow.Current == GameFlow.State.Ending) { Log("ENDING reached"); Finish(true); return; }
             if (flow != null && flow.Current == GameFlow.State.Clue) { Tap(Key.E); actions++; return; }
             if (player.transform.position.x > stopAtX) { Log("reached x " + stopAtX); Finish(true); return; }
+            LogEnemyChanges();
             if (flow != null && flow.Current != GameFlow.State.Playing) return;
             if (Time.time < stateSince) return;
             if (needResync)
@@ -227,14 +294,14 @@ namespace ProjectRidge.EditorTools
                 needResync = false;
                 int best = 0;
                 float bestD = float.MaxValue;
-                for (int i = 0; i <= index && i < Route.Length; i++)
+                for (int i = 0; i <= index && i < Route.Count; i++)
                 {
                     float d = Vector3.Distance(Flat(Route[i].at), Flat(player.transform.position));
                     if (d < bestD) { bestD = d; best = i; }
                 }
                 index = best;
             }
-            if (index >= Route.Length) return; // escondido durante la transmisión: esperar el final
+            if (index >= Route.Count) return; // escondido durante la transmisión: esperar el final
 
             var step = Route[index];
             Vector3 pos = player.transform.position;
@@ -293,10 +360,18 @@ namespace ProjectRidge.EditorTools
                 return;
             }
 
+            // Tras encender la radio los Lurker vienen a propósito (nunca habrá un tramo "seguro"): al pasto ya.
+            if (step.kind == Kind.Survive)
+            {
+                committedUntil = index;
+                moving = true;
+                return;
+            }
+
             // Escondido: esperar una ventana segura para todo el tramo hasta el próximo escondite (los puntos "Pass"
             // intermedios están a la vista: no se espera en ellos, se pasa de largo).
             int end = index;
-            while (end < Route.Length - 1 && Route[end].kind == Kind.Pass) end++;
+            while (end < Route.Count - 1 && Route[end].kind == Kind.Pass) end++;
             Vector3 from = pos;
             float t0 = 0f;
             for (int i = index; i <= end; i++)

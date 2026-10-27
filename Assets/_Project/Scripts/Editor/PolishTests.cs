@@ -711,14 +711,14 @@ namespace ProjectRidge.EditorTools
                   "997 Hz at −20 dBFS reads " + reference.ToString("0.00") + " LUFS; " + measured + " clips measured, " + clamped + " off target, " + limited + " transients short of −16 by their −1 dBFS peak");
 
             // Capas: explorar (lejos de todo), tensión (Lurker a ≤ 12 m), persecución (lo caza). Crossfade de 1.5 s.
-            Teleport(Ground(-45f, 0f)); // sendero abierto: el Lurker lo ve (como en P5)
+            Teleport(Ground(-58f, 0f)); // salida de la cabaña: a 16 m del reflector de la sala 1 (a -45 su haz pasaba a ≤ 10 m según la fase y daba "tensión" en calma)
             foreach (var e in lurkers) if (e != lurker) e.gameObject.SetActive(false);
             lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 9999f);
             lurker.GetComponent<NavMeshAgent>().Warp(Ground(-24f, 0f));
             yield return bank.layerCrossfade + 0.6f;
             var layer1 = audio.Layer;
             float explore = audio.LayerVolume(AudioDirector.MusicLayer.Explore) / audio.LayerTarget(AudioDirector.MusicLayer.Explore);
-            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-54f, 0f));
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(-49f, 0f));
             yield return bank.layerCrossfade + 0.3f;
             var layer2 = audio.Layer;
             float tension = audio.LayerVolume(AudioDirector.MusicLayer.Tension) / audio.LayerTarget(AudioDirector.MusicLayer.Tension);

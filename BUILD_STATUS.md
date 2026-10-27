@@ -2,6 +2,16 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — El nivel completo se termina con el bot (P9 cerrado)
+Editor, play mode vía Unity MCP. `LoopBot.Run()` (solo stick + ACCIÓN + OBJETO) desde el título: **FINISHED en 242 s, 2 muertes, 0 capturas, 3 ACCIÓN, 1 OBJETO** — dos corridas seguidas con el mismo resultado. Regresión `PolishTests.Run("P8")` → **9/9**.
+
+- **El atasco de P9 en la sala 5 estaba mal diagnosticado**: no faltaban ventanas (el tramo checkpoint → escondite es seguro buena parte del ciclo), el bot cortaba en línea recta la esquina de la entrada al campamento contra un borde invisible (`Bounds/Edge`) y se quedaba empujando a la vista hasta que Lurker_C lo veía. Ahora el bot sigue las esquinas del NavMesh entre sus puntos de ruta (9 esquinas en todo el nivel).
+- **Clímax de la radio** (cambio de juego): el primer chillido llega 3 s después de encender la radio (`RadioClimax.firstSquealDelay`). Antes el chillido era inmediato y Lurker_C, a ~9 m, giraba hacia el ruido y veía al papá junto a la radio: muerte segura también para un jugador. Con la demora: los Lurker investigan y buscan alrededor de la camioneta, el papá aguanta en el pasto del suroeste (60.3, −5.7) y la transmisión termina en el final.
+- Herramientas de QA nuevas: `LoopBot.RunFrom(x)` empieza en el último checkpoint con x ≤ x (estudiar una sala sin recorrer todo); el informe del bot registra cada cambio de estado de un Lurker (con distancia y si el papá estaba agachado) y un estado cada 5 s.
+- Las 2 muertes (iguales en ambas corridas): a la salida de la sala 2 el Lurker lo caza en el cruce hacia la sala 3, y en la sala 5 Lurker_C investiga un ruido junto al escondite (51.7, −5.5). Ambas reaparecen en su checkpoint y siguen.
+- P8: la prueba de capas de música fallaba al azar (el reflector de la sala 1 pasaba a ≤ 10 m del punto "en calma" según la fase y daba tensión con razón). El punto en calma pasa a la salida de la cabaña (16 m del reflector).
+- `UNVERIFIED`: que un jugador humano en táctil lo termine (el bot no tiene que leer la pantalla ni apuntar con el pulgar); rendimiento en dispositivo.
+
 ## 2026-10-27 — Créditos en el juego (atribución CC BY de 100STYLE)
 Editor, play mode vía Unity MCP. Capturas: `credits_pause.png`, `credits_end.png`, `credits_end_buttons.png`, `ending_text.png`.
 
