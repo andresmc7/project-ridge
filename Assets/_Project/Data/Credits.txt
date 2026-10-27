@@ -1,0 +1,23 @@
+<b>ANIMATION</b>
+100STYLE Dataset — Ian Mason, Sebastian Starke, Taku Komura
+CC BY 4.0 · creativecommons.org/licenses/by/4.0
+zenodo.org/records/8127870 · clips cut and retargeted
+Universal Animation Library 1 & 2 — Quaternius (CC0)
+
+<b>CHARACTERS</b>
+MakeHuman / MPFB — the MakeHuman team (CC0)
+Ankle boots — MargaretToigo (CC0)
+Universal Base Characters — Quaternius (CC0)
+||
+<b>ENVIRONMENT</b>
+Poly Haven (CC0) — Rob Tuytel, Rico Cilliers,
+Dimitrios Savva, Kless Gyzen, Amal Kumar, eye-candy.xyz
+
+<b>MUSIC & SOUND</b>
+congusbongus, SRG774 — OpenGameArt (CC0)
+Impact Sounds — Kenney (CC0)
+
+<b>TYPE</b>
+Barlow Condensed — The Barlow Project Authors (SIL OFL 1.1)
+
+Made with Unity

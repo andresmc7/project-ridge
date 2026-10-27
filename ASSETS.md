@@ -80,7 +80,7 @@ Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (C
 
 ## 100STYLE (animación del papá, POLISH P7)
 
-**100STYLE Dataset** — Ian Mason (MIT), Sebastian Starke (Meta), Taku Komura (HKU). https://zenodo.org/records/8127870 — **CC BY 4.0** (atribución obligatoria: va en `Assets/ThirdParty/100STYLE/CREDITS.txt` y debe ir en los créditos del juego). Descargado el `100STYLE.zip` (BVH) a `_incoming/100style/`. Cambios: segmentos recortados de las tomas y convertidos a FBX con `Tools/Blender/convert_100style.py` → `Assets/ThirdParty/100STYLE/`. Fecha: 2026-10-21.
+**100STYLE Dataset** — Ian Mason (MIT), Sebastian Starke (Meta), Taku Komura (HKU). https://zenodo.org/records/8127870 — **CC BY 4.0** (atribución obligatoria: va en `Assets/ThirdParty/100STYLE/CREDITS.txt` y en la pantalla de créditos del juego, pausa → CREDITS y al final de la demo; texto en `Assets/_Project/Data/Credits.txt`). Descargado el `100STYLE.zip` (BVH) a `_incoming/100style/`. Cambios: segmentos recortados de las tomas y convertidos a FBX con `Tools/Blender/convert_100style.py` → `Assets/ThirdParty/100STYLE/`. Fecha: 2026-10-21.
 
 | Clip | Toma (cuadros a 60 fps) | Uso |
 |---|---|---|

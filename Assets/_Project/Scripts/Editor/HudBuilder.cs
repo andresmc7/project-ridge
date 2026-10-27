@@ -264,10 +264,11 @@ namespace ProjectRidge.EditorTools
             var restart = MenuButton(pause, "Restart", new Vector2(0f, 55f), white);
             // Accesibilidad (POLISH_PASS 3.5): cono de visión de los Lurker en el suelo, apagado por defecto.
             var aids = MenuButton(pause, "Stealth aids: off", new Vector2(0f, -10f), white);
-            var quit = MenuButton(pause, "Quit", new Vector2(0f, -75f), white);
-            Label("VolumeLabel", pause, new Vector2(0f, -125f), new Vector2(300f, 26f), "VOLUME", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.6f);
-            var slider = VolumeSlider(pause, new Vector2(0f, -160f), white, disc);
-            Label("Controls", pause, new Vector2(0f, -245f), new Vector2(1100f, 60f),
+            var credits = MenuButton(pause, "Credits", new Vector2(0f, -75f), white);
+            var quit = MenuButton(pause, "Quit", new Vector2(0f, -140f), white);
+            Label("VolumeLabel", pause, new Vector2(0f, -190f), new Vector2(300f, 26f), "VOLUME", 16, FontStyle.Bold).color = new Color(1f, 1f, 1f, 0.6f);
+            var slider = VolumeSlider(pause, new Vector2(0f, -225f), white, disc);
+            Label("Controls", pause, new Vector2(0f, -295f), new Vector2(1100f, 60f),
                 "WASD move  ·  Shift sprint  ·  C crouch  ·  E use  ·  LMB club  ·  G throw stone  ·  Q flare  ·  H medkit  ·  F flashlight", 15, FontStyle.Normal).color = new Color(1f, 1f, 1f, 0.45f);
 
             // Final
@@ -277,14 +278,31 @@ namespace ProjectRidge.EditorTools
             endBody.supportRichText = true;
             endBody.color = new Color(0.9f, 0.88f, 0.82f, 1f);
             var endButtonsRt = Rect("Buttons", end, new Vector2(0.5f, 0f), new Vector2(0f, 120f), 0f);
-            endButtonsRt.sizeDelta = new Vector2(600f, 80f);
+            endButtonsRt.sizeDelta = new Vector2(860f, 80f);
             var endButtons = endButtonsRt.gameObject.AddComponent<CanvasGroup>();
             endGroup.alpha = 0f;
             endButtons.alpha = 0f;
             endButtons.interactable = false;
             endButtons.blocksRaycasts = false;
-            var playAgain = MenuButton(endButtonsRt, "Play again", new Vector2(-150f, 0f), white);
-            var endQuit = MenuButton(endButtonsRt, "Quit", new Vector2(150f, 0f), white);
+            var playAgain = MenuButton(endButtonsRt, "Play again", new Vector2(-290f, 0f), white);
+            var endCredits = MenuButton(endButtonsRt, "Credits", new Vector2(0f, 0f), white);
+            var endQuit = MenuButton(endButtonsRt, "Quit", new Vector2(290f, 0f), white);
+
+            // Créditos (atribución CC BY de 100STYLE; dos columnas para que entren a 14 pt)
+            var creditsRt = Stretch("CreditsPanel", flow);
+            Img(creditsRt, white, new Color(0.01f, 0.012f, 0.015f, 1f), true); // opaco: con alfa la escena se transparenta mucho más de lo esperado
+            var creditsGroup = creditsRt.gameObject.AddComponent<CanvasGroup>();
+            Label("Title", creditsRt, new Vector2(0f, 400f), new Vector2(600f, 60f), "CREDITS", 40, FontStyle.Bold);
+            var creditsLeft = Label("Left", creditsRt, new Vector2(-480f, 20f), new Vector2(900f, 640f), "", 18, FontStyle.Normal);
+            var creditsRight = Label("Right", creditsRt, new Vector2(480f, 20f), new Vector2(900f, 640f), "", 18, FontStyle.Normal);
+            foreach (var t in new[] { creditsLeft, creditsRight })
+            {
+                t.supportRichText = true;
+                t.alignment = TextAnchor.UpperCenter;
+                t.color = new Color(0.9f, 0.88f, 0.82f, 0.9f);
+            }
+            var creditsBack = MenuButton(creditsRt, "Back", new Vector2(0f, -400f), white);
+            creditsGroup.alpha = 0f;
 
             // Fundido (encima de todo menos el título)
             var fadeRt = Stretch("Fade", flow);
@@ -293,6 +311,7 @@ namespace ProjectRidge.EditorTools
             fade.blocksRaycasts = false;
             fade.interactable = false;
             endGroupToFront(end);
+            creditsRt.SetAsLastSibling(); // sobre el final y el fundido
             big.transform.SetAsLastSibling(); // "YOU DIED" se lee sobre el negro
 
             // Título
@@ -333,6 +352,10 @@ namespace ProjectRidge.EditorTools
             so.FindProperty("endBody").objectReferenceValue = endBody;
             so.FindProperty("endButtons").objectReferenceValue = endButtons;
             so.FindProperty("stealthAidsLabel").objectReferenceValue = aids.GetComponentInChildren<Text>();
+            so.FindProperty("creditsPanel").objectReferenceValue = creditsGroup;
+            so.FindProperty("creditsLeft").objectReferenceValue = creditsLeft;
+            so.FindProperty("creditsRight").objectReferenceValue = creditsRight;
+            so.FindProperty("creditsText").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/_Project/Data/Credits.txt");
             so.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEditor.Events.UnityEventTools.AddPersistentListener(resume.onClick, gf.Resume);
@@ -341,6 +364,9 @@ namespace ProjectRidge.EditorTools
             UnityEditor.Events.UnityEventTools.AddPersistentListener(aids.onClick, gf.ToggleStealthAids);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(playAgain.onClick, gf.Restart);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(endQuit.onClick, gf.Quit);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(credits.onClick, gf.ShowCredits);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(endCredits.onClick, gf.ShowCredits);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(creditsBack.onClick, gf.HideCredits);
             UnityEditor.Events.UnityEventTools.AddPersistentListener(clueBtn.onClick, gf.DismissClue);
 
             var scene = EditorSceneManager.GetActiveScene();

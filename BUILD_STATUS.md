@@ -2,6 +2,16 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Créditos en el juego (atribución CC BY de 100STYLE)
+Editor, play mode vía Unity MCP. Capturas: `credits_pause.png`, `credits_end.png`, `credits_end_buttons.png`, `ending_text.png`.
+
+- **Pantalla de créditos** (probado): botón CREDITS en el menú de pausa y en el final de la demo (PLAY AGAIN · CREDITS · QUIT). Dos columnas con todas las licencias de ASSETS.md; la atribución CC BY 4.0 de 100STYLE lleva autores, licencia con link, fuente y "clips cut and retargeted" (los cambios). Texto en `Assets/_Project/Data/Credits.txt` ("||" separa las columnas), armada por `HudBuilder.BuildFlow`.
+- Probado: abrir desde la pausa oculta el menú de pausa; Escape (botón de pausa) cierra los créditos y vuelve la pausa (ACCIÓN también los cierra por código: `UNVERIFIED`, no se probó); desde el final, CREDITS → BACK devuelve los botones. Consola sin errores ni advertencias propias.
+- Fondo opaco: con alfa 0.96 la escena se veía casi entera detrás (la UI con alfa se mezcla mucho más transparente que lo pedido en este proyecto, a revisar en los otros paneles: pausa 0.72, pista 0.86).
+- Final: "end of the demo" estaba a 20 unidades (bajo el mínimo de 14 pt de P8); ahora título a 56 y subtítulo al mínimo.
+- El build de Windows de P9 (ya distribuido localmente) no tiene esta pantalla; el próximo build la incluye.
+
+
 ## 2026-10-23 — POLISH PASS P9: pase final (bot, haces, agua, build de Windows)
 Editor (play mode vía Unity MCP) y build de Windows. Capturas: `P9_after.png`, `P9_after_beam.png`, `P9_after_creek.png`, `compare_P9.png`.
 

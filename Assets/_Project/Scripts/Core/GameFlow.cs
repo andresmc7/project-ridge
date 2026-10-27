@@ -48,6 +48,12 @@ namespace ProjectRidge.Core
         [SerializeField] private CanvasGroup endButtons;
         [Tooltip("Etiqueta del botón \"Ayudas de sigilo\" del menú de pausa.")]
         [SerializeField] private Text stealthAidsLabel;
+        [Tooltip("Créditos (atribución CC BY de 100STYLE y demás licencias), desde la pausa y el final.")]
+        [SerializeField] private CanvasGroup creditsPanel;
+        [SerializeField] private Text creditsLeft;
+        [SerializeField] private Text creditsRight;
+        [Tooltip("Texto de los créditos; \"||\" separa la columna izquierda de la derecha.")]
+        [SerializeField] private TextAsset creditsText;
 
         [Header("Textos")]
         [SerializeField] private string firstObjective = "Find a way through the forest.";
@@ -118,6 +124,7 @@ namespace ProjectRidge.Core
             Show(pausePanel, false);
             Show(cluePanel, false);
             Show(endPanel, false);
+            Show(creditsPanel, false);
             UpdateStealthAidsLabel();
             Show(endButtons, false); // D14: nunca en el título (solo al final de la demo)
             Show(gameplayHud, false);
@@ -160,6 +167,7 @@ namespace ProjectRidge.Core
 
         private void OnPausePressed()
         {
+            if (CreditsOpen) { HideCredits(); return; }
             if (Current == State.Playing) Pause(true);
             else if (Current == State.Paused) Pause(false);
         }
@@ -185,6 +193,28 @@ namespace ProjectRidge.Core
         private void UpdateStealthAidsLabel()
         {
             if (stealthAidsLabel != null) stealthAidsLabel.text = StealthAids.Enabled ? "STEALTH AIDS: ON" : "STEALTH AIDS: OFF";
+        }
+
+        public bool CreditsOpen => creditsPanel != null && creditsPanel.alpha > 0.5f;
+
+        /// <summary>Botón "Créditos" de la pausa y del final.</summary>
+        public void ShowCredits()
+        {
+            if (creditsPanel == null) return;
+            string all = creditsText != null ? creditsText.text : "";
+            int split = all.IndexOf("||", StringComparison.Ordinal);
+            if (creditsLeft != null) creditsLeft.text = (split >= 0 ? all.Substring(0, split) : all).Trim();
+            if (creditsRight != null) creditsRight.text = split >= 0 ? all.Substring(split + 2).Trim() : "";
+            Show(creditsPanel, true);
+            // El menú de donde se abrió se oculta mientras tanto (no se superponen los textos).
+            Show(Current == State.Paused ? pausePanel : endButtons, false);
+        }
+
+        public void HideCredits()
+        {
+            if (!CreditsOpen) return;
+            Show(creditsPanel, false);
+            Show(Current == State.Paused ? pausePanel : endButtons, true);
         }
 
         public void Restart()
@@ -224,6 +254,7 @@ namespace ProjectRidge.Core
 
         private void OnDismiss()
         {
+            if (CreditsOpen) { HideCredits(); return; }
             if (Current != State.Clue) return;
             Show(cluePanel, false);
             Time.timeScale = 1f;
@@ -392,7 +423,7 @@ namespace ProjectRidge.Core
                 yield return new WaitForSeconds(Mathf.Clamp(line.Length * 0.055f, 2.2f, 5.5f));
             }
             yield return FadeTo(1f, 2f, Color.black);
-            endBody.text += "\n\n\nTHE HOLLOW\n<size=20>end of the demo</size>";
+            endBody.text += "\n\n\n<size=56>THE HOLLOW</size>\nend of the demo";
             yield return new WaitForSeconds(1.5f);
             Show(endButtons, true);
         }
