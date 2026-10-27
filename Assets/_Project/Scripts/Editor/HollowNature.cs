@@ -592,7 +592,8 @@ namespace ProjectRidge.EditorTools
             glow.transform.localPosition = Vector3.up * 0.06f;
             glow.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             glow.transform.localScale = Vector3.one * 4.2f;
-            glow.GetComponent<MeshRenderer>().sharedMaterial = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(2.6f, 0.57f, 0.08f, 0.9f), true);
+            // Material propio, con partículas suaves: aquí el suelo es irregular y sin ellas el quad corta recto contra la pendiente.
+            glow.GetComponent<MeshRenderer>().sharedMaterial = FxMaterial("FX_EmberGlow", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(2.6f, 0.57f, 0.08f, 0.9f), true);
             // Humo que sube y se deshace (sin luz dinámica: el presupuesto es de 4).
             var smoke = new GameObject("Smoke");
             smoke.transform.SetParent(wreck.transform, false);

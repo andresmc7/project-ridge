@@ -334,6 +334,25 @@ namespace ProjectRidge.EditorTools
                     Object.DestroyImmediate(r.GetComponent<Collider>());
                 }
             }
+            // Cara alta de las orillas: peñascos grandes incrustados en el talud (antes se leía como una pared lisa de
+            // terreno estirado; en target_look las orillas son roca). Quedan bajo el nivel del piso: no tapan el paso.
+            var bankRng = new System.Random(78);
+            float B(float a, float b) => a + (float)bankRng.NextDouble() * (b - a);
+            for (float z = -40f; z < 40f; z += 1.7f)
+            {
+                if (Mathf.Abs(z - BridgeZ) < 1.6f) continue; // libre solo el ancho del puente (pilotes); a los lados, roca hasta el borde
+                foreach (float side in new[] { -1f, 1f })
+                {
+                    if (bankRng.NextDouble() < 0.15) continue;
+                    float zz = z + B(0f, 0.8f);
+                    float x = RavineX(zz) + side * B(2.45f, 2.85f); // al pie del talud: la roca se levanta delante de la tierra
+                    // Del agua (−2.35) hasta 25 cm bajo el piso: nunca asoma sobre la orilla (regla de oclusión de la cámara).
+                    int v = bankRng.Next(4);
+                    float h = B(1.6f, 2.3f), s = h / RockSize(v, true).y;
+                    var r = Spawn(RockPrefab(v, true, m), g, new Vector3(x, -0.25f - h * 0.5f, zz), B(0f, 360f), s);
+                    Object.DestroyImmediate(r.GetComponent<Collider>());
+                }
+            }
             for (int i = 0; i < 26; i++)
             {
                 float z = -21f + i * 1.7f + (float)rng.NextDouble() * 1.2f;
@@ -450,6 +469,18 @@ namespace ProjectRidge.EditorTools
         /// <summary>Diámetro (m) del charco de luz cálida bajo cada farol del sendero.</summary>
         const float WarmPoolSize = 4.2f; // P9: sin el brillo blanco del arroyo faltaban islas de luz (histograma de P3)
 
+        /// <summary>Charco de luz cálida de los faroles del sendero.</summary>
+        static Material WarmPoolMaterial()
+        {
+            // Ámbar de farol: HDR en RGB y alfa < 1 (en aditivo el alfa multiplica y saturaba a amarillo).
+            var mat = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(1.2f, 0.36f, 0.05f, 0.9f), true);
+            // Sin partículas suaves: el charco está a pocos cm del suelo y la diferencia de profundidad cuantizada lo partía en
+            // anillos escalonados (y lo atenuaba casi entero; por eso el color de antes era el doble).
+            mat.SetFloat("_SoftParticlesEnabled", 0f);
+            mat.DisableKeyword("_SOFTPARTICLES_ON");
+            return mat;
+        }
+
         static int BuildTrailDressing(Transform parent, Terrain t, Mats m, List<Vector3> blockers)
         {
             var g = new GameObject("TrailDressing").transform;
@@ -463,14 +494,22 @@ namespace ProjectRidge.EditorTools
             // Sin la bandera de GI, URP descarta la emisión ("EmissiveIsBlack") y el farol se veía negro.
             lantern.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             orange.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-            var warmPool = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(2.6f, 0.57f, 0.08f, 0.9f), true); // naranja de farol: HDR en RGB y alfa < 1 (en aditivo el alfa multiplica y saturaba a amarillo)
+            var warmPool = WarmPoolMaterial();
             // Postes con marca naranja a la salida de cada sala: dicen "por aquí" sin texto.
+            // Uno a la salida de cada sala y otro, del lado opuesto, a la entrada de la siguiente (junto al checkpoint: la
+            // luz cálida marca el lugar seguro; antes del segundo, los pasillos medían ~1% de islas de luz en P3).
+            var spots = new List<Vector3>();
             foreach (var c in Corridors)
             {
                 Vector3 a = new Vector3(c.x, 0f, c.y), b = new Vector3(c.z, 0f, c.w);
                 Vector3 dir = (b - a).normalized;
                 Vector3 side = Vector3.Cross(Vector3.up, dir);
-                var p = OnGround(t, a.x + dir.x * 1.5f + side.x * 1.4f, a.z + dir.z * 1.5f + side.z * 1.4f);
+                spots.Add(a + dir * 1.5f + side * 1.4f);
+                spots.Add(b - dir * 1.5f - side * 1.4f);
+            }
+            foreach (var s in spots)
+            {
+                var p = OnGround(t, s.x, s.z);
                 var post = Group(g, "TrailMarker", p, Random.Range(0f, 360f));
                 LogPiece(post, "Post", 1.2f, 0.07f, m, new Vector3(0f, 0.55f, 0f), new Vector3(-90f, 0f, 0f), false);
                 Board(post, "Blaze", new Vector3(0.16f, 0.2f, 0.16f), orange, new Vector3(0f, 0.95f, 0f), Vector3.zero, false);

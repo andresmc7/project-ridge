@@ -2,6 +2,15 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Dirección de arte: orillas de roca, charcos de farol sin anillos, P3 6/6
+Editor, play mode vía Unity MCP. `PolishTests.Run("P3")` → **6/6** (papá 9.8–11.1%, sombra 56%, islas de luz 4.5%; cada toma ≥ 3.3%). Capturas: `banks_before.png` / `banks_after.png` (arroyo), `pools_after.png` (pasillo sala 2 → 3), `P3_after_0..4.png`.
+
+- **Orillas del arroyo** (diferencia nº 1 frente a `target_look.png`): la cara alta del talud era terreno liso y estirado. Ahora lleva peñascos al pie del talud (del agua hasta 25 cm bajo el piso: nunca asoman sobre la orilla ni tapan el paso; sin colisionador, el NavMesh no cambia: 10 999 vértices).
+- **Charcos de farol**: tenían anillos escalonados. Causa (probada aislando): las partículas suaves sobre un quad a 4 cm del suelo (la diferencia de profundidad cuantizada). Sin ellas, liso; el color baja a la mitad porque antes el efecto lo atenuaba casi entero. Las brasas del choque conservan las partículas suaves (material propio `FX_EmberGlow`: el suelo es irregular y el quad cortaba recto). Descartado en el camino: compresión/8 bits de la textura y el dithering de cámara (no cambiaban nada).
+- **Un farol más por pasillo** (10 en total): a la entrada de cada sala, junto al checkpoint, del lado opuesto al de salida. Marca el lugar seguro y da las islas cálidas de la referencia.
+- **P3 estable**: la escala del papá fallaba al azar. Se vio una pose baja (cabeza a 1.27 m en vez de 1.52) en `Idle_Loop`; la prueba ahora espera también a que termine la mirada atrás de P7 y anota clip, altura de la cabeza y caída de cadera del IK en cada toma. En 3 corridas posteriores no se repitió: causa de aquella pose `UNVERIFIED`.
+- Pendiente visto en la toma del campamento: el círculo del reflector rojo S4 tiene el borde iluminado y vuelve a leerse como objeto sólido.
+
 ## 2026-10-27 — Assets estables en git (sin cambios fantasma tras jugar)
 Editor vía Unity MCP. Build All + una partida de 20 s: **0 assets modificados por la partida** (antes ~20 `.mat` por sesión).
 

@@ -12,7 +12,6 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _SOFTPARTICLES_ON
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - _FLIPBOOKBLENDING_OFF
@@ -63,7 +62,7 @@ Material:
     - _FlipbookMode: 0
     - _Mode: 0
     - _QueueOffset: 0
-    - _SoftParticlesEnabled: 1
+    - _SoftParticlesEnabled: 0
     - _SoftParticlesFarFadeDistance: 0.6
     - _SoftParticlesNearFadeDistance: 0
     - _SrcBlend: 5
@@ -71,10 +70,10 @@ Material:
     - _Surface: 1
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 2.6, g: 0.57, b: 0.08, a: 0.9}
+    - _BaseColor: {r: 1.2, g: 0.36, b: 0.05, a: 0.9}
     - _BaseColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
-    - _Color: {r: 2.6, g: 0.56999993, b: 0.079999976, a: 0.9}
+    - _Color: {r: 1.2, g: 0.35999998, b: 0.049999982, a: 0.9}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 1.6666666, b: 0, a: 0}
   m_BuildTextureStacks: []
