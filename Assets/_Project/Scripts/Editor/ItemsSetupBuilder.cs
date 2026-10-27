@@ -516,11 +516,14 @@ namespace ProjectRidge.EditorTools
                 AssetDatabase.CreateAsset(m, path);
             }
             m.SetColor("_BaseColor", baseColor);
+            m.SetColor("_Color", baseColor); // si no, URP lo sincroniza al abrir el material y el asset cambia solo
             m.SetFloat("_Smoothness", 0.25f);
             // Un brillo tenue para que se lean en la oscuridad sin ser luces dinámicas.
-            m.EnableKeyword("_EMISSION");
+            bool glows = emission.maxColorComponent > 0f;
+            if (glows) m.EnableKeyword("_EMISSION"); else m.DisableKeyword("_EMISSION");
             m.SetColor("_EmissionColor", emission);
-            m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            // Con None, URP quita _EMISSION al validar el material (igual que en la piel del papá).
+            m.globalIlluminationFlags = glows ? MaterialGlobalIlluminationFlags.RealtimeEmissive : MaterialGlobalIlluminationFlags.EmissiveIsBlack;
             EditorUtility.SetDirty(m);
             return m;
         }

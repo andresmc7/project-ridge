@@ -410,10 +410,12 @@ namespace ProjectRidge.EditorTools
             // El dial encendido se ve por la puerta abierta: un punto ámbar que guía hacia la meta sin gastar una luz.
             var dial = Tinted(m.darkMetal, "Hollow_RadioDial", new Color(0.2f, 0.12f, 0.05f));
             dial.EnableKeyword("_EMISSION");
+            dial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; // con None, URP quita _EMISSION
             dial.SetColor("_EmissionColor", new Color(1f, 0.55f, 0.18f) * 3.2f);
             Board(truck, "RadioDial", new Vector3(0.03f, 0.1f, 0.34f), dial, new Vector3(-0.965f, 1.5f, 0.55f), Vector3.zero, false);
             var cabGlow = Tinted(dial, "Hollow_CabGlow", new Color(0.15f, 0.1f, 0.06f));
             cabGlow.SetColor("_EmissionColor", new Color(1f, 0.6f, 0.25f) * 0.45f);
+            cabGlow.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             Board(truck, "DomeGlow", new Vector3(0.03f, 0.5f, 0.9f), cabGlow, new Vector3(-0.962f, 1.55f, 0.2f), Vector3.zero, false);
             var climax = radio.AddComponent<RadioClimax>();
             var cso = new SerializedObject(climax);

@@ -220,6 +220,7 @@ namespace ProjectRidge.EditorTools
             if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, path); }
             else m.CopyPropertiesFromMaterial(src);
             m.SetColor("_BaseColor", tint);
+            m.SetColor("_Color", tint); // si no, URP lo sincroniza al abrir el material y el asset cambia solo
             EditorUtility.SetDirty(m);
             return m;
         }

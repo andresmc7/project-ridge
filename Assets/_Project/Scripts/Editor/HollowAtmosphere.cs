@@ -140,6 +140,9 @@ namespace ProjectRidge.EditorTools
                 m.SetFloat("_ZWrite", 0f);
                 m.SetFloat("_SoftParticlesEnabled", 1f);
                 m.EnableKeyword("_SOFTPARTICLES_ON");
+                // URP recalcula _SoftParticleFadeParams desde estas dos distancias al validar: fijarlas evita que el asset cambie solo.
+                m.SetFloat("_SoftParticlesNearFadeDistance", 0f);
+                m.SetFloat("_SoftParticlesFarFadeDistance", 0.6f);
                 m.SetVector("_SoftParticleFadeParams", new Vector4(0f, 1f / 0.6f, 0f, 0f));
                 m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 m.SetOverrideTag("RenderType", "Transparent");

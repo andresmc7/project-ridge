@@ -2,6 +2,13 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Assets estables en git (sin cambios fantasma tras jugar)
+Editor vía Unity MCP. Build All + una partida de 20 s: **0 assets modificados por la partida** (antes ~20 `.mat` por sesión).
+
+- `Tinted` (HollowBuilder) y `Mat` (ItemsSetupBuilder) fijan también `_Color`; los materiales con emisión usan GI `RealtimeEmissive` (con `None`, URP quitaba `_EMISSION` de la radio, el domo de la cabina y la bengala del inventario al validar); las partículas fijan las distancias de las que URP recalcula `_SoftParticleFadeParams`.
+- `WaterFlow` anima una copia del material del arroyo (antes movía el asset compartido y quedaba con el desplazamiento de la última partida).
+- Conocido: las mallas `GroundDetail_*` cambian sus bytes en cada Build All aunque la semilla es fija (causa no encontrada; sin diferencia visible).
+
 ## 2026-10-27 — El nivel completo se termina con el bot (P9 cerrado)
 Editor, play mode vía Unity MCP. `LoopBot.Run()` (solo stick + ACCIÓN + OBJETO) desde el título: **FINISHED en 242 s, 2 muertes, 0 capturas, 3 ACCIÓN, 1 OBJETO** — dos corridas seguidas con el mismo resultado. Regresión `PolishTests.Run("P8")` → **9/9**.
 

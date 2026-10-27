@@ -64,7 +64,7 @@ Material:
     - _Mode: 0
     - _QueueOffset: 0
     - _SoftParticlesEnabled: 1
-    - _SoftParticlesFarFadeDistance: 1
+    - _SoftParticlesFarFadeDistance: 0.6
     - _SoftParticlesNearFadeDistance: 0
     - _SrcBlend: 5
     - _SrcBlendAlpha: 1
