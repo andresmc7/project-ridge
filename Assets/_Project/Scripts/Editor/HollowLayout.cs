@@ -156,6 +156,9 @@ namespace ProjectRidge.EditorTools
             return Vector2.Distance(p, a + ab * t);
         }
 
+        /// <summary>Metros desde un punto hasta el suelo caminable del diseño (negativo dentro); para herramientas de QA.</summary>
+        public static float WalkDistance(Vector3 w) => Walk(w);
+
         /// <summary>Distancia con signo al suelo caminable (negativa dentro de salas y pasillos).</summary>
         static float Walk(Vector3 w)
         {

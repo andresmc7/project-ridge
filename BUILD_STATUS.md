@@ -2,6 +2,26 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Rendimiento: cantos sueltos del bosque sin sombra
+Editor, play mode vía Unity MCP, `PerfProbe` con `Mobile_RPAsset`.
+
+- Los 420 cantos sueltos (`Rocks`) están repartidos por todo el terreno; 298 quedan a más de 4 m del suelo caminable del diseño (bosque entre salas). Esos ya no proyectan sombra (`HollowBuilder.FarRockShadows`, regla `FarRockNoShadow = 4 m`, aplicada en el builder y en la escena guardada). Rocas de cobertura, acantilados y orillas del arroyo no cambian: dan forma al terreno y a los escondites.
+- Herramienta: `HollowBuilder.WalkDistance(p)` expone la distancia al suelo caminable del diseño para QA.
+
+| Punto | Proyectores (tras helechos) → ahora | Triángulos → ahora |
+|---|---|---|
+| (−55, 0) | 327 → 301 | 773k → 739k |
+| (−24, 0) | 335 → 317 | 861k → 836k |
+| (−1.5, 0.2) | 279 → 260 | 831k → 906k |
+| (24, 0) | 290 → 269 | 697k → 660k |
+| (47.6, −0.5) | 415 → 375 | 1011k → 924k |
+| (60, −3) | 353 → 330 | 855k → 729k |
+
+  Proyectores −5 a −10% en todos los puntos; batches casi iguales (505–746): el grueso de los batches no son las sombras. Los triángulos varían también por Lurkers y haces en vivo.
+- Aspecto: la sala 2 con y sin esas sombras se ve igual; histograma de P3 idéntico (51% / 4.6%).
+- Regresión: P3 **6/6**, P4 **5/5**, P5 **5/5**.
+- Pendiente: los batches (500–750) siguen altos para móvil; hace falta ver qué los produce (pasto, árboles con viento, partículas). `UNVERIFIED`: efecto en un iPhone.
+
 ## 2026-10-28 — Rendimiento: helechos sin sombra y medida repetible (`PerfProbe`)
 Editor, play mode vía Unity MCP, con el asset de URP `Mobile_RPAsset` forzado (el nivel Mobile está desactivado para Windows y el editor no deja activarlo).
 

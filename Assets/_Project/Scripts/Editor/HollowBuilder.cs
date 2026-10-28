@@ -498,6 +498,17 @@ namespace ProjectRidge.EditorTools
             return placed.Count;
         }
 
+        /// <summary>Un canto suelto a más de esta distancia (m) del suelo caminable no proyecta sombra: queda en el bosque
+        /// entre salas, donde su sombra cae sobre suelo que nadie mira de cerca (−5 a −10% de proyectores en móvil).</summary>
+        const float FarRockNoShadow = 4f;
+
+        public static void FarRockShadows(GameObject rock)
+        {
+            foreach (var r in rock.GetComponentsInChildren<MeshRenderer>())
+                if (Walk(r.bounds.center) - Mathf.Max(r.bounds.extents.x, r.bounds.extents.z) > FarRockNoShadow)
+                    r.shadowCastingMode = ShadowCastingMode.Off;
+        }
+
         static int ScatterRocks(Transform root, Terrain t, Mats m, System.Random rng, List<Vector3> blockers)
         {
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
@@ -517,7 +528,8 @@ namespace ProjectRidge.EditorTools
                 float scale = R(0.6f, 1.3f);
                 p.y = GroundY(t, p) - 0.15f;
                 if (!Fits(p, p.y + RockSize(v, false).y * scale, RockSize(v, false).x * 0.5f * scale)) continue;
-                Spawn(RockPrefab(v, false, m), parent, p, R(0f, 360f), scale);
+                var rock = Spawn(RockPrefab(v, false, m), parent, p, R(0f, 360f), scale);
+                FarRockShadows(rock);
                 count++;
             }
 

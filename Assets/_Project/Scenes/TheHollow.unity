@@ -476,6 +476,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7856105
@@ -2378,6 +2382,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -2993,6 +3001,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -3121,6 +3133,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -6305,6 +6321,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0912435
@@ -8028,6 +8048,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6833272
@@ -9447,6 +9471,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9681,6 +9709,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8867201
@@ -10814,6 +10846,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1428568
@@ -23793,6 +23829,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -29444,6 +29484,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -32602,6 +32646,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -32822,6 +32870,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -32840,6 +32892,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.96436024
@@ -34026,6 +34082,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2431629
@@ -35057,6 +35117,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8004518
@@ -41886,6 +41950,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -42201,6 +42269,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.79965454
@@ -43385,6 +43457,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -43752,6 +43828,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2801422
@@ -44379,6 +44459,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -44926,6 +45010,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7470273
@@ -45278,6 +45366,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -46688,6 +46780,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -46888,6 +46984,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -47846,6 +47946,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -48352,6 +48456,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -48869,6 +48977,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1071588
@@ -50136,6 +50248,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -51467,6 +51583,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -51485,6 +51605,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8970276
@@ -51837,6 +51961,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.68251896
@@ -52041,6 +52169,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -54580,6 +54712,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.65250576
@@ -56088,6 +56224,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -56237,6 +56377,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -56366,6 +56510,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -57083,6 +57231,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -57189,6 +57341,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8920304
@@ -58463,6 +58619,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.95239073
@@ -60540,6 +60700,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -62099,6 +62263,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -63297,6 +63465,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0624889
@@ -63553,6 +63725,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -64044,6 +64220,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -65116,6 +65296,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1941711
@@ -71038,6 +71222,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7238519
@@ -71376,6 +71564,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2005875
@@ -72016,6 +72208,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2284502
@@ -72615,6 +72811,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -73014,6 +73214,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -74072,6 +74276,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -74304,6 +74512,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -76016,6 +76228,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -82660,6 +82876,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -83096,6 +83316,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -84119,6 +84343,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7264951
@@ -84658,6 +84886,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9259607
@@ -90003,6 +90235,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -90151,6 +90387,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1542587
@@ -90731,6 +90971,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -96954,6 +97198,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9520587
@@ -97447,6 +97695,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -101887,6 +102139,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -103480,6 +103736,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0357599
@@ -105966,6 +106226,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -106796,6 +107060,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -107086,6 +107354,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -107868,6 +108140,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1550505
@@ -108633,6 +108909,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.298289
@@ -111638,6 +111918,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -112133,6 +112417,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -112514,6 +112802,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.81056696
@@ -112641,6 +112933,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.63453025
@@ -114137,6 +114433,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -115234,6 +115534,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7083473
@@ -115308,6 +115612,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.99882454
@@ -115824,6 +116132,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -116479,6 +116791,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7952666
@@ -119781,6 +120097,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -121485,6 +121805,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -121577,6 +121901,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -121799,6 +122127,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1383839
@@ -122245,6 +122577,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -123204,6 +123540,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -123333,6 +123673,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -123555,6 +123899,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -129738,6 +130086,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -129995,6 +130347,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -130066,6 +130422,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -130801,6 +131161,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -136963,6 +137327,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1567472
@@ -138181,6 +138549,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2273827
@@ -139737,6 +140109,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -140321,6 +140697,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -140615,6 +140995,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -140888,6 +141272,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -143132,6 +143520,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -145467,6 +145859,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0567437
@@ -146012,6 +146408,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -146826,6 +147226,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -147170,6 +147574,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -147363,6 +147771,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -147832,6 +148244,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.69614094
@@ -149267,6 +149683,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -150898,6 +151318,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.75177443
@@ -151403,6 +151827,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0053512
@@ -152342,6 +152770,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.97232634
@@ -152565,6 +152997,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -153320,6 +153756,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -154745,6 +155185,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0874912
@@ -156098,6 +156542,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -157446,6 +157894,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1147525
@@ -159525,6 +159977,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -160080,6 +160536,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -161199,6 +161659,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8643628
@@ -162487,6 +162951,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.74739766
@@ -164135,6 +164603,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1299422
@@ -164732,6 +165204,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2750738
@@ -168150,6 +168626,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -170892,6 +171372,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2866371
@@ -172014,6 +172498,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -173011,6 +173499,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -173139,6 +173631,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -173416,6 +173912,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -173656,6 +174156,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -173912,6 +174416,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -175610,6 +176118,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -182525,6 +183037,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -185214,6 +185730,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6480833
@@ -187129,6 +187649,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -188170,6 +188694,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -189665,6 +190193,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -189921,6 +190453,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -190447,6 +190983,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -192674,6 +193214,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -192914,6 +193458,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -194000,6 +194548,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -195095,6 +195647,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -196708,6 +197264,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -197037,6 +197597,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9333734
@@ -198839,6 +199403,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -199522,6 +200090,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -199927,6 +200499,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -201122,6 +201698,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7187721
@@ -201414,6 +201994,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -203321,6 +203905,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -204064,6 +204652,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2677478
@@ -204356,6 +204948,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -205352,6 +205948,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -205880,6 +206480,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -206332,6 +206936,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6143531
@@ -206492,6 +207100,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -207406,6 +208018,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -209588,6 +210204,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0365213
@@ -210552,6 +211172,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -211807,6 +212431,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.744423
@@ -213980,6 +214608,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -214195,6 +214827,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -214377,6 +215013,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -218339,6 +218979,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -218503,6 +219147,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -219237,6 +219885,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2028354
@@ -219549,6 +220201,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -220267,6 +220923,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -220586,6 +221246,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1968185
@@ -221855,6 +222519,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -222326,6 +222994,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7704763
@@ -222985,6 +223657,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.77875423
@@ -223877,6 +224553,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6177268
@@ -225068,6 +225748,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -225863,6 +226547,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -227082,6 +227770,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -227997,6 +228689,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -228126,6 +228822,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -228272,6 +228972,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -228725,6 +229429,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -228817,6 +229525,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1361908
@@ -229145,6 +229857,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -231281,6 +231997,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -231705,6 +232425,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -234148,6 +234872,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -234611,6 +235339,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9597117
@@ -234830,6 +235562,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235325,6 +236061,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -236273,6 +237013,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -236558,6 +237302,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -237198,6 +237946,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -239247,6 +239999,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -239376,6 +240132,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -241983,6 +242743,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1771382
@@ -242606,6 +243370,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7002311
@@ -242825,6 +243593,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -243714,6 +244486,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -243732,6 +244508,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -243880,6 +244660,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0599034
@@ -244323,6 +245107,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.61374784
@@ -244741,6 +245529,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6675265
@@ -245624,6 +246416,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -245642,6 +246438,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.175953
@@ -248534,6 +249334,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -251825,6 +252629,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -252958,6 +253766,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0430031
@@ -253442,6 +254254,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -253704,6 +254520,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -256695,6 +257515,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -261868,6 +262692,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -261942,6 +262770,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2220156
@@ -262016,6 +262848,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1248484
@@ -262995,6 +263831,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -264615,6 +265455,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -265276,6 +266120,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -266345,6 +267193,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -266363,6 +267215,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -266691,6 +267547,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -267263,6 +268123,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -270442,6 +271306,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.69304895
@@ -270812,6 +271680,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -271015,6 +271887,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -276756,6 +277632,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -277155,6 +278035,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -283763,6 +284647,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -284006,6 +284894,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -284152,6 +285044,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -284759,6 +285655,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -285849,6 +286749,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -287581,6 +288485,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -288091,6 +288999,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -288244,6 +289156,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -289069,6 +289985,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -289527,6 +290447,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.00879
@@ -289655,6 +290579,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -294044,6 +294972,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -295263,6 +296195,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -295683,6 +296619,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -297395,6 +298335,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -297816,6 +298760,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -299827,6 +300775,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -301783,6 +302735,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9688421
@@ -302402,6 +303358,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7359513
@@ -305064,6 +306024,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -311373,6 +312337,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -311894,6 +312862,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -312446,6 +313418,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7193189
@@ -312889,6 +313865,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -314201,6 +315181,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -314494,6 +315478,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.97779745
@@ -315092,6 +316080,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.77373594
@@ -315965,6 +316957,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -317463,6 +318459,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -319436,6 +320436,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.72407305
@@ -319867,6 +320871,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -321150,6 +322158,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -321989,6 +323001,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -322365,6 +323381,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -325795,6 +326815,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -326090,6 +327114,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -326603,6 +327631,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -327002,6 +328034,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -329375,6 +330411,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7741416
@@ -329504,6 +330544,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -333700,6 +334744,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -335405,6 +336453,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2347335
@@ -335647,6 +336699,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.73590165
@@ -336887,6 +337943,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -337722,6 +338782,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -340312,6 +341376,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -341845,6 +342913,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -342473,6 +343545,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -349379,6 +350455,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -350244,6 +351324,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.81591886
@@ -350563,6 +351647,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -351671,6 +352759,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6388133
@@ -355898,6 +356990,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -357471,6 +358567,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2300837
@@ -358092,6 +359192,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -360818,6 +361922,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -361112,6 +362220,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -365759,6 +366871,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -366168,6 +367284,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.291568
@@ -366632,6 +367752,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -367504,6 +368628,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -368344,6 +369472,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -368670,6 +369802,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -369013,6 +370149,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1064731
@@ -369782,6 +370922,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -371364,6 +372508,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 2477459021793279423, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6808682578831990379, guid: 2f3c3d3f421fe6f47bd5964e9c9de269, type: 3}
       propertyPath: m_Name
       value: HollowRock_2
@@ -371567,6 +372715,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -371968,6 +373120,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -374180,6 +375336,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.7106037
@@ -374308,6 +375468,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -380948,6 +382112,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -382373,6 +383541,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4254604445019949749, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -386467,6 +387639,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowRock_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -386630,6 +387806,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -387308,6 +388488,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4691003295268160464, guid: 117ed35c23f85ec419ea09ba7cbd4346, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -387381,6 +388565,10 @@ PrefabInstance:
     - target: {fileID: 5034025317934760946, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
       propertyPath: m_Name
       value: HollowRock_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5527294603658186104, guid: 79ca8eb3c374b72498d21cde423f6a89, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -388827,6 +390015,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1975044889}
     m_Modifications:
+    - target: {fileID: 26850159113091661, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4919713448334595081, guid: aacd1a8acdc0ae44abbee9dd6e8c913c, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.721869
