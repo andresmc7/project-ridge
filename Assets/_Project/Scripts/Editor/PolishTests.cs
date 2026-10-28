@@ -805,8 +805,11 @@ namespace ProjectRidge.EditorTools
 
         /// <summary>
         /// Pies que patinan (P7, sección 4: "60 s sin animaciones que patinen o floten"): unos 60 s de manejo con el stick
-        /// (caminar, trotar, sigilo, arranques, frenadas, giros) midiendo cada cuadro la velocidad horizontal del pie que
-        /// está apoyado (a ≤ 3 cm de su altura en reposo). Un pie apoyado que se mueve a más de 0.3 m/s se ve deslizar.
+        /// (caminar, trotar, sigilo, arranques, frenadas, giros). En un paso bien hecho el pie de apoyo se detiene en el
+        /// suelo; si patina, su velocidad nunca baja de cero. Por eso se mide, para cada pie y cada cuadro, la velocidad
+        /// horizontal MÍNIMA en la ventana de los últimos 0.6 s (no depende de umbrales de altura: con el tobillo apenas
+        /// levantado al caminar, "a ≤ 3 cm del suelo" contaba también el pie en el aire). Patina si ese mínimo > 0.15 m/s.
+        /// 0.6 s y no 0.3: el balanceo al caminar dura ~0.4 s y una ventana más corta caería entera en el aire.
         /// </summary>
         static IEnumerator FootSkate()
         {
@@ -815,13 +818,10 @@ namespace ProjectRidge.EditorTools
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
             var anim = player.transform.Find("Visual").GetComponent<Animator>();
             var feet = new[] { anim.GetBoneTransform(HumanBodyBones.LeftFoot), anim.GetBoneTransform(HumanBodyBones.RightFoot) };
-            const float PlantMargin = 0.03f, SkateSpeed = 0.3f;
+            const float Window = 0.6f, SkateSpeed = 0.15f;
 
-            // Altura de cada pie en reposo (sobre la raíz del papá), en un claro llano de la sala 1.
             Teleport(Ground(-58f, 0f));
             yield return 2f;
-            var rest = new float[2];
-            for (int f = 0; f < 2; f++) rest[f] = feet[f].position.y - player.transform.position.y;
 
             var script = new (Vector2 stick, float seconds)[]
             {
@@ -833,15 +833,16 @@ namespace ProjectRidge.EditorTools
                 (Vector2.zero, 1.5f), (new Vector2(1f, 0f), 4f), (new Vector2(-1f, 0f), 2f), (Vector2.zero, 2f),
                 (new Vector2(0.3f, 0.3f), 3f), (Vector2.zero, 2f),
             };
-            var planted = new Dictionary<string, int>();
+            var frames = new Dictionary<string, int>();
             var skating = new Dictionary<string, int>();
-            var speedSum = new Dictionary<string, float>();
+            var stanceSum = new Dictionary<string, float>();
+            var bodySum = new Dictionary<string, float>();
+            var history = new[] { new List<(float t, float v)>(), new List<(float t, float v)>() };
             var last = new Vector3[2];
-            int frame = -1, totalPlanted = 0, totalSkating = 0;
-            float driven = 0f, worst = 0f;
-            string worstClip = "";
+            Vector3 lastRoot = player.transform.position;
+            int frame = -1, total = 0, totalSkating = 0;
+            float driven = 0f, lastTime = Time.time;
             bool first = true;
-            float lastTime = 0f;
             foreach (var (stick, seconds) in script)
             {
                 Stick(stick);
@@ -851,8 +852,11 @@ namespace ProjectRidge.EditorTools
                     yield return 0f;
                     if (Time.frameCount == frame) continue;
                     frame = Time.frameCount;
-                    float dt = Time.time - lastTime;
-                    lastTime = Time.time;
+                    float now = Time.time, dt = now - lastTime;
+                    lastTime = now;
+                    Vector3 rp = player.transform.position;
+                    float body = dt > 0f ? new Vector2(rp.x - lastRoot.x, rp.z - lastRoot.z).magnitude / dt : 0f;
+                    lastRoot = rp;
                     var clips = anim.GetCurrentAnimatorClipInfo(0);
                     string clip = clips.Length > 0 ? clips[0].clip.name : "-";
                     for (int f = 0; f < 2; f++)
@@ -860,15 +864,18 @@ namespace ProjectRidge.EditorTools
                         Vector3 p = feet[f].position;
                         if (!first && dt > 0f)
                         {
-                            float h = p.y - player.transform.position.y;
-                            if (h <= rest[f] + PlantMargin)
+                            var h = history[f];
+                            h.Add((now, new Vector2(p.x - last[f].x, p.z - last[f].z).magnitude / dt));
+                            while (h.Count > 0 && h[0].t < now - Window) h.RemoveAt(0);
+                            if (h.Count >= 3 && h[h.Count - 1].t - h[0].t >= Window * 0.8f)
                             {
-                                float v = new Vector2(p.x - last[f].x, p.z - last[f].z).magnitude / dt;
-                                planted[clip] = planted.GetValueOrDefault(clip) + 1;
-                                speedSum[clip] = speedSum.GetValueOrDefault(clip) + v;
-                                totalPlanted++;
-                                if (v > SkateSpeed) { skating[clip] = skating.GetValueOrDefault(clip) + 1; totalSkating++; }
-                                if (v > worst) { worst = v; worstClip = clip; }
+                                float stance = float.MaxValue;
+                                foreach (var s in h) stance = Mathf.Min(stance, s.v);
+                                frames[clip] = frames.GetValueOrDefault(clip) + 1;
+                                stanceSum[clip] = stanceSum.GetValueOrDefault(clip) + stance;
+                                bodySum[clip] = bodySum.GetValueOrDefault(clip) + body;
+                                total++;
+                                if (stance > SkateSpeed) { skating[clip] = skating.GetValueOrDefault(clip) + 1; totalSkating++; }
                             }
                         }
                         last[f] = p;
@@ -879,13 +886,13 @@ namespace ProjectRidge.EditorTools
             }
             Stick(Vector2.zero);
             var sb = new System.Text.StringBuilder();
-            foreach (var kv in planted)
+            foreach (var kv in frames)
                 if (kv.Value >= 10)
-                    sb.Append(kv.Key + " " + (100f * skating.GetValueOrDefault(kv.Key) / kv.Value).ToString("0") + "% (mean " + (speedSum[kv.Key] / kv.Value).ToString("0.00") + " m/s, n " + kv.Value + "); ");
-            float share = totalPlanted > 0 ? (float)totalSkating / totalPlanted : 1f;
+                    sb.Append(kv.Key + " " + (100f * skating.GetValueOrDefault(kv.Key) / kv.Value).ToString("0") + "% (stance " + (stanceSum[kv.Key] / kv.Value).ToString("0.00") + " m/s, body " + (bodySum[kv.Key] / kv.Value).ToString("0.00") + " m/s, n " + kv.Value + "); ");
+            float share = total > 0 ? (float)totalSkating / total : 1f;
             Debug.Log("POLISH: SKATE per clip — " + sb);
-            Check("planted feet do not slide (≤ 10% of planted foot-frames above 0.3 m/s over ~60 s)", share <= 0.1f,
-                  (share * 100f).ToString("0.0") + "% skating of " + totalPlanted + " planted foot-frames in " + driven.ToString("0") + " s; worst " + worst.ToString("0.00") + " m/s in " + worstClip + "; rest heights " + rest[0].ToString("0.00") + "/" + rest[1].ToString("0.00") + " m");
+            Check("planted feet do not slide (≤ 10% of foot-frames whose slowest speed in 0.6 s is above 0.15 m/s, ~60 s)", share <= 0.1f,
+                  (share * 100f).ToString("0.0") + "% skating of " + total + " foot-frames in " + driven.ToString("0") + " s");
         }
 
         static IEnumerator P8()

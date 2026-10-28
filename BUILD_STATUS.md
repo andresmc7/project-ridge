@@ -2,9 +2,31 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
-## 2026-10-28 — Prueba de pies que patinan (SKATE): escrita, sin resultado todavía
-- Nueva `PolishTests.Run("SKATE")`: unos 60 s de manejo con el stick en un claro de la sala 1 (caminar, trotar, sigilo, arranques, frenadas, giros), sin Lurkers ni haces, midiendo cada cuadro la velocidad horizontal de cada pie apoyado (≤ 3 cm sobre su altura en reposo). Pasa si ≤ 10% de esos cuadros superan 0.3 m/s; anota el porcentaje por clip. Convierte en dato el pendiente de P7 "60 s sin animaciones que patinen o floten".
-- Primera corrida: excepción al empezar (tomaba un Animator sin avatar; se cambió por el del objeto `Visual`, igual que la prueba de P7). El editor se cerró (cierre normal, no un crash) antes de recompilar: `UNVERIFIED` que compile y su resultado. Siguiente paso: `PolishSuite.Run("SKATE")`.
+## 2026-10-28 — Pies que patinan: prueba SKATE y hallazgo en los bucles de locomoción
+Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAll`).
+
+- **Qué mide**: ~60 s de manejo con el stick en un claro de la sala 1 (caminar, trotar, sprint, sigilo, arranques, frenadas, giros; sin Lurkers ni haces). Para cada pie y cada cuadro, la velocidad horizontal **mínima** de los últimos 0.6 s: en un paso bien hecho el pie de apoyo se detiene en el suelo; si patina, ese mínimo nunca llega a cero. Pasa si ≤ 10% de los cuadros superan 0.15 m/s.
+- **Cómo se validó la medida**:
+  - Primera versión (pie "apoyado" = a ≤ 3 cm de su altura en reposo): daba 53% patinando, también en Idle, y la velocidad del pie igualaba la del cuerpo. El tobillo apenas se levanta al caminar, así que contaba también el pie en el aire. Se descartó.
+  - Cuadro a cuadro con el papá quieto: el pie se mueve a 0.01 m/s, así que la lectura de huesos es correcta.
+  - Con la ventana de 0.3 s, las ventanas que caían enteras en el balanceo (~0.4 s) inflaban el resultado; por eso 0.6 s.
+  - Control: `S100_WalkStart` (avance por root motion) da **0.00 m/s**.
+- **Resultado** (velocidad del pie de apoyo / velocidad del cuerpo):
+
+| Clip | % cuadros patinando | Pie de apoyo | Cuerpo |
+|---|---|---|---|
+| S100_WalkStart | 0% | 0.00 | 0.00 |
+| S100_WalkStop / RunStop | 16% / 21% | 0.09 / 0.18 | 0.19 / 0.31 |
+| S100_TurnA / TurnB | 21% / 58% | 0.11 / 0.18 | 0.78 / 1.10 |
+| Crouch_Idle / Crouch_Fwd | 14% / 16% | 0.10 / 0.13 | 0.55 / 0.73 |
+| **Walk_Loop** | **89%** | **0.61** | 1.76 |
+| **Jog_Fwd_Loop** | **92%** | **1.07** | 3.27 |
+| **Sprint_Loop** | **100%** | **1.27** | 3.60 |
+
+  Total: **41% FALLA**. Arranques, frenadas, giros y sigilo están bien. Los tres bucles de locomoción patinan: el pie de apoyo nunca se detiene y se desliza a un tercio de la velocidad del cuerpo.
+- **Causa probable**: los bucles son "en el sitio" (velocidad media 0). El pie solo queda quieto si el paso del clip coincide con la velocidad del cuerpo, y los umbrales del árbol de mezcla (1 / 2.6 / 3.6 m/s, `Father.controller`) no coinciden con el paso real de cada clip.
+- Un intento de medir el paso de cada clip muestreándolo fuera de juego dio números poco fiables (signo invertido, 4.7 m/s para el trote), así que no se tocó nada.
+- **Siguiente bloque**: calibrar en juego, a velocidades fijas, la velocidad de reproducción o los umbrales que dejan el pie de apoyo en 0. Volver a correr SKATE y P7.
 
 ## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CPSAFE")` (incluida en `PolishSuite.RunAll`).
@@ -243,7 +265,7 @@ Editor (play mode vía Unity MCP) y build de Windows. Capturas: `P9_after.png`, 
 - **Nivel completo sin ayuda con el bot: NO PASA.** `LoopBot.Run()` (solo stick + ACCIÓN + OBJETO) llega como máximo a **x = 49 (sala 5, el campamento) con 2 muertes** y se atasca 75 s esperando una ventana hacia el escondite (52, −4.6): el reflector S4_Gate barre la salida y Lurker_C se detiene en la esquina (54.8, 0.2) mirando al punto de reaparición. Otras corridas mueren 9 veces en el escondite justo después del puente (sala 2). El resultado varía entre corridas según el ritmo de cuadros. `UNVERIFIED`: que el nivel se pueda terminar; las salas 1–4 sí se cruzaron en corridas reales.
 - Lo que se arregló en el bot (QA, no el juego): cuenta el giro en el sitio y el arranque animado de P7 al calcular la ventana, mira el tramo completo hasta el próximo escondite (no espera a la vista en los puntos de paso), lanza la piedra de distracción lejos de la ruta (antes atraía al Lurker al escondite siguiente) y predice la patrulla exacta (`EnemyController.PredictPatrol`: puntos, velocidad, pausas y el giro en cada parada). Al atascarse informa el motivo.
 - **Lista de la sección 4:**
-  - [ ] 60 s sin animaciones que patinen o floten a 0.25×: `UNVERIFIED` (revisados a 0.25× arranque y frenada; no una partida de 60 s).
+  - [ ] 60 s sin animaciones que patinen o floten a 0.25×: medido el 2026-10-28 con la prueba SKATE: **falla** en los bucles de caminar/trotar/sprint (ver esa entrada); arranques, frenadas, giros y sigilo bien.
   - [x] Ningún objeto en la mano sin motivo: el garrote va enfundado al moverse (P0) y solo sale con amenaza; la linterna, con la luz encendida.
   - [ ] Anticipación, contacto, recuperación y sonido en toda acción: en parte. Los golpes y la captura tienen las tres fases; que todo "suene bien" es `UNVERIFIED` (nadie escuchó la mezcla).
   - [ ] Terminar el nivel en táctil con dos pulgares: `UNVERIFIED` (el bot no lo termina; sin prueba en iPhone).

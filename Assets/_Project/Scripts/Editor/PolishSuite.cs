@@ -34,7 +34,7 @@ namespace ProjectRidge.EditorTools
         public static bool Active => !string.IsNullOrEmpty(SessionState.GetString(QueueKey, ""));
 
         [MenuItem("Project Ridge/QA/Run all polish tests")]
-        public static void RunAll() => Run("P0,P1,P2,P3,P4,P5,P6,P7,P8,SNEAK,CPSAFE");
+        public static void RunAll() => Run("P0,P1,P2,P3,P4,P5,P6,P7,P8,SNEAK,CPSAFE,SKATE");
 
         public static void Run(string phases)
         {
