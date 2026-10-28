@@ -2,6 +2,27 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Rendimiento: helechos sin sombra y medida repetible (`PerfProbe`)
+Editor, play mode vía Unity MCP, con el asset de URP `Mobile_RPAsset` forzado (el nivel Mobile está desactivado para Windows y el editor no deja activarlo).
+
+- Nueva herramienta `PerfProbe.Run()` (en play): lleva al papá a 6 puntos fijos del nivel y anota batches, draws, SetPass, triángulos y proyectores de sombra (media de 20 cuadros por punto); sale sola de play mode. Sirve para comparar antes/después; no reemplaza el Profiler en un iPhone.
+- Censo: de 3457 renderers, 2463 proyectan sombra; los 539 helechos de borde (Poly Haven reducidos a ~1.3k triángulos, con recorte alfa) eran el grupo más grande detrás de rocas y acantilados.
+- Cambio: los helechos (`Hollow_FernClump_0–3`) no proyectan sombra (`DecimatedPropPrefab(..., castShadows: false)` en el builder y en los 4 prefabs).
+
+| Punto | Proyectores antes → después | Batches antes → después | Triángulos antes → después |
+|---|---|---|---|
+| (−55, 0) | 403 → 327 | 685 → 606 | 851k → 773k |
+| (−24, 0) | 373 → 335 | 549 → 513 | 904k → 861k |
+| (−1.5, 0.2) | 368 → 279 | 601 → 507 | 1021k → 831k |
+| (24, 0) | 390 → 290 | 685 → 551 | 909k → 697k |
+| (47.6, −0.5) | 484 → 415 | 827 → 751 | 1117k → 1011k |
+| (60, −3) | 398 → 353 | 626 → 664 | 810k → 855k |
+
+  El último punto sube porque los Lurker y los haces del OVNI no están en el mismo lugar en las dos corridas (el nivel corre en vivo); los otros cinco bajan entre 7 y 26% de proyectores.
+- Aspecto: la toma de la sala 4 con y sin sombras de helecho se ve igual (las matas están al borde de las salas, casi siempre ya en sombra); el histograma de P3 da exactamente lo mismo (51% sombra profunda, 4.6% islas de luz).
+- Regresión: P3 **6/6**, P4 **5/5**.
+- Sigue alto para móvil: 500–750 batches y 280–415 proyectores; lo siguiente son las rocas y acantilados (810 renderers, todos con sombra). `UNVERIFIED`: el efecto en FPS y temperatura de un iPhone.
+
 ## 2026-10-28 — Regresión completa de POLISH_PASS (P0–P8 + SNEAK)
 Editor, play mode vía Unity MCP. Nueva `PolishSuite.RunAll()` (menú *Project Ridge/QA/Run all polish tests*): cada fase en su propia sesión de play con el nivel recién cargado; resumen en la consola al final y `runInBackground` vuelve a 0.
 

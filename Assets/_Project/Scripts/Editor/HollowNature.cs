@@ -435,7 +435,7 @@ namespace ProjectRidge.EditorTools
 
         // ------------------------------------------------------------------ Tocones, troncos y ramas secas
 
-        static GameObject DecimatedPropPrefab(string source, string name, int maxTris, float scale, bool collider)
+        static GameObject DecimatedPropPrefab(string source, string name, int maxTris, float scale, bool collider, bool castShadows = true)
         {
             if (prefabCache.TryGetValue(name, out var cached) && cached != null) return cached;
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EnvDir + "/" + source + ".prefab");
@@ -455,6 +455,7 @@ namespace ProjectRidge.EditorTools
                 part.AddComponent<MeshFilter>().sharedMesh = low;
                 var mr = part.AddComponent<MeshRenderer>();
                 mr.sharedMaterials = mf.GetComponent<MeshRenderer>().sharedMaterials;
+                if (!castShadows) mr.shadowCastingMode = ShadowCastingMode.Off;
                 mr.receiveGI = ReceiveGI.LightProbes;
                 if (collider) { var mc = part.AddComponent<MeshCollider>(); mc.sharedMesh = CollisionMesh(low); mc.convex = true; }
             }

@@ -404,7 +404,8 @@ namespace ProjectRidge.EditorTools
         /// </summary>
         static GameObject BushPrefab(int variant, Mats m)
         {
-            var fern = DecimatedPropPrefab(FernSources[variant % FernSources.Length], "Hollow_FernClump_" + variant, 1600, FernScale, false);
+            // Sin sombra: matas al borde de las salas, casi siempre ya en sombra; ~80 proyectores menos por cuadro en móvil.
+            var fern = DecimatedPropPrefab(FernSources[variant % FernSources.Length], "Hollow_FernClump_" + variant, 1600, FernScale, false, castShadows: false);
             DarkenFern(fern);
             return fern;
         }
