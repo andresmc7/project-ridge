@@ -74,6 +74,13 @@ namespace ProjectRidge.UI
             pickupUntil = Time.time + pickupSeconds;
         }
 
+        /// <summary>Mensaje breve sobre el botón de acción (avisos de una vez, como el de sigilo).</summary>
+        public void ShowToast(string message, float seconds)
+        {
+            toastLabel.text = message;
+            toastUntil = Time.time + seconds;
+        }
+
         private void OnNotify(string message)
         {
             toastLabel.text = message;

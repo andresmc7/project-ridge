@@ -55,6 +55,7 @@ namespace ProjectRidge.EditorTools
                 "P6" => P6(),
                 "P7" => P7(),
                 "P8" => P8(),
+                "SNEAK" => SneakHintTest(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -684,6 +685,51 @@ namespace ProjectRidge.EditorTools
         }
 
         // ------------------------------------------------------------------ P8
+
+        /// <summary>Aviso de sigilo (SneakHint): no sale en sigilo, sale una vez caminando de pie junto a un Lurker.</summary>
+        static IEnumerator SneakHintTest()
+        {
+            yield return PassTitle();
+            Calm();
+            var hint = player.GetComponent<SneakHint>();
+            var toast = GameObject.Find("HUD").transform.Find("SafeArea/SurvivalHud/Toast").GetComponent<UnityEngine.UI.Text>();
+            EnemyController lurker = null;
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None))
+                if (e.name == "Lurker") lurker = e; else e.gameObject.SetActive(false);
+            lurker.Perception.Suppress(9999f);
+            // Prado de la sala 3, tramo sin pasto escondite (z = −0.2): Lurker quieto a ~5 m al costado.
+            Teleport(Ground(6f, -0.2f));
+            lurker.GetComponent<NavMeshAgent>().Warp(Ground(9f, -5f));
+            lurker.GetComponent<NavMeshAgent>().isStopped = true;
+            yield return 1f;
+
+            // Stick apenas inclinado: sigilo agachado, sin aviso.
+            yield return Hold(new Vector2(0.25f, 0f), 2.5f);
+            bool crouchedWhileSneaking = player.IsCrouching;
+            bool silentWhenSneaking = !hint.Shown;
+            Stick(Vector2.zero);
+            yield return 1.2f;
+
+            // Caminando de pie: aviso.
+            Teleport(Ground(6f, -0.2f));
+            yield return 0.8f;
+            yield return Hold(new Vector2(0.6f, 0f), 3.5f);
+            bool shown = hint.Shown;
+            string walkState = "crouched " + player.IsCrouching + " (" + player.GetComponent<AutoStance>().Why + "), mode " + player.Mode + ", speed " + player.CurrentSpeed.ToString("0.0") + ", lurker " + Vector3.Distance(player.transform.position, lurker.transform.position).ToString("0.0") + " m";
+            string text = toast.text;
+            float alpha = toast.color.a;
+            Stick(Vector2.zero);
+            Check("sneak hint: none while sneaking, once when walking upright near a Lurker",
+                  crouchedWhileSneaking && silentWhenSneaking && shown && alpha > 0.5f && text.Length > 0,
+                  "sneak crouched " + crouchedWhileSneaking + ", hint while sneaking " + !silentWhenSneaking + ", walking → shown " + shown + " \"" + text + "\" alpha " + alpha.ToString("0.00") + "; walking: " + walkState);
+            yield return 4.5f;
+            // Una sola vez por partida.
+            Teleport(Ground(6f, -0.2f));
+            yield return Hold(new Vector2(0.6f, 0f), 3.5f);
+            Stick(Vector2.zero);
+            Check("sneak hint shows only once", toast.color.a < 0.1f, "toast alpha " + toast.color.a.ToString("0.00"));
+            lurker.GetComponent<NavMeshAgent>().isStopped = false;
+        }
 
         static IEnumerator P8()
         {

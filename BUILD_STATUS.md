@@ -2,6 +2,14 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Aviso de sigilo (cómo descubrir que el stick suave agacha)
+Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("SNEAK")` → **2/2**; regresión `PolishTests.Run("P8")` → **9/9**.
+
+- `SneakHint` (en el papá): la primera vez en la partida que camina de pie ≥ 1.2 s con un Lurker a ≤ 10 m (sin que lo esté cazando), el mensaje breve del HUD dice **"Ease the stick to sneak"** (táctil y control) o **"Press C to crouch"** (teclado, que siempre trota). Motivo: el sigilo ya funcionaba (stick < 0.35 cerca de un Lurker → agachado, pisadas de 1.2 m) pero nada lo enseñaba, y caminar de pie cerca del Lurker de la sala 2 hace que te oiga (lo que mataba al bot en cada corrida).
+- Probado: con el stick suave (0.25) a 5 m del Lurker el papá va agachado y **no** sale el aviso; caminando de pie (0.6) sale una vez (alfa 1.00, texto del control usado); una segunda caminata no lo repite.
+- Solo cerca de Lurkers (no de reflectores: ahí el ruido no importa) y nunca durante una persecución.
+- `UNVERIFIED`: que un jugador entienda la frase y la aplique; textos en inglés (como el resto del juego).
+
 ## 2026-10-28 — Build de Windows actualizado
 `Builds/Windows/ProjectRidge.exe` con el HUD por tamaño físico, el limitador y el arreglo de la sala 4: **0 errores, 0 advertencias, 260 MB**, `runInBackground` 0. Arrancado 40 s: escena cargada, Lurkers en el NavMesh, sin excepciones; el build no modificó ningún archivo del proyecto.
 

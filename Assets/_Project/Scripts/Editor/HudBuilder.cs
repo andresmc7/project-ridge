@@ -178,6 +178,15 @@ namespace ProjectRidge.EditorTools
             sso.FindProperty("toastLabel").objectReferenceValue = toast;
             sso.FindProperty("damageFlash").objectReferenceValue = flash;
             sso.ApplyModifiedPropertiesWithoutUndo();
+
+            // Aviso de sigilo de una vez (SneakHint), con el mismo mensaje breve.
+            var hint = player.GetComponent<ProjectRidge.Player.SneakHint>();
+            if (hint == null) hint = player.gameObject.AddComponent<ProjectRidge.Player.SneakHint>();
+            var hintSo = new SerializedObject(hint);
+            hintSo.FindProperty("player").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerController>();
+            hintSo.FindProperty("input").objectReferenceValue = player.GetComponent<ProjectRidge.Player.PlayerInputHandler>();
+            hintSo.FindProperty("hud").objectReferenceValue = survivalHud;
+            hintSo.ApplyModifiedPropertiesWithoutUndo();
             foreach (var kv in icons)
             {
                 var item = AssetDatabase.LoadAssetAtPath<ProjectRidge.Items.ItemDefinition>("Assets/_Project/Data/Items/" + kv.Key + ".asset");
