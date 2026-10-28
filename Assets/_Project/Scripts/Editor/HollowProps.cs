@@ -473,7 +473,7 @@ namespace ProjectRidge.EditorTools
         static Material WarmPoolMaterial()
         {
             // Ámbar de farol: HDR en RGB y alfa < 1 (en aditivo el alfa multiplica y saturaba a amarillo).
-            var mat = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(1.2f, 0.36f, 0.05f, 0.9f), true);
+            var mat = FxMaterial("FX_WarmPool", "Universal Render Pipeline/Particles/Unlit", SoftDot(), new Color(0.8f, 0.24f, 0.035f, 0.9f), true); // medido en la vista de juego (con bloom): a 1.2 el charco cercano se leía como un disco naranja sólido
             // Sin partículas suaves: el charco está a pocos cm del suelo y la diferencia de profundidad cuantizada lo partía en
             // anillos escalonados (y lo atenuaba casi entero; por eso el color de antes era el doble).
             mat.SetFloat("_SoftParticlesEnabled", 0f);
@@ -763,7 +763,7 @@ namespace ProjectRidge.EditorTools
             Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Stay out of the red light.");
             Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek.");
             Cp("CP_TwoLights", 0.2f, 0.7f, new Vector3(3f, 3f, 4.5f), "Slip between the lights.");
-            Cp("CP_Thicket", 24f, 0f, new Vector3(3f, 3f, 4.5f), "Find where they went.");
+            Cp("CP_Thicket", 23f, 0.4f, new Vector3(3f, 3f, 4.5f), "Find where they went."); // a ≥ 9.7 m de las paradas de Lurker_B (alcance 9)
             Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the ranger truck.");
             // Fuera de la ruta de S5 y de los reflectores del clímax (que se apagan al morir).
             Cp("CP_Radio", 58.6f, -2f, new Vector3(3f, 3f, 6f), "Use the truck's radio.");

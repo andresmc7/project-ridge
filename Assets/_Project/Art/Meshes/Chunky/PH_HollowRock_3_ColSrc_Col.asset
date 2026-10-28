@@ -6,7 +6,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PH_HollowRock_3_Col
+  m_Name: PH_HollowRock_3_ColSrc_Col
   serializedVersion: 12
   m_SubMeshes:
   - serializedVersion: 2

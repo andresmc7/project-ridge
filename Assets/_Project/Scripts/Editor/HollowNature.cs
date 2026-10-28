@@ -390,7 +390,7 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>Malla de una roca Poly Haven con su transformación horneada, reducida y escalada a un tamaño.</summary>
-        static Mesh PolyHavenRockMesh(string prefabName, string outName, Vector3 targetSize)
+        static Mesh PolyHavenRockMesh(string prefabName, string outName, Vector3 targetSize, int maxTriangles = MaxRockTriangles)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EnvDir + "/" + prefabName + ".prefab");
             var mf = prefab.GetComponentInChildren<MeshFilter>();
@@ -401,7 +401,7 @@ namespace ProjectRidge.EditorTools
             for (int i = 0; i < v.Length; i++) v[i] = m.MultiplyPoint3x4(v[i]);
             baked.vertices = v;
             baked.RecalculateBounds();
-            var low = MeshDecimator.Decimate(baked, MaxRockTriangles, outName);
+            var low = MeshDecimator.Decimate(baked, maxTriangles, outName);
             Object.DestroyImmediate(baked);
             // Centrada en planta, apoyada en y = 0, escalada al tamaño pedido (la maqueta decide la forma).
             var b = low.bounds;
@@ -423,7 +423,9 @@ namespace ProjectRidge.EditorTools
         static Mesh CollisionMesh(Mesh visual) => ChunkyMeshGenerator.Save(MeshDecimator.Decimate(visual, 200, visual.name + "_Col"));
 
         /// <summary>Triángulos máximos por roca en móvil (POLISH_PASS 3.9).</summary>
-        const int MaxRockTriangles = 3000;
+        const int MaxRockTriangles = 1600; // medido 2026-10-27: a 3000 las rocas de terraza eran ~300k triángulos por cuadro (cámara + sombra)
+        /// <summary>Resolución de la que sale el colisionador (la de antes de bajar la visual: la cobertura y las líneas de vista de los Lurker no cambian).</summary>
+        const int CollisionSourceTriangles = 3000;
 
         /// <summary>Mapa de densidad del último Build (lo usan el pasto y los ajustes del jugador).</summary>
         static HideDensityMap densityMap;

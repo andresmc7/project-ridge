@@ -2,6 +2,16 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Rendimiento: perfil iPhone restaurado, triángulos a la mitad, checkpoint de la sala 4 fuera de la vista
+Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 266 s** (2 muertes, 1 captura del reflector tras la radio). `PolishTests.Run("P3")` → **6/6** (papá 9.7–11.2%, sombra 54%, islas de luz 3.6%).
+
+- **Perfil iPhone perdido** (encontrado al medir): el nivel de calidad `Mobile` desapareció el 2026-10-20 al reserializarse `QualitySettings` (commit 1ba7a37), y `PC` excluye iPhone y Android: un build de iOS no tenía ningún nivel válido y lo de "perfil iPhone" del 2026-10-19 había dejado de ser cierto. `QualityBuilder.EnsureLevels()` (en Build All) lo vuelve a crear con los valores originales: `Mobile_RPAsset`, iPhone/Android → Mobile, Windows → PC. Probado en el editor forzando `Mobile_RPAsset`: mismo look.
+- **Triángulos por cuadro** (perfil Mobile, 5 puntos del nivel; antes / ahora): cabaña 1752k → **847k**; resto 838k–1135k (render 4.7–5.8 ms en la RTX 4070). Desglose medido apagando grupos: `GroundDetail` era el 43% (752k): las piedritas de 7–20 cm usaban la malla de roca de 3000 triángulos; ahora una de 120. Rocas de terraza y sueltas de 3000 → 1600 triángulos (sin diferencia visible a la distancia de cámara, `rocks3000.png` / `rocks1600.png`); el colisionador sigue saliendo de la versión de 3000.
+- Pendientes de rendimiento: 552–829 batches (árboles con viento sin combinar: 221), 326–485 proyectores de sombra. `UNVERIFIED`: todo en dispositivo (FPS, térmica, memoria).
+- **Regresión encontrada y arreglada**: con el colisionador sacado de la malla de 1600, Lurker_B veía el checkpoint de la sala 4 (24, 0) desde su parada a 7.9 m y al reaparecer lo volvía a cazar (9 muertes seguidas). El colisionador vuelve a salir de la malla de 3000 y, para que no dependa de unos centímetros, el checkpoint pasa a (23, 0.4) y las paradas del oeste de Lurker_B a x = 32.4 (distancias 9.7 y 10.8 m; alcance de vista 9). Mismo riesgo visto en el campamento (parada de Lurker_C a 7.2 m del checkpoint): no produjo bucles en las corridas, `UNVERIFIED`.
+- **Charcos de farol en la vista de juego**: con bloom se leían como discos naranjas; color a 2/3 (0.8, 0.24, 0.035). Las capturas `Shots.Capture` muestran menos bloom que la vista de juego: los juicios de look se hicieron con `ScreenCapture` de la vista de juego.
+- **P3**: la pose baja era el idle tenso (la aparición con guion de la sala 1 activa un Lurker a ≤ 14 m) o la mirada atrás; la prueba ahora apaga la aparición y espera a que pasen ambos. Cada toma anota clip, altura de la cabeza, caída de cadera y tensión.
+
 ## 2026-10-27 — Dirección de arte: orillas de roca, charcos de farol sin anillos, P3 6/6
 Editor, play mode vía Unity MCP. `PolishTests.Run("P3")` → **6/6** (papá 9.8–11.1%, sombra 56%, islas de luz 4.5%; cada toma ≥ 3.3%). Capturas: `banks_before.png` / `banks_after.png` (arroyo), `pools_after.png` (pasillo sala 2 → 3), `P3_after_0..4.png`.
 

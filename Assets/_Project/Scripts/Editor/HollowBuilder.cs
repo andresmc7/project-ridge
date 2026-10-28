@@ -438,7 +438,10 @@ namespace ProjectRidge.EditorTools
             mr.sharedMaterial = MossyRockMaterial();
             mr.receiveGI = ReceiveGI.LightProbes;
             var mc = go.AddComponent<MeshCollider>();
-            mc.sharedMesh = CollisionMesh(mesh); // convexo dentro del límite de 256 polígonos
+            // Convexo dentro del límite de 256 polígonos, sacado de la malla de 3000: con la visual de 1600 el colisionador
+            // cambiaba unos cm y la roca de cobertura de la sala 4 dejaba de tapar al papá en el checkpoint.
+            var collisionSource = PolyHavenRockMesh(sources[variant % sources.Length], "PH_" + name + "_ColSrc", size, CollisionSourceTriangles);
+            mc.sharedMesh = CollisionMesh(collisionSource);
             mc.convex = true;
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
             var saved = PrefabUtility.SaveAsPrefabAsset(go, PrefabDir + "/" + name + ".prefab");
@@ -648,7 +651,13 @@ namespace ProjectRidge.EditorTools
                 return false;
             }
             var pebbleMeshes = new Mesh[4];
-            for (int i = 0; i < 4; i++) pebbleMeshes[i] = RockPrefab(i, false, m).GetComponent<MeshFilter>().sharedMesh;
+            // Piedritas de 7–20 cm: 120 triángulos bastan (con la malla de roca de 3k, GroundDetail era el 43% de los
+            // triángulos del cuadro, 752k de 1.7M).
+            for (int i = 0; i < 4; i++)
+            {
+                var rock = RockPrefab(i, false, m).GetComponent<MeshFilter>().sharedMesh;
+                pebbleMeshes[i] = ChunkyMeshGenerator.Save(MeshDecimator.Decimate(rock, 120, "PH_HollowPebble_" + i));
+            }
             var twig = LogMesh(0.9f, 0.035f);
             var (leafA, leafN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Leaves, 23);
             var fernMat = WindMaterial("Hollow_FernWind", leafA, leafN, new Color(0.62f, 0.78f, 0.55f), 0.18f, 0.08f, 1.6f, 0.03f, true, 0.4f);

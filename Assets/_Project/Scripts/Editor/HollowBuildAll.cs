@@ -29,6 +29,7 @@ namespace ProjectRidge.EditorTools
             log.AppendLine(MusicBuilder.Assign());
             MusicBuilder.StreamLongMusic();
             log.AppendLine(SoundSynth.SetupScene());
+            log.AppendLine(QualityBuilder.EnsureLevels());
             return log.ToString();
         }
     }

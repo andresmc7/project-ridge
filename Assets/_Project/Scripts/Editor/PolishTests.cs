@@ -494,6 +494,8 @@ namespace ProjectRidge.EditorTools
             yield return PassTitle();
             Calm();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            // También la aparición con guion de la sala 1: se enciende al pasar y, a ≤ 14 m, pone al papá en idle tenso (encorvado).
+            foreach (var a in Object.FindObjectsByType<ScriptedApparition>(FindObjectsInactive.Include, FindObjectsSortMode.None)) a.gameObject.SetActive(false);
             var rig = Object.FindFirstObjectByType<ProjectRidge.CameraRig.IsoCameraRig>();
 
             // Escala del personaje y luz: en varias salas, quieto.
@@ -509,14 +511,14 @@ namespace ProjectRidge.EditorTools
                 // Ni durante la mirada atrás de P7 (tras 6 s quieto, acumulados entre teletransportes): es una pose baja.
                 var anim = player.GetComponentInChildren<FatherAnimator>().GetComponent<Animator>(); // (el Player tiene otro Animator vacío)
                 bool lookedAround = false;
-                while (anim.GetCurrentAnimatorStateInfo(0).IsName("LookAround") && Time.time < standBy) { lookedAround = true; yield return 0.2f; }
+                while ((anim.GetCurrentAnimatorStateInfo(0).IsName("LookAround") || player.GetComponentInChildren<FatherAnimator>().Tension > 0.05f) && Time.time < standBy) { lookedAround = true; yield return 0.2f; }
                 if (lookedAround) yield return 0.6f; // fin de la transición de vuelta al idle
                 float h = DadScreenHeight();
                 hMin = Mathf.Min(hMin, h); hMax = Mathf.Max(hMax, h);
                 string file = ProgressDir + "P3_after_" + n + ".png";
                 Shots.Capture(file, player.transform.position);
                 var (dark, bright, mean) = Shots.Histogram(file);
-                Debug.Log("POLISH: P3 shot " + n + " at " + s + ": dad " + (h * 100f).ToString("0.0") + "% of height, dark " + (dark * 100f).ToString("0") + "%, bright " + (bright * 100f).ToString("0.0") + "%, mean " + mean.ToString("0.000") + ", clip " + (anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-") + ", head " + (anim.GetBoneTransform(HumanBodyBones.Head).position.y - player.transform.position.y).ToString("0.00") + " m, hip " + player.GetComponentInChildren<FatherAnimator>().HipOffset.ToString("0.00") + " m");
+                Debug.Log("POLISH: P3 shot " + n + " at " + s + ": dad " + (h * 100f).ToString("0.0") + "% of height, dark " + (dark * 100f).ToString("0") + "%, bright " + (bright * 100f).ToString("0.0") + "%, mean " + mean.ToString("0.000") + ", clip " + (anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-") + ", head " + (anim.GetBoneTransform(HumanBodyBones.Head).position.y - player.transform.position.y).ToString("0.00") + " m, hip " + player.GetComponentInChildren<FatherAnimator>().HipOffset.ToString("0.00") + " m, tension " + player.GetComponentInChildren<FatherAnimator>().Tension.ToString("0.00"));
                 darkSum += dark; brightSum += bright;
                 n++;
             }
