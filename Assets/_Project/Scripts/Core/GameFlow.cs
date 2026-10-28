@@ -386,6 +386,7 @@ namespace ProjectRidge.Core
 
             body.enabled = false;
             player.transform.SetPositionAndRotation(checkpointPos, checkpointRot);
+            player.CancelStandingTurn();
             body.enabled = true;
             health.Restore();
             foreach (var enemy in EnemyController.Active.ToArray())

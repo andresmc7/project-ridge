@@ -50,6 +50,10 @@ namespace ProjectRidge.Player
         /// <summary>Girando en el sitio (pasos de giro): no avanza hasta terminar.</summary>
         public bool TurningInPlace => turnRemaining != 0f;
 
+        /// <summary>Corta un giro en el sitio pendiente (al reaparecer o teletransportar: si no, el papá terminaba el giro
+        /// que había empezado antes y aparecía mirando a otro lado).</summary>
+        public void CancelStandingTurn() => turnRemaining = 0f;
+
         public event Action<MovementMode> ModeChanged;
         /// <summary>Empieza un giro en el sitio: ángulo con signo (° , positivo = a la derecha) y duración (s).</summary>
         public event Action<float, float> StandingTurnStarted;

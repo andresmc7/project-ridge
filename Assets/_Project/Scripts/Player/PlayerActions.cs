@@ -37,6 +37,16 @@ namespace ProjectRidge.Player
             target = null;
             Target = null;
             if (health.IsDead || controller.InputLocked) return Context.None;
+            // El combate urgente va primero: con un objeto al lado, ACCIÓN recogía en vez de derribar al Lurker por la
+            // espalda (o de golpear al que te está atacando).
+            var urgent = NearestLurker(config.strikeContextRange);
+            if (urgent != null && !urgent.IsDown && (combat.CanTakedown(urgent) || urgent.IsHunting))
+            {
+                target = urgent;
+                Target = urgent;
+                if (combat.CanTakedown(urgent)) return Context.Takedown;
+                return combat.HasClub ? Context.Strike : Context.Shove;
+            }
             var it = interactor.Peek();
             if (it != null)
             {

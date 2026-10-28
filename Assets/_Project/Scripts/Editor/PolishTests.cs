@@ -113,6 +113,7 @@ namespace ProjectRidge.EditorTools
             int fails = 0;
             foreach (var r in results) if (r.StartsWith("FAIL")) fails++;
             Debug.Log("POLISH: DONE " + phase + " " + (results.Count - fails) + "/" + results.Count + " passed\n" + string.Join("\n", results));
+            PolishSuite.Report(phase, results.Count - fails, results.Count, string.Join("\n", results.FindAll(r => r.StartsWith("FAIL"))));
             // Sale de play mode al terminar (ver LoopBot.StopPlayWhenDone).
             if (StopPlayWhenDone) EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
         }
@@ -145,6 +146,7 @@ namespace ProjectRidge.EditorTools
             cc.enabled = true;
             var rescue = player.GetComponent<PlayerFallRecovery>();
             if (rescue != null) rescue.Forget();
+            player.CancelStandingTurn();
         }
 
         static Vector3 Ground(float x, float z)
@@ -509,21 +511,28 @@ namespace ProjectRidge.EditorTools
             foreach (var s in LookSpots)
             {
                 Teleport(Ground(s.x, s.y));
+                // La escala se mide con la cámara a su distancia normal: un haz cerca la aleja (ThreatBlend) según la fase
+                // del barrido, y junto al reflector S4 nunca vuelve. Haces apagados para medir; encendidos para el histograma.
+                var beams = new List<GameObject>();
+                foreach (var b in new List<Searchlight>(Searchlight.Active)) { beams.Add(b.gameObject); b.gameObject.SetActive(false); }
                 yield return 1.5f;
                 // La escala se mide de pie: si el sigilo automático lo agachó (un haz pasando cerca), esperar a que se levante.
-                float standBy = Time.time + 8f;
+                float standBy = Time.time + 4f; // corto: la mirada atrás llega a los 6 s quieto
                 while (player.IsCrouching && Time.time < standBy) yield return 0.2f;
                 // Ni durante la mirada atrás de P7 (tras 6 s quieto, acumulados entre teletransportes): es una pose baja.
                 var anim = player.GetComponentInChildren<FatherAnimator>().GetComponent<Animator>(); // (el Player tiene otro Animator vacío)
                 bool lookedAround = false;
-                while ((anim.GetCurrentAnimatorStateInfo(0).IsName("LookAround") || player.GetComponentInChildren<FatherAnimator>().Tension > 0.05f) && Time.time < standBy) { lookedAround = true; yield return 0.2f; }
+                while ((anim.GetCurrentAnimatorStateInfo(0).IsName("LookAround") || player.GetComponentInChildren<FatherAnimator>().Tension > 0.05f || rig.ThreatBlend > 0.05f) && Time.time < standBy) { lookedAround = true; yield return 0.2f; }
                 if (lookedAround) yield return 0.6f; // fin de la transición de vuelta al idle
                 float h = DadScreenHeight();
                 hMin = Mathf.Min(hMin, h); hMax = Mathf.Max(hMax, h);
+                float blendAtMeasure = rig.ThreatBlend;
+                foreach (var b in beams) b.SetActive(true);
+                yield return 0.2f; // unos cuadros para que los haces se dibujen (con 1 s la cámara volvía a alejarse)
                 string file = ProgressDir + "P3_after_" + n + ".png";
                 Shots.Capture(file, player.transform.position);
                 var (dark, bright, mean) = Shots.Histogram(file);
-                Debug.Log("POLISH: P3 shot " + n + " at " + s + ": dad " + (h * 100f).ToString("0.0") + "% of height, dark " + (dark * 100f).ToString("0") + "%, bright " + (bright * 100f).ToString("0.0") + "%, mean " + mean.ToString("0.000") + ", clip " + (anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-") + ", head " + (anim.GetBoneTransform(HumanBodyBones.Head).position.y - player.transform.position.y).ToString("0.00") + " m, hip " + player.GetComponentInChildren<FatherAnimator>().HipOffset.ToString("0.00") + " m, tension " + player.GetComponentInChildren<FatherAnimator>().Tension.ToString("0.00"));
+                Debug.Log("POLISH: P3 shot " + n + " at " + s + ": dad " + (h * 100f).ToString("0.0") + "% of height, dark " + (dark * 100f).ToString("0") + "%, bright " + (bright * 100f).ToString("0.0") + "%, mean " + mean.ToString("0.000") + ", clip " + (anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-") + ", head " + (anim.GetBoneTransform(HumanBodyBones.Head).position.y - player.transform.position.y).ToString("0.00") + " m, hip " + player.GetComponentInChildren<FatherAnimator>().HipOffset.ToString("0.00") + " m, tension " + player.GetComponentInChildren<FatherAnimator>().Tension.ToString("0.00") + ", threat blend at measure " + blendAtMeasure.ToString("0.00"));
                 darkSum += dark; brightSum += bright;
                 n++;
             }
@@ -535,12 +544,15 @@ namespace ProjectRidge.EditorTools
             Teleport(Ground(-54f, 0f));
             yield return 1f;
             var cam = Camera.main.transform;
-            float idleOffset = cam.position.x - player.transform.position.x;
+            // Línea base con la cámara quieta: tras el salto desde la última toma, el amortiguado tarda en llegar.
+            float idleOffset = cam.position.x - player.transform.position.x, settleUntil = Time.time + 4f;
+            for (float prev = float.MaxValue; Mathf.Abs(idleOffset - prev) > 0.005f && Time.time < settleUntil; )
+            { prev = idleOffset; yield return 0.2f; idleOffset = cam.position.x - player.transform.position.x; }
             yield return Hold(new Vector2(0.9f, 0f), 2f);
             float runOffset = cam.position.x - player.transform.position.x;
             Stick(Vector2.zero);
             float ahead = runOffset - idleOffset;
-            Check("look-ahead in the direction of travel", ahead > 0.9f && ahead < 2.2f, "camera leads by " + ahead.ToString("0.00") + " m");
+            Check("look-ahead in the direction of travel", ahead > 0.9f && ahead < 2.2f, "camera leads by " + ahead.ToString("0.00") + " m (idle offset " + idleOffset.ToString("0.00") + ")");
             yield return 1f;
 
             // Foco del tilt-shift en el papá.
@@ -1024,14 +1036,26 @@ namespace ProjectRidge.EditorTools
 
             // Giro en el sitio a cada lado: pasos sin avanzar y luego camina.
             var sides = new List<string>();
+            string turnLog = "";
+            // Sin amenazas cerca: con un haz o la aparición en rango, el sigilo automático lo agacha y lo gira de espaldas a la
+            // cobertura mientras espera, y el giro en el sitio (que exige estar de pie) no se pide.
+            var muted = new List<GameObject>();
+            foreach (var s in new List<Searchlight>(Searchlight.Active)) { muted.Add(s.gameObject); s.gameObject.SetActive(false); }
+            foreach (var a in Object.FindObjectsByType<ScriptedApparition>(FindObjectsSortMode.None)) { muted.Add(a.gameObject); a.gameObject.SetActive(false); }
             float maxSlide = 0f;
             foreach (var dir in new[] { new Vector2(0f, walkTilt), new Vector2(0f, -walkTilt) })
             {
-                Teleport(Ground(-54f, 0f));
+                Teleport(Ground(-51f, 0f)); // a 3 m de los postes de farol: junto a uno, AutoStance lo gira de espaldas a la "cobertura"
                 player.transform.rotation = Quaternion.LookRotation(Vector3.right);
+                player.CancelStandingTurn();
                 yield return 1.2f;
+                // Que termine lo que venía de la prueba anterior (la frenada tras el pivote seguía sonando en el primer
+                // giro y el pedido de giro no entraba): esperar al idle de locomoción.
+                float settle = Time.time + 3f;
+                while ((!fatherAnim.GetCurrentAnimatorStateInfo(0).IsName("Locomotion") || fatherAnim.IsInTransition(0)) && Time.time < settle) yield return null;
                 seenStates.Clear();
                 Vector3 from = player.transform.position;
+                turnLog += " (at press: speed " + player.CurrentSpeed.ToString("0.00") + ", mult " + player.SpeedMultiplier.ToString("0.00") + ", crouch " + player.IsCrouching + ", yaw " + player.transform.eulerAngles.y.ToString("0") + ")";
                 Stick(dir);
                 float limit = Time.time + 1.5f;
                 while (Time.time < limit)
@@ -1040,13 +1064,15 @@ namespace ProjectRidge.EditorTools
                     if (player.TurningInPlace) maxSlide = Mathf.Max(maxSlide, Vector3.Distance(Flat(from), Flat(player.transform.position)));
                     yield return null;
                 }
+                turnLog += (dir.y > 0f ? " [north: " : " [south: ") + string.Join(",", seenStates) + ", yaw " + player.transform.eulerAngles.y.ToString("0") + ", crouch " + player.IsCrouching + "]";
                 if (seenStates.Contains("TurnLeft")) sides.Add("left");
                 if (seenStates.Contains("TurnRight")) sides.Add("right");
                 Stick(Vector2.zero);
                 yield return 1f;
             }
+            foreach (var go in muted) go.SetActive(true);
             Check("turn in place both ways (steps, no sliding)", sides.Contains("left") && sides.Contains("right") && maxSlide < 0.15f,
-                  "sides " + string.Join("+", sides) + ", moved " + maxSlide.ToString("0.00") + " m while turning");
+                  "sides " + string.Join("+", sides) + ", moved " + maxSlide.ToString("0.00") + " m while turning;" + turnLog);
 
             // Inclinación en curva: trotando en círculo hacia la derecha.
             Teleport(Ground(-55f, 0f));

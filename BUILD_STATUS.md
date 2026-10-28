@@ -2,6 +2,31 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Regresión completa de POLISH_PASS (P0–P8 + SNEAK)
+Editor, play mode vía Unity MCP. Nueva `PolishSuite.RunAll()` (menú *Project Ridge/QA/Run all polish tests*): cada fase en su propia sesión de play con el nivel recién cargado; resumen en la consola al final y `runInBackground` vuelve a 0.
+
+| Fase | Antes de este bloque | Ahora |
+|---|---|---|
+| P0 | 8/8 | **8/8** |
+| P1 | 11/12 | **12/12** |
+| P2 | 5/5 | **5/5** |
+| P3 | 5/6 | **6/6** |
+| P4 | 5/5 | **5/5** |
+| P5 | 5/5 | **5/5** |
+| P6 | 5/5 | **5/5** |
+| P7 | 6/7 | **7/7** |
+| P8 | 9/9 | **9/9** |
+| SNEAK | 2/2 | **2/2** |
+
+Corrida final: **64/64** en una sola pasada, sin excepciones en la consola.
+
+- **Arreglo del juego (P1)**: con un objeto recogible al lado, ACCIÓN recogía en vez de derribar al Lurker por la espalda (o de golpear al que te ataca). `PlayerActions` resuelve ahora primero el combate urgente (derribo posible o Lurker cazando a alcance de golpe) y después pistas/objetos.
+- **Arreglo del juego (reaparecer)**: `GameFlow` cancela el giro en el sitio pendiente al reaparecer (`PlayerController.CancelStandingTurn`); el papá podía terminar en el checkpoint un giro empezado antes de morir.
+- **P7 (la prueba, no el juego)**: el giro medido lo alteraba `AutoStance`, que agachado junto a una cobertura con una amenaza cerca vuelve la espalda a la cobertura. La prueba se hace lejos de amenazas (−51, 0), con reflectores y apariciones apagados, y espera al estado de locomoción.
+- **P3 (la prueba, no el juego)**: la cámara se aleja con `ThreatBlend` cerca de los haces, lo que falseaba la escala del papá; la altura se mide con los haces apagados y el histograma con los haces encendidos 0.2 s después (con 1 s entraba la animación de mirar alrededor). La línea base de "mirar adelante" espera a que la cámara se asiente tras el salto desde la última toma (antes 2.40 m por un amortiguado a medias; ahora 1.52 m).
+- Histograma de P3 justo en el límite: **51%** de sombra profunda (pide ≥ 50%), 4.6% de islas de luz. Un cambio de iluminación lo puede tumbar.
+- `UNVERIFIED` (sin cambios): pruebas en dispositivo, audio a oído, un humano terminando el nivel, rendimiento en iPhone/iPad.
+
 ## 2026-10-28 — Aviso de sigilo (cómo descubrir que el stick suave agacha)
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("SNEAK")` → **2/2**; regresión `PolishTests.Run("P8")` → **9/9**.
 
