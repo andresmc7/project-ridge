@@ -2,6 +2,20 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Mezcla medida en una partida real y limitador maestro
+Editor, play mode vía Unity MCP. `MixRecorder` (en el AudioListener) graba la salida final del juego durante una corrida del bot y `MixReport.Analyze()` la mide: loudness integrado (BS.1770, el medidor de P8), pico de muestra, muestras saturadas y loudness de corto plazo (3 s).
+
+| Grabación | Integrado | Pico | Saturadas | Rango 3 s (p10–p95) |
+|---|---|---|---|---|
+| Antes, nivel completo (264 s) | −20.1 LUFS | **+1.3 dBFS** | **83** (t ≈ 210–214 s: radio + captura + persecución) | 7.6 LU |
+| Con limitador, nivel (284 s) | **−15.2 LUFS** | **−1.0 dBFS** | 0 | 7.5 LU |
+| Con limitador, campamento + radio + final (55 s) | −16.8 LUFS | −1.0 dBFS | 0 | 5.5 LU |
+
+- `MasterLimiter` en el AudioListener (lo pone `SoundSynth.SetupScene` en Build All): +4 dB de ganancia, techo −1 dBFS con ataque instantáneo (la ganancia se calcula con la muestra actual: nunca pasa del techo) y liberación de 150 ms. Objetivo de juego en móvil −16 LUFS ± 2: dentro, sin aplastar la dinámica (el rango de corto plazo casi no cambia).
+- `UNVERIFIED`: cómo suena (bombeo del limitador en la radio, balance música/efectos); costo del limitador en el hilo de audio de un iPhone (un bucle por muestra, debería ser mínimo).
+- Visto en la corrida del nivel con el limitador (no relacionado con el audio): el bot murió en la sala 2 siete segundos antes que en las corridas buenas y entró a la sala 4 en otra fase de la patrulla de Lurker_B; como al reaparecer el Lurker vuelve siempre al mismo punto, repitió la muerte 8 veces entre el checkpoint y el escondite (28.6, −2.6) y FALLÓ. La corrida anterior del mismo día terminó (264 s). La entrada de la sala 4 sigue siendo frágil para el bot según la fase: `UNVERIFIED` para un jugador.
+- Corrección de la entrada anterior: en táctil el juego ya resuelve el cruce de la sala 2. Con un Lurker cerca y el stick inclinado < 0.35, el sigilo automático agacha al papá (pisadas de 1.2 m); el bot camina a 0.45 (de pie, 3.5 m). Lo pendiente es que el jugador descubra esa mecánica.
+
 ## 2026-10-27 — QA: el bot y las pruebas salen solos de play mode; la muerte fija de la sala 2 → 3
 Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 264 s** (2 muertes, 1 captura), igual que antes.
 

@@ -1073,10 +1073,14 @@ namespace ProjectRidge.EditorTools
             PrefabUtility.SaveAsPrefabAsset(prefabRoot, prefabPath);
             PrefabUtility.UnloadPrefabContents(prefabRoot);
 
+            // Limitador de la mezcla final junto al AudioListener (sube a ~−16 LUFS sin pasar de −1 dBFS).
+            var listener = Object.FindFirstObjectByType<AudioListener>();
+            if (listener != null && !listener.TryGetComponent(out ProjectRidge.Core.MasterLimiter _)) listener.gameObject.AddComponent<ProjectRidge.Core.MasterLimiter>();
+
             var scene = UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene();
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
-            return "audio director in " + scene.path;
+            return "audio director in " + scene.path + (listener != null ? ", master limiter on " + listener.name : ", NO AudioListener");
         }
     }
 }
