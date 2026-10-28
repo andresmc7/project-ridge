@@ -57,6 +57,7 @@ namespace ProjectRidge.EditorTools
                 "P8" => P8(),
                 "SNEAK" => SneakHintTest(),
                 "CPSAFE" => CheckpointSafety(),
+                "SKATE" => FootSkate(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -800,6 +801,91 @@ namespace ProjectRidge.EditorTools
                 Searchlight.ResetAllExposure();
             }
             Check("every checkpoint safe for 30 s standing still after respawn", safe == total, safe + "/" + total + " safe — " + report);
+        }
+
+        /// <summary>
+        /// Pies que patinan (P7, sección 4: "60 s sin animaciones que patinen o floten"): unos 60 s de manejo con el stick
+        /// (caminar, trotar, sigilo, arranques, frenadas, giros) midiendo cada cuadro la velocidad horizontal del pie que
+        /// está apoyado (a ≤ 3 cm de su altura en reposo). Un pie apoyado que se mueve a más de 0.3 m/s se ve deslizar.
+        /// </summary>
+        static IEnumerator FootSkate()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var anim = player.transform.Find("Visual").GetComponent<Animator>();
+            var feet = new[] { anim.GetBoneTransform(HumanBodyBones.LeftFoot), anim.GetBoneTransform(HumanBodyBones.RightFoot) };
+            const float PlantMargin = 0.03f, SkateSpeed = 0.3f;
+
+            // Altura de cada pie en reposo (sobre la raíz del papá), en un claro llano de la sala 1.
+            Teleport(Ground(-58f, 0f));
+            yield return 2f;
+            var rest = new float[2];
+            for (int f = 0; f < 2; f++) rest[f] = feet[f].position.y - player.transform.position.y;
+
+            var script = new (Vector2 stick, float seconds)[]
+            {
+                (new Vector2(0.45f, 0f), 4f), (Vector2.zero, 1.5f), (new Vector2(0.9f, 0f), 3f), (Vector2.zero, 1.5f),
+                (new Vector2(-0.45f, 0f), 3f), (new Vector2(0f, 0.45f), 2f), (new Vector2(0.45f, 0f), 2f), (Vector2.zero, 1.2f),
+                (new Vector2(0.25f, 0f), 4f), (Vector2.zero, 1f), (new Vector2(-0.9f, 0.2f), 3f), (new Vector2(0.9f, -0.2f), 2.5f),
+                (Vector2.zero, 1.5f), (new Vector2(0f, -0.6f), 2.5f), (new Vector2(0.6f, 0.6f), 2.5f), (new Vector2(-0.6f, 0.6f), 2f),
+                (Vector2.zero, 1.2f), (new Vector2(0.45f, 0f), 3f), (new Vector2(-0.45f, 0f), 1.5f), (new Vector2(0.45f, 0f), 1.5f),
+                (Vector2.zero, 1.5f), (new Vector2(1f, 0f), 4f), (new Vector2(-1f, 0f), 2f), (Vector2.zero, 2f),
+                (new Vector2(0.3f, 0.3f), 3f), (Vector2.zero, 2f),
+            };
+            var planted = new Dictionary<string, int>();
+            var skating = new Dictionary<string, int>();
+            var speedSum = new Dictionary<string, float>();
+            var last = new Vector3[2];
+            int frame = -1, totalPlanted = 0, totalSkating = 0;
+            float driven = 0f, worst = 0f;
+            string worstClip = "";
+            bool first = true;
+            float lastTime = 0f;
+            foreach (var (stick, seconds) in script)
+            {
+                Stick(stick);
+                float end = Time.time + seconds;
+                while (Time.time < end)
+                {
+                    yield return 0f;
+                    if (Time.frameCount == frame) continue;
+                    frame = Time.frameCount;
+                    float dt = Time.time - lastTime;
+                    lastTime = Time.time;
+                    var clips = anim.GetCurrentAnimatorClipInfo(0);
+                    string clip = clips.Length > 0 ? clips[0].clip.name : "-";
+                    for (int f = 0; f < 2; f++)
+                    {
+                        Vector3 p = feet[f].position;
+                        if (!first && dt > 0f)
+                        {
+                            float h = p.y - player.transform.position.y;
+                            if (h <= rest[f] + PlantMargin)
+                            {
+                                float v = new Vector2(p.x - last[f].x, p.z - last[f].z).magnitude / dt;
+                                planted[clip] = planted.GetValueOrDefault(clip) + 1;
+                                speedSum[clip] = speedSum.GetValueOrDefault(clip) + v;
+                                totalPlanted++;
+                                if (v > SkateSpeed) { skating[clip] = skating.GetValueOrDefault(clip) + 1; totalSkating++; }
+                                if (v > worst) { worst = v; worstClip = clip; }
+                            }
+                        }
+                        last[f] = p;
+                    }
+                    first = false;
+                    driven += dt;
+                }
+            }
+            Stick(Vector2.zero);
+            var sb = new System.Text.StringBuilder();
+            foreach (var kv in planted)
+                if (kv.Value >= 10)
+                    sb.Append(kv.Key + " " + (100f * skating.GetValueOrDefault(kv.Key) / kv.Value).ToString("0") + "% (mean " + (speedSum[kv.Key] / kv.Value).ToString("0.00") + " m/s, n " + kv.Value + "); ");
+            float share = totalPlanted > 0 ? (float)totalSkating / totalPlanted : 1f;
+            Debug.Log("POLISH: SKATE per clip — " + sb);
+            Check("planted feet do not slide (≤ 10% of planted foot-frames above 0.3 m/s over ~60 s)", share <= 0.1f,
+                  (share * 100f).ToString("0.0") + "% skating of " + totalPlanted + " planted foot-frames in " + driven.ToString("0") + " s; worst " + worst.ToString("0.00") + " m/s in " + worstClip + "; rest heights " + rest[0].ToString("0.00") + "/" + rest[1].ToString("0.00") + " m");
         }
 
         static IEnumerator P8()

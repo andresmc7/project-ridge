@@ -2,6 +2,10 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Prueba de pies que patinan (SKATE): escrita, sin resultado todavía
+- Nueva `PolishTests.Run("SKATE")`: unos 60 s de manejo con el stick en un claro de la sala 1 (caminar, trotar, sigilo, arranques, frenadas, giros), sin Lurkers ni haces, midiendo cada cuadro la velocidad horizontal de cada pie apoyado (≤ 3 cm sobre su altura en reposo). Pasa si ≤ 10% de esos cuadros superan 0.3 m/s; anota el porcentaje por clip. Convierte en dato el pendiente de P7 "60 s sin animaciones que patinen o floten".
+- Primera corrida: excepción al empezar (tomaba un Animator sin avatar; se cambió por el del objeto `Visual`, igual que la prueba de P7). El editor se cerró (cierre normal, no un crash) antes de recompilar: `UNVERIFIED` que compile y su resultado. Siguiente paso: `PolishSuite.Run("SKATE")`.
+
 ## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CPSAFE")` (incluida en `PolishSuite.RunAll`).
 
