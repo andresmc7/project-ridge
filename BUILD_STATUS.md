@@ -13,7 +13,7 @@ Editor, play mode vía Unity MCP; capturas de S3 (sala 3) y S4 (campamento) en v
   - Sin banda brillante junto al borde.
   - Anillo de aviso de 1.3 a 0.8 (sigue fino y parpadeante, como pide POLISH_PASS 3.10), también en `HollowProps`.
 - Resultado en captura: en S3 la pared del escalón queda oscura y la luz se lee como caída sobre los dos niveles; en S4 ilumina el suelo y el tope de las rocas, sin cortes rectos.
-- Regresión: P2 **5/5**; P3: 5 de 6 comprobaciones pasaron (escala, histograma 51% sombra / 4.2% islas de luz, mirar adelante, foco, amenaza). El editor se cerró (cierre normal con guardado de layout, no un crash) durante la prueba del desvanecido de oclusores, así que esa comprobación y P5 quedaron sin correr: `UNVERIFIED` tras este cambio (el desvanecido no usa este shader).
+- Regresión: P2 **5/5**, P3 **6/6** (histograma 51% sombra / 4.2% islas de luz; desvanecido de oclusores OK), P5 **5/5**. La primera corrida se cortó al cerrarse el editor; P3 y P5 se repitieron completas tras reabrirlo.
 - `UNVERIFIED`: cómo se ve el borde ondulado en movimiento a 30 fps en un iPhone.
 
 ## 2026-10-28 — Rendimiento: de dónde salen los batches (desglose) y prueba de static batching en los abetos (descartada)
