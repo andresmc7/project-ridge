@@ -765,7 +765,7 @@ namespace ProjectRidge.EditorTools
             Cp("CP_FirstLight", -48.5f, 0f, new Vector3(3f, 3f, 4.5f), "Stay out of the red light.");
             Cp("CP_Creek", -26f, 0f, new Vector3(3f, 3f, 4.5f), "Cross the creek.");
             Cp("CP_TwoLights", 0.2f, 0.7f, new Vector3(3f, 3f, 4.5f), "Slip between the lights.");
-            Cp("CP_Thicket", 23f, 0.4f, new Vector3(3f, 3f, 4.5f), "Find where they went."); // a ≥ 9.7 m de las paradas de Lurker_B (alcance 9)
+            Cp("CP_Thicket", 22.4f, 0.5f, new Vector3(3f, 3f, 4.5f), "Find where they went."); // a ≥ 9.4 m de las paradas de Lurker_B (alcance 9), fuera del barrido de S2
             Cp("CP_Camp", 47.6f, -0.5f, new Vector3(3f, 3f, 4.5f), "Reach the ranger truck.");
             // Fuera de la ruta de S5 y de los reflectores del clímax (que se apagan al morir).
             Cp("CP_Radio", 58.6f, -2f, new Vector3(3f, 3f, 6f), "Use the truck's radio.");

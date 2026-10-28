@@ -134,9 +134,9 @@ namespace ProjectRidge.EditorTools
         static readonly (string name, Vector2[] pts)[] Patrols =
         {
             ("Lurker", new[] { new Vector2(-4.6f, 5f), new Vector2(-4.6f, -5.2f) }),
-            // Las paradas del oeste en x = 32.4 (antes 31.4): desde ahí veía el checkpoint de la sala 4 a 7.9–8.6 m y al reaparecer
-            // lo volvía a cazar (bucle de muertes).
-            ("Lurker_B", new[] { new Vector2(32.4f, 2.9f), new Vector2(40.6f, 2.9f), new Vector2(40.6f, -4.9f), new Vector2(32.4f, -4.9f) }),
+            // Línea oeste en x = 31.4: a 32.4 atravesaba el tronco de cobertura (32.6, −1.2), el Lurker lo rodeaba por el oeste
+            // y quedaba más cerca del checkpoint de lo previsto.
+            ("Lurker_B", new[] { new Vector2(31.4f, 2.9f), new Vector2(40.6f, 2.9f), new Vector2(40.6f, -4.9f), new Vector2(31.4f, -4.9f) }),
             ("Lurker_C", new[] { new Vector2(54.5f, 5.6f), new Vector2(59.6f, 5.8f), new Vector2(60f, 0.4f), new Vector2(54.8f, 0.2f) }),
             ("Lurker_D", new[] { new Vector2(70.6f, 5f), new Vector2(70.6f, -5f) }),
         };

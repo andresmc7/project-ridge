@@ -2,6 +2,12 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Sala 4: el bucle de muertes era un tronco en la ruta del Lurker
+Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 265 s** (2 muertes, 1 captura; ninguna en la sala 4). Sala 4 sola desde su checkpoint en t = 0 (`RunFrom(23, 44)`, la fase en que antes moría al instante): **cruzada en 37 s sin muertes**. `ValidateLayout`: OK.
+
+- Causa (la introduje el 2026-10-27): al llevar las paradas del oeste de Lurker_B a x = 32.4, su línea de patrulla atravesó el tronco de cobertura de (32.6, −1.2); el Lurker lo rodeaba por el oeste (visto en x ≈ 31.7), quedaba más cerca del checkpoint de lo previsto y la predicción del bot (líneas rectas) fallaba según la fase.
+- Arreglo: la patrulla vuelve a x = 31.4 (libre del tronco) y el checkpoint se aleja a (22.4, 0.5): 9.4 y 10.8 m de las paradas (alcance 9), fuera del barrido del reflector S2.
+
 ## 2026-10-28 — Mezcla medida en una partida real y limitador maestro
 Editor, play mode vía Unity MCP. `MixRecorder` (en el AudioListener) graba la salida final del juego durante una corrida del bot y `MixReport.Analyze()` la mide: loudness integrado (BS.1770, el medidor de P8), pico de muestra, muestras saturadas y loudness de corto plazo (3 s).
 
