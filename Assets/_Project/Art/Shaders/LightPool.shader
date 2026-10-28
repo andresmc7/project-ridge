@@ -63,23 +63,28 @@ Shader "ProjectRidge/LightPool"
                 float3 local = TransformWorldToObject(world);
                 if (abs(local.x) > 0.5 || abs(local.z) > 0.5 || abs(local.y) > 0.5) return 0;
 
-                // Solo cae con fuerza sobre superficies que miran hacia arriba (suelo, rocas, pasto): sin esto el
-                // círculo trepa por los acantilados y se deforma. Las verticales (el papá) reciben un poco.
+                // Solo cae sobre superficies que miran hacia arriba (suelo, rocas, pasto). Las verticales no reciben nada:
+                // con un 25% el círculo trepaba por la pared del escalón de terraza junto al haz y, con el anillo encima,
+                // dibujaba el costado de un balde. Al papá lo ilumina la luz spot real del reflector (SearchlightLight).
                 float3 n = normalize(cross(ddy(world), ddx(world)));
-                float facing = lerp(0.25, 1.0, smoothstep(0.35, 0.75, abs(n.y)));
+                float facing = smoothstep(0.45, 0.8, abs(n.y));
                 float r = length(local.xz) * 2.0;                       // 0 centro, 1 borde
+                // Borde ondulado (±6%, ondas de varios metros) que se mueve despacio: un círculo de compás perfecto se leía como un disco
+                // sólido apoyado en el suelo; la luz real se rompe contra el pasto y las piedras.
+                float wobble = SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, world.xz * 0.12 + _Time.y * 0.02).r;
+                r *= 1.0 + (wobble - 0.5) * 0.12;
                 if (r > 1.0) return 0;
                 float core = 1.0 - r * r;
                 core *= core;
                 float rim = smoothstep(1.0 - _RimWidth * 2.0, 1.0 - _RimWidth, r) * (1.0 - smoothstep(1.0 - _RimWidth * 0.5, 1.0, r));
-                // Borde fino que parpadea (POLISH_PASS 3.10) y caída suave hacia adentro desde el borde.
+                // Borde fino que parpadea (POLISH_PASS 3.10). Sin banda brillante junto al borde: con ella y el anillo el
+                // círculo tenía contorno de objeto; ahora el relleno cae a cero hacia el borde y solo queda el aviso fino.
                 float ang = atan2(local.z, local.x);
                 float flick = 0.6 + 0.4 * sin(_Time.y * 23.0 + ang * 3.0) * sin(_Time.y * 7.3 + ang);
                 rim *= flick;
-                // Brillo leve hacia el borde que vuelve a cero antes del límite: sin el corte duro que hacía que el
-                // círculo se leyera como un disco sólido ("balde") desde la cámara a 42°.
-                core += smoothstep(0.5, 0.88, r) * (1.0 - smoothstep(0.88, 1.0, r)) * 0.2;
-                float height = 1.0 - saturate(abs(local.y) * 2.0 - 0.6) ;  // se apaga hacia arriba y abajo del volumen
+                // Se apaga hacia arriba y abajo del volumen y llega a cero ANTES del límite de la caja: antes quedaba en
+                // 60% en el límite y cortaba en línea recta las rocas que asomaban por encima (sala 5, S4).
+                float height = 1.0 - smoothstep(0.2, 0.5, abs(local.y));
                 height *= facing;
 
                 float t = _Time.y;

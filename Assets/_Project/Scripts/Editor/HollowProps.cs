@@ -786,7 +786,7 @@ namespace ProjectRidge.EditorTools
             pool.SetTexture("_NoiseTex", noise);
             pool.SetColor("_Color", cfg.color);
             pool.SetFloat("_RimWidth", 0.03f);   // borde fino que parpadea (no un neón grueso)
-            pool.SetFloat("_RimIntensity", 1.3f);
+            pool.SetFloat("_RimIntensity", 0.8f); // a 1.3, con bloom, el anillo dibujaba el contorno de un disco
             pool.SetFloat("_Intensity", 0.95f); // P9: a 1.6 el relleno saturaba y el círculo parecía un disco macizo (con el borde suave basta 0.95)
             EditorUtility.SetDirty(pool);
 

@@ -2,6 +2,20 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Dirección de arte: el círculo del reflector ya no se lee como un balde
+Editor, play mode vía Unity MCP; capturas de S3 (sala 3) y S4 (campamento) en varios momentos del barrido.
+
+- **Causa** (vista en las capturas): el círculo de luz (`LightPool.shader`) daba un 25% de luz a las caras verticales. Cuando el haz pasa junto a un escalón de terraza, el círculo trepaba por la pared y, con el anillo encima, dibujaba el costado de un balde rojo. Además el fundido vertical del volumen quedaba en 60% en el límite de la caja y cortaba en línea recta las rocas que asomaban (S4).
+- **Cambios**:
+  - Las caras verticales no reciben luz del círculo. Al papá lo sigue iluminando la luz spot real del reflector (`SearchlightLightProxy`).
+  - El fundido vertical llega a cero antes del límite del volumen.
+  - Borde ondulado suave (±6%, ondas de varios metros, se mueve despacio) en vez de un círculo de compás.
+  - Sin banda brillante junto al borde.
+  - Anillo de aviso de 1.3 a 0.8 (sigue fino y parpadeante, como pide POLISH_PASS 3.10), también en `HollowProps`.
+- Resultado en captura: en S3 la pared del escalón queda oscura y la luz se lee como caída sobre los dos niveles; en S4 ilumina el suelo y el tope de las rocas, sin cortes rectos.
+- Regresión: P2 **5/5**; P3: 5 de 6 comprobaciones pasaron (escala, histograma 51% sombra / 4.2% islas de luz, mirar adelante, foco, amenaza). El editor se cerró (cierre normal con guardado de layout, no un crash) durante la prueba del desvanecido de oclusores, así que esa comprobación y P5 quedaron sin correr: `UNVERIFIED` tras este cambio (el desvanecido no usa este shader).
+- `UNVERIFIED`: cómo se ve el borde ondulado en movimiento a 30 fps en un iPhone.
+
 ## 2026-10-28 — Rendimiento: de dónde salen los batches (desglose) y prueba de static batching en los abetos (descartada)
 Editor, play mode vía Unity MCP, `Mobile_RPAsset`.
 
@@ -167,7 +181,7 @@ Editor, play mode vía Unity MCP. `PolishTests.Run("P3")` → **6/6** (papá 9.8
 - **Charcos de farol**: tenían anillos escalonados. Causa (probada aislando): las partículas suaves sobre un quad a 4 cm del suelo (la diferencia de profundidad cuantizada). Sin ellas, liso; el color baja a la mitad porque antes el efecto lo atenuaba casi entero. Las brasas del choque conservan las partículas suaves (material propio `FX_EmberGlow`: el suelo es irregular y el quad cortaba recto). Descartado en el camino: compresión/8 bits de la textura y el dithering de cámara (no cambiaban nada).
 - **Un farol más por pasillo** (10 en total): a la entrada de cada sala, junto al checkpoint, del lado opuesto al de salida. Marca el lugar seguro y da las islas cálidas de la referencia.
 - **P3 estable**: la escala del papá fallaba al azar. Se vio una pose baja (cabeza a 1.27 m en vez de 1.52) en `Idle_Loop`; la prueba ahora espera también a que termine la mirada atrás de P7 y anota clip, altura de la cabeza y caída de cadera del IK en cada toma. En 3 corridas posteriores no se repitió: causa de aquella pose `UNVERIFIED`.
-- Pendiente visto en la toma del campamento: el círculo del reflector rojo S4 tiene el borde iluminado y vuelve a leerse como objeto sólido.
+- Pendiente visto en la toma del campamento: el círculo del reflector rojo S4 tiene el borde iluminado y vuelve a leerse como objeto sólido. (Resuelto el 2026-10-28: ver "el círculo del reflector ya no se lee como un balde".)
 
 ## 2026-10-27 — Assets estables en git (sin cambios fantasma tras jugar)
 Editor vía Unity MCP. Build All + una partida de 20 s: **0 assets modificados por la partida** (antes ~20 `.mat` por sesión).
