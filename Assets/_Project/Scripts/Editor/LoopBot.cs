@@ -74,6 +74,8 @@ namespace ProjectRidge.EditorTools
         const float StartLatency = 0.6f;
         /// <summary>Márgenes sobre la vista del Lurker (con la patrulla predicha exacta bastan unos pocos).</summary>
         const float ViewDistanceMargin = 1f, ViewAngleMargin = 12f;
+        /// <summary>Al terminar, salir de play mode (false para inspeccionar la escena tras la corrida).</summary>
+        public static bool StopPlayWhenDone = true;
         static PlayerMovementConfig Movement => AssetDatabase.LoadAssetAtPath<PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
         static float JogSpeed => Movement.jogSpeed;
         /// <summary>Inclinación del stick al ir "con cuidado": caminar (no sigiloso, que es demasiado lento para el bot).</summary>
@@ -235,6 +237,8 @@ namespace ProjectRidge.EditorTools
             Stick(Vector2.zero);
             if (pad != null) InputSystem.RemoveDevice(pad);
             Debug.Log("BOT: " + (ok ? "FINISHED" : "FAILED") + " in " + (Time.time - startTime).ToString("0") + " s, deaths " + deaths + ", captures " + captures + ", ACTION presses " + actions + ", OBJECT presses " + objects);
+            // Sale de play mode al terminar: editar un .cs con play mode activo recompila a mitad de partida (pasó 3 veces).
+            if (StopPlayWhenDone) EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
         }
 
         /// <summary>¿Se puede ir de a hasta b ahora mismo sin pisar luz ni entrar en el cono de un Lurker?</summary>

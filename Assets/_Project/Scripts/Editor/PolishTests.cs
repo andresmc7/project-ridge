@@ -32,6 +32,8 @@ namespace ProjectRidge.EditorTools
         static string phase;
 
         public static bool Running { get; private set; }
+        /// <summary>Al terminar, salir de play mode (false para inspeccionar la escena tras la prueba).</summary>
+        public static bool StopPlayWhenDone = true;
 
         public static void Run(string which)
         {
@@ -110,6 +112,8 @@ namespace ProjectRidge.EditorTools
             int fails = 0;
             foreach (var r in results) if (r.StartsWith("FAIL")) fails++;
             Debug.Log("POLISH: DONE " + phase + " " + (results.Count - fails) + "/" + results.Count + " passed\n" + string.Join("\n", results));
+            // Sale de play mode al terminar (ver LoopBot.StopPlayWhenDone).
+            if (StopPlayWhenDone) EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
         }
 
         static void Check(string name, bool ok, string detail)

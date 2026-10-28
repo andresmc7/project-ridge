@@ -2,6 +2,13 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — QA: el bot y las pruebas salen solos de play mode; la muerte fija de la sala 2 → 3
+Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 264 s** (2 muertes, 1 captura), igual que antes.
+
+- `LoopBot` y `PolishTests` salen de play mode al terminar (`StopPlayWhenDone`, por defecto sí): editar un `.cs` con play mode activo después de una corrida recompilaba a mitad de partida (pasó 3 veces). Probado: tras un FAILED y un FINISHED el editor quedó en modo edición sin intervención.
+- **Efecto de captura** (pendiente de la entrada de los arreglos del build): visto en `P2_3_paralysis.png` tras recargar el proyecto: desaturación, aberración cromática y grano. Funciona cargado desde disco.
+- **Muerte fija a la salida de la sala 2** (en todas las corridas, cerca de (4.4, 0.6)): no era la vista. El bot pasa caminando a 3.9 m por detrás del Lurker de la sala 2, que lo **oye** (pisadas caminando: 3.5 m) y lo caza; el sigilo automático no lo agacha ahí (`crouched False` en el registro). Un jugador puede evitarlo con el stick apenas inclinado (sigilo: pisadas de 1.2 m). Se probó enseñarle al bot el oído y un paso en sigilo con el escondite junto a la salida: el tronco de cobertura obliga a rodear por el oeste, hacia la vista del Lurker, y el bot no encontró ventana en 75 s; se volvió a la ruta que termina. Pendiente de diseño `UNVERIFIED`: si un jugador humano lee que ahí hay que ir en sigilo.
+
 ## 2026-10-27 — HUD en iPhone y iPad: tamaño físico, área segura y mínimos de toque
 Editor (sin dispositivo). Nueva prueba `HudLayoutCheck.Run()` (menú Project Ridge/QA): simula el área segura y la densidad de cada equipo, renderiza el HUD a su resolución nativa y comprueba que los controles quedan dentro del área segura, no se tapan y miden ≥ 44 pt (mínimo de toque de Apple). Capturas con el área segura en rojo: `hud_iPhone16.png`, `hud_iPhone16ProMax.png`, `hud_iPadPro11.png`, `hud_iPadAir13.png`. Resultado: **OK en los 4** (ACCIÓN 110 pt, OBJETO 84, linterna/pausa/curar 44). Regresión `PolishTests.Run("P8")` → **9/9**.
 
