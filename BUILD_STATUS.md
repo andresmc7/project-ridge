@@ -2,6 +2,9 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Build de Windows
+`Builds/Windows/ProjectRidge.exe`: **0 errores, 0 advertencias, 260 MB** (antes 358 MB: mallas de roca más livianas). `runInBackground` en 0 (el primer intento salió con 1 porque el editor lo había dejado así tras play mode: se rehízo). Arrancado 40 s: escena cargada, los 4 Lurker en el NavMesh, sin excepciones en el log; 817 MB de memoria del proceso en PC (perfil PC). Incluye la pantalla de créditos. `UNVERIFIED`: build de iOS (el módulo de iOS no está instalado en esta máquina; no hay Mac).
+
 ## 2026-10-27 — Rendimiento: perfil iPhone restaurado, triángulos a la mitad, checkpoint de la sala 4 fuera de la vista
 Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 266 s** (2 muertes, 1 captura del reflector tras la radio). `PolishTests.Run("P3")` → **6/6** (papá 9.7–11.2%, sombra 54%, islas de luz 3.6%).
 
