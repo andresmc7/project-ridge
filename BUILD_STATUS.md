@@ -2,6 +2,30 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Rendimiento: de dónde salen los batches (desglose) y prueba de static batching en los abetos (descartada)
+Editor, play mode vía Unity MCP, `Mobile_RPAsset`.
+
+- Nueva `PerfProbe.Breakdown()`: en el punto donde esté el papá, apaga un grupo del nivel por vez y anota cuánto bajan batches, proyectores y triángulos.
+- Desglose en el punto más caro (campamento, 47.6, −0.5; 760 batches, 388 proyectores, 1020k triángulos). Ruido de ±20 entre lecturas:
+
+| Grupo | −batches | −proyectores | −triángulos |
+|---|---|---|---|
+| Trees (520 abetos) | **221** | **143** | 60k |
+| Debris | 64 | 38 | 77k |
+| Grass | 60 | 16 | 251k |
+| Bushes | 53 | 16 | 95k |
+| GroundDetail | 53 | 18 | 147k |
+| TerraceWalls | 43 | 66 | 212k |
+| Landmarks | 43 | 68 | 17k |
+| RoomLandmarks | 42 | 6 | ≈0 |
+| Searchlights | 40 | 26 | 106k |
+| Atmosphere | 39 | 10 | 96k |
+| DryBranches | 34 | 24 | 102k |
+
+- Corrección de una nota anterior: los abetos **no** usan material con viento (son URP/Lit: corteza + ramitas con recorte alfa, 2 draws por árbol). No tienen static batching porque el builder solo los marca `OccludeeStatic`.
+- Prueba (sin guardar): abetos con `BatchingStatic` (el desvanecido por dithering es compatible: cambia materiales y no usa el origen del objeto). Resultado en los 6 puntos: batches **−22 a −28%** (605→440 … 746→584), pero draws **+7 a +41%** (785→931 … 740→1046) y proyectores de sombra **+14 a +85%** (301→426 … 260→480). Sin un iPhone para ver cuál pesa más en Metal, no se adopta; la escena quedó como estaba.
+- `UNVERIFIED`: por qué el static batching sube los proyectores (sospecha: el LOD de impostor deja de recortar la sombra dentro del lote). Siguiente paso: medirlo con el Profiler en un iPhone, o probar menos árboles a la vista en vez de combinarlos.
+
 ## 2026-10-28 — Rendimiento: cantos sueltos del bosque sin sombra
 Editor, play mode vía Unity MCP, `PerfProbe` con `Mobile_RPAsset`.
 

@@ -40,6 +40,56 @@ namespace ProjectRidge.EditorTools
             EditorApplication.update += Tick;
         }
 
+        // ------------------------------------------------------------------ Desglose por grupo
+
+        static GameObject[] groups;
+        static int group;
+        static float baseBatches, baseCasters, baseTris;
+
+        /// <summary>
+        /// En el punto donde esté el papá: mide todo encendido y luego apaga un grupo del nivel por vez (hijos de
+        /// "Hollow", más Atmosphere, Searchlights y los Lurker) y anota cuánto bajan batches, proyectores y triángulos.
+        /// </summary>
+        public static void Breakdown()
+        {
+            if (!EditorApplication.isPlaying) { Debug.LogWarning("PERF: entra en play mode primero"); return; }
+            var list = new System.Collections.Generic.List<GameObject>();
+            var hollow = GameObject.Find("Hollow");
+            if (hollow != null) foreach (Transform c in hollow.transform) if (c.GetComponentInChildren<Renderer>() != null) list.Add(c.gameObject);
+            foreach (var n in new[] { "Atmosphere", "Searchlights", "Lurker", "Lurker_B", "Lurker_C", "Lurker_D", "Items" })
+            { var g = GameObject.Find(n); if (g != null) list.Add(g); }
+            groups = list.ToArray();
+            previousPipeline = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<UnityEngine.Rendering.RenderPipelineAsset>(MobileAsset);
+            player = Object.FindFirstObjectByType<PlayerController>();
+            log = new StringBuilder("PERF BREAKDOWN at " + player.transform.position + " (" + QualitySettings.renderPipeline.name + "): group | −batches | −casters | −tris\n");
+            group = -1;
+            batches = casters = tris = 0f; frames = 0;
+            nextAt = EditorApplication.timeSinceStartup + 0.5;
+            EditorApplication.update += BreakdownTick;
+        }
+
+        static void BreakdownTick()
+        {
+            if (!EditorApplication.isPlaying) { EditorApplication.update -= BreakdownTick; return; }
+            if (EditorApplication.timeSinceStartup < nextAt) return;
+            batches += UnityStats.batches; casters += UnityStats.shadowCasters; tris += UnityStats.triangles;
+            if (++frames < SampleFrames) return;
+            float n = frames;
+            if (group < 0) { baseBatches = batches / n; baseCasters = casters / n; baseTris = tris / n; log.AppendLine("all | " + baseBatches.ToString("0") + " | " + baseCasters.ToString("0") + " | " + (baseTris / 1000f).ToString("0") + "k"); }
+            else
+            {
+                log.AppendLine(groups[group].name + " | " + (baseBatches - batches / n).ToString("0") + " | " + (baseCasters - casters / n).ToString("0") + " | " + ((baseTris - tris / n) / 1000f).ToString("0") + "k");
+                groups[group].SetActive(true);
+            }
+            group++;
+            batches = casters = tris = 0f; frames = 0;
+            if (group < groups.Length) { groups[group].SetActive(false); nextAt = EditorApplication.timeSinceStartup + 0.3; return; }
+            EditorApplication.update -= BreakdownTick;
+            QualitySettings.renderPipeline = previousPipeline;
+            Debug.Log(log + "PERF: DONE");
+        }
+
         static void Next()
         {
             point++;
