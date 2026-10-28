@@ -399,6 +399,7 @@ namespace ProjectRidge.EditorTools
             var skin = Mat("Lurker_Skin", skinA, skinN, new Color(0.46f, 0.47f, 0.5f), 0.7f, 3f); // oscura y mojada
             var eye = Mat("Lurker_Eye", null, null, new Color(0.3f, 0.02f, 0.02f), 0.9f);
             eye.EnableKeyword("_EMISSION");
+            eye.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; // sin esto los ojos no brillaban en el build
             eye.SetColor("_EmissionColor", new Color(2f, 0.1f, 0.05f));
             Renderer eyesRenderer = null;
             foreach (var r in body.GetComponentsInChildren<SkinnedMeshRenderer>())

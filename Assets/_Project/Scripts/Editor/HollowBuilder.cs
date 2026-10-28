@@ -190,6 +190,7 @@ namespace ProjectRidge.EditorTools
             m.water = Simple("Hollow_Water", null, null, new Color(0.05f, 0.08f, 0.1f), 0.97f);
             m.glowLantern = Simple("Hollow_LanternGlass", null, null, new Color(1f, 0.75f, 0.4f), 0.6f);
             m.glowLantern.EnableKeyword("_EMISSION");
+            m.glowLantern.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             m.glowLantern.SetColor("_EmissionColor", new Color(2.2f, 1.2f, 0.45f));
 
             string tl = PolyHavenMaterialBuilder.OutTerrainLayers;
@@ -220,7 +221,7 @@ namespace ProjectRidge.EditorTools
             if (m == null) { m = new Material(src); AssetDatabase.CreateAsset(m, path); }
             else m.CopyPropertiesFromMaterial(src);
             m.SetColor("_BaseColor", tint);
-            m.SetColor("_Color", tint); // si no, URP lo sincroniza al abrir el material y el asset cambia solo
+            m.SetColor("_Color", tint.linear.gamma); // lo que URP escribe al validar (ida y vuelta sRGB): si no, el asset cambia solo
             EditorUtility.SetDirty(m);
             return m;
         }

@@ -516,7 +516,7 @@ namespace ProjectRidge.EditorTools
                 AssetDatabase.CreateAsset(m, path);
             }
             m.SetColor("_BaseColor", baseColor);
-            m.SetColor("_Color", baseColor); // si no, URP lo sincroniza al abrir el material y el asset cambia solo
+            m.SetColor("_Color", baseColor.linear.gamma); // lo que URP escribe al validar (ida y vuelta sRGB): si no, el asset cambia solo
             m.SetFloat("_Smoothness", 0.25f);
             // Un brillo tenue para que se lean en la oscuridad sin ser luces dinámicas.
             bool glows = emission.maxColorComponent > 0f;

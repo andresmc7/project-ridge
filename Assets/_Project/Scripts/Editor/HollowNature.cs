@@ -499,7 +499,9 @@ namespace ProjectRidge.EditorTools
             if (paleMat == null) { paleMat = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(paleMat, DataDir + "/Hollow_DryBranch.mat"); }
             var src = AssetDatabase.LoadAssetAtPath<Material>(PolyHavenMaterialBuilder.OutMaterials + "/PolyHaven_dry_branches_medium_01.mat");
             if (src != null) paleMat.CopyPropertiesFromMaterial(src);
-            paleMat.SetColor("_BaseColor", new Color(1.25f, 1.12f, 0.92f)); // hueso: se lee claro contra el suelo oscuro
+            var bone = new Color(1.25f, 1.12f, 0.92f); // hueso: se lee claro contra el suelo oscuro
+            paleMat.SetColor("_BaseColor", bone);
+            paleMat.SetColor("_Color", bone.linear.gamma); // lo que URP escribe al validar: si no, el asset cambia solo
             paleMat.EnableKeyword("_EMISSION");
             paleMat.SetColor("_EmissionColor", new Color(0.06f, 0.05f, 0.04f));
             paleMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;

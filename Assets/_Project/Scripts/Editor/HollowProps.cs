@@ -478,6 +478,7 @@ namespace ProjectRidge.EditorTools
             // anillos escalonados (y lo atenuaba casi entero; por eso el color de antes era el doble).
             mat.SetFloat("_SoftParticlesEnabled", 0f);
             mat.DisableKeyword("_SOFTPARTICLES_ON");
+            mat.SetVector("_SoftParticleFadeParams", Vector4.zero); // lo que URP deja sin partículas suaves
             return mat;
         }
 
@@ -705,6 +706,7 @@ namespace ProjectRidge.EditorTools
         {
             var paper = Simple("Hollow_Paper", null, null, new Color(0.85f, 0.82f, 0.72f), 0.2f);
             paper.EnableKeyword("_EMISSION");
+            paper.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             paper.SetColor("_EmissionColor", new Color(0.12f, 0.11f, 0.09f));
             var red = Simple("Hollow_RedCanvas", null, null, new Color(0.6f, 0.08f, 0.06f), 0.25f);
 

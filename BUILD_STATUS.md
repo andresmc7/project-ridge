@@ -2,6 +2,15 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — Arreglos que solo se veían en el build: efecto de captura, viñeta de escondido, brillos
+Editor y build de Windows (0 errores, 0 advertencias, 260 MB; 40 s sin excepciones). `PolishTests.Run("P2")` → **5/5**.
+
+- **Perfiles de volumen vacíos**: `CaptureVolume` (desaturación, aberración, grano y viñeta azul de la captura del OVNI) y `HiddenVignette` (viñeta al estar escondido) guardaban sus componentes solo en memoria (`profile.Add` sin `AddObjectToAsset`): en el archivo eran `fileID: 0`. Funcionaban en la sesión del editor que los creaba; al recargar el proyecto o en cualquier build, **no tenían efecto**. Lo delató un error de la analítica de URP en el build (`VolumeProfileOverridesAnalytic`, NullReference). Ahora se guardan como subassets (comprobado en el archivo: perfil + 4 y + 2 componentes).
+- **Emisión quitada en el build**: con GI `None`, URP quita `_EMISSION` al validar los materiales durante el build: los hongos luminosos, el vidrio del farol, el papel de las pistas y **los ojos del Lurker** no brillaban en el build. Todos con GI `RealtimeEmissive`.
+- Los builders escriben `_Color` como lo deja URP (ida y vuelta sRGB) y los parámetros de fundido sin partículas suaves: ni el build ni una partida modifican materiales.
+- `runInBackground` vuelve a 1 en el disco después de cada play mode del editor (lo pone el arnés de pruebas): se restaura a 0 en edición antes de cada build.
+- `UNVERIFIED`: que el efecto de captura y la viñeta se vean bien en el build (comprobado que los componentes existen; no se jugó la captura en el build).
+
 ## 2026-10-27 — Build de Windows
 `Builds/Windows/ProjectRidge.exe`: **0 errores, 0 advertencias, 260 MB** (antes 358 MB: mallas de roca más livianas). `runInBackground` en 0 (el primer intento salió con 1 porque el editor lo había dejado así tras play mode: se rehízo). Arrancado 40 s: escena cargada, los 4 Lurker en el NavMesh, sin excepciones en el log; 817 MB de memoria del proceso en PC (perfil PC). Incluye la pantalla de créditos. `UNVERIFIED`: build de iOS (el módulo de iOS no está instalado en esta máquina; no hay Mac).
 

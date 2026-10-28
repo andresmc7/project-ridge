@@ -583,12 +583,13 @@ namespace ProjectRidge.EditorTools
             capMat.SetFloat("_Smoothness", 0.55f);
             capMat.EnableKeyword("_EMISSION");
             capMat.SetColor("_EmissionColor", new Color(0.18f, 1.25f, 1.15f));
-            capMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            capMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; // con None, URP quitaba _EMISSION al validar (en el build no brillaban)
             EditorUtility.SetDirty(capMat);
             var stemMat = AssetDatabase.LoadAssetAtPath<Material>(DataDir + "/Hollow_GlowStem.mat");
             if (stemMat == null) { stemMat = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(stemMat, DataDir + "/Hollow_GlowStem.mat"); }
             stemMat.SetColor("_BaseColor", new Color(0.72f, 0.78f, 0.7f));
             stemMat.EnableKeyword("_EMISSION");
+            stemMat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             stemMat.SetColor("_EmissionColor", new Color(0.05f, 0.2f, 0.18f));
             EditorUtility.SetDirty(stemMat);
 

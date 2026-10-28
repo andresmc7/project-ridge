@@ -121,11 +121,19 @@ namespace ProjectRidge.EditorTools
                 profile = ScriptableObject.CreateInstance<VolumeProfile>();
                 AssetDatabase.CreateAsset(profile, path);
             }
-            if (!profile.TryGet(out Vignette vig)) vig = profile.Add<Vignette>(true);
+            // Componentes como subassets del perfil (sin AddObjectToAsset quedaban nulos al recargar: viñeta de escondido sin efecto).
+            profile.components.RemoveAll(c => c == null);
+            T Comp<T>() where T : VolumeComponent
+            {
+                if (!profile.TryGet(out T c)) c = profile.Add<T>(true);
+                if (!AssetDatabase.Contains(c)) AssetDatabase.AddObjectToAsset(c, profile);
+                return c;
+            }
+            var vig = Comp<Vignette>();
             vig.intensity.Override(0.48f);
             vig.smoothness.Override(0.65f);
             vig.color.Override(Color.black);
-            if (!profile.TryGet(out ColorAdjustments ca)) ca = profile.Add<ColorAdjustments>(true);
+            var ca = Comp<ColorAdjustments>();
             ca.postExposure.Override(-0.25f);
             EditorUtility.SetDirty(profile);
             v.sharedProfile = profile;

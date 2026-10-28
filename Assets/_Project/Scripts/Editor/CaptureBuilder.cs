@@ -119,14 +119,23 @@ namespace ProjectRidge.EditorTools
                 profile = ScriptableObject.CreateInstance<VolumeProfile>();
                 AssetDatabase.CreateAsset(profile, ProfilePath);
             }
-            if (!profile.TryGet(out ChromaticAberration ca)) ca = profile.Add<ChromaticAberration>(true);
+            // Los componentes van como subassets del perfil: sin AddObjectToAsset existían solo en memoria y, al recargar el
+            // proyecto o en un build, el perfil quedaba con 4 componentes nulos (la captura del OVNI sin efecto).
+            profile.components.RemoveAll(c => c == null);
+            T Comp<T>() where T : VolumeComponent
+            {
+                if (!profile.TryGet(out T c)) c = profile.Add<T>(true);
+                if (!AssetDatabase.Contains(c)) AssetDatabase.AddObjectToAsset(c, profile);
+                return c;
+            }
+            var ca = Comp<ChromaticAberration>();
             ca.intensity.Override(1f);
-            if (!profile.TryGet(out FilmGrain grain)) grain = profile.Add<FilmGrain>(true);
+            var grain = Comp<FilmGrain>();
             grain.type.Override(FilmGrainLookup.Medium3);
             grain.intensity.Override(0.85f);
-            if (!profile.TryGet(out ColorAdjustments adj)) adj = profile.Add<ColorAdjustments>(true);
+            var adj = Comp<ColorAdjustments>();
             adj.saturation.Override(-70f); // saturación al 0.3
-            if (!profile.TryGet(out Vignette vig)) vig = profile.Add<Vignette>(true);
+            var vig = Comp<Vignette>();
             vig.color.Override(new Color(0.55f, 0.7f, 1f));
             vig.intensity.Override(0.45f);
             vig.smoothness.Override(0.55f);
