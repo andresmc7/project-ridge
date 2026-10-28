@@ -56,6 +56,7 @@ namespace ProjectRidge.EditorTools
                 "P7" => P7(),
                 "P8" => P8(),
                 "SNEAK" => SneakHintTest(),
+                "CPSAFE" => CheckpointSafety(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -741,6 +742,64 @@ namespace ProjectRidge.EditorTools
             Stick(Vector2.zero);
             Check("sneak hint shows only once", toast.color.a < 0.1f, "toast alpha " + toast.color.a.ToString("0.00"));
             lurker.GetComponent<NavMeshAgent>().isStopped = false;
+        }
+
+        /// <summary>
+        /// Checkpoints seguros: reaparecer en cada uno (misma lógica que GameFlow: Lurkers a ≤ 20 m saltan al punto más
+        /// lejano de su ruta, gracia de 6 s) y quedarse quieto 30 s. Si un Lurker ve el checkpoint desde su patrulla,
+        /// o un haz lo barre, el jugador que espera a mirar la ronda muere en bucle (lo que pasó en la sala 4).
+        /// </summary>
+        static IEnumerator CheckpointSafety()
+        {
+            yield return PassTitle();
+            const float Watch = 30f;
+            var flow = GameFlow.Instance;
+            var hc = new SerializedObject(flow).FindProperty("healthConfig").objectReferenceValue as PlayerHealthConfig;
+            // Haces incluidos: misma gracia que al reaparecer; cuenta como visto en cuanto el círculo toca al papá.
+            var report = new System.Text.StringBuilder();
+            int safe = 0, total = 0;
+            foreach (Transform cp in GameObject.Find("Checkpoints").transform)
+            {
+                total++;
+                Teleport(cp.position + Vector3.up * 0.05f);
+                foreach (var e in EnemyController.Active)
+                    e.ResetAfterPlayerRespawn(cp.position, hc.respawnEnemyClearRadius, hc.respawnGraceSeconds);
+                Searchlight.ResetAllExposure();
+                Searchlight.SuppressAll(hc.respawnGraceSeconds);
+                float start = Time.time, detectedAt = -1f;
+                string who = "";
+                float closest = float.MaxValue;
+                while (Time.time - start < Watch && detectedAt < 0f)
+                {
+                    foreach (var s in Searchlight.Active)
+                        if (s.PlayerLit && detectedAt < 0f)
+                        {
+                            detectedAt = Time.time - start;
+                            who = "searchlight " + s.name;
+                        }
+                    foreach (var e in EnemyController.Active)
+                    {
+                        if (detectedAt >= 0f) break;
+                        float d = Vector3.Distance(e.transform.position, player.transform.position);
+                        closest = Mathf.Min(closest, d);
+                        var threshold = (new SerializedObject(e).FindProperty("config").objectReferenceValue as EnemyConfig).investigateThreshold;
+                        if (e.IsHunting || e.Perception.Suspicion >= threshold)
+                        {
+                            detectedAt = Time.time - start;
+                            who = e.name + " (" + e.State + ") at " + d.ToString("0.0") + " m from " + e.transform.position.ToString("F1") + (player.IsCrouching ? ", dad crouched" : ", dad standing");
+                            break;
+                        }
+                    }
+                    yield return 0.25f;
+                }
+                if (detectedAt < 0f) safe++;
+                report.Append(cp.name + ": " + (detectedAt < 0f ? "safe 30 s (closest Lurker " + closest.ToString("0.0") + " m)" : "SEEN after " + detectedAt.ToString("0.0") + " s by " + who) + "; ");
+                Debug.Log("POLISH: CPSAFE " + cp.name + " " + (detectedAt < 0f ? "safe" : "seen " + detectedAt.ToString("0.0") + " s " + who));
+                // Que lo que lo vio se olvide antes del siguiente checkpoint.
+                foreach (var e in EnemyController.Active) e.ResetAfterPlayerRespawn(cp.position, 0f, 0f);
+                Searchlight.ResetAllExposure();
+            }
+            Check("every checkpoint safe for 30 s standing still after respawn", safe == total, safe + "/" + total + " safe — " + report);
         }
 
         static IEnumerator P8()

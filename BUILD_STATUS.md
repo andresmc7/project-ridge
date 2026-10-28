@@ -2,6 +2,28 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
+Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CPSAFE")` (incluida en `PolishSuite.RunAll`).
+
+- **Qué mide**: reaparece en cada checkpoint con la misma lógica que `GameFlow`: los Lurker a ≤ 20 m saltan al punto más lejano de su ruta, y los Lurker y los haces tienen 6 s de gracia. Después el papá se queda quieto 30 s (con el agachado automático), y la prueba anota si un Lurker llega a sospechar (umbral de investigar) o un haz lo toca, cuándo y desde dónde. Motivo: el bucle de muertes de la sala 4 fue un checkpoint a la vista de una parada de patrulla.
+- **Resultado**:
+
+| Checkpoint | Quieto 30 s |
+|---|---|
+| CP_FirstLight | seguro (Lurker más cercano a 44 m) |
+| CP_Creek | seguro (21 m) |
+| CP_TwoLights (0.2, 0.7) | **visto a los 14.7 s**: el Lurker de la sala 2, a 6.0 m, en su ruta |
+| CP_Thicket | seguro (también en 22.4; ahora con margen: ver abajo) |
+| CP_Camp (47.6, −0.5) | **visto a los 13.2 s**: Lurker_C a 8.6 m |
+| CP_Radio (58.6, −2) | **visto a los 10.4 s**: Lurker_C a 7.3 m |
+
+  Ninguno se ve al reaparecer: siempre pasan más de 10 s, así que no es el bucle inmediato de la sala 4. Pero quien espera en el checkpoint a mirar la ronda termina descubierto en 3 de 6.
+- **Búsqueda de lugar** (geométrica: rutas de patrulla muestreadas cada 0.5 m por el NavMesh, alcance 9 m, línea de vista al pecho/cabeza; sin el cono de 80°, así que es conservadora):
+  - CP_Thicket a 22.4 se veía desde 11 puntos de la ruta de Lurker_B (8.4 m); a **21.4 (1 m al oeste) desde ninguno**. Movido en el builder (`HollowProps`) y en la escena; CPSAFE sigue "seguro".
+  - CP_TwoLights: el lugar sin exposición más cercano es (5.2, 0.7). En play (con haces) da seguro 30 s, pero queda **después** del barrido de S2: quien muera en ese haz volvería a CP_Creek (x = −26) y repetiría toda la sala 2. **No se movió**.
+  - CP_Camp y CP_Radio: no hay lugar sin exposición a ≤ 5 m; los mejores bajan la cuenta pero acercan a Lurker_C (5.5–6.7 m). **No se movieron**.
+- Estado de la prueba: CPSAFE **falla** (3/6 seguros) y queda así a propósito: es una pregunta de diseño abierta. Opciones: escondite (pasto alto) junto a esos checkpoints, rutas de patrulla que no los miren, o aceptar que solo dan ~10 s. `UNVERIFIED`: si a un jugador le molesta.
+
 ## 2026-10-28 — Dirección de arte: el círculo del reflector ya no se lee como un balde
 Editor, play mode vía Unity MCP; capturas de S3 (sala 3) y S4 (campamento) en varios momentos del barrido.
 
