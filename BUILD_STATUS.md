@@ -2,6 +2,9 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-28 — Build de Windows actualizado
+`Builds/Windows/ProjectRidge.exe` con el HUD por tamaño físico, el limitador y el arreglo de la sala 4: **0 errores, 0 advertencias, 260 MB**, `runInBackground` 0. Arrancado 40 s: escena cargada, Lurkers en el NavMesh, sin excepciones; el build no modificó ningún archivo del proyecto.
+
 ## 2026-10-28 — Sala 4: el bucle de muertes era un tronco en la ruta del Lurker
 Editor, play mode vía Unity MCP. Nivel completo con `LoopBot.Run()`: **FINISHED en 265 s** (2 muertes, 1 captura; ninguna en la sala 4). Sala 4 sola desde su checkpoint en t = 0 (`RunFrom(23, 44)`, la fase en que antes moría al instante): **cruzada en 37 s sin muertes**. `ValidateLayout`: OK.
 
