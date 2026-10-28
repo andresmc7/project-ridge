@@ -26,6 +26,7 @@ namespace ProjectRidge.EditorTools
             var white = SpriteAsset("UI_White", (u, v) => 1f);
 
             var canvas = GameObject.Find("HUD");
+            if (!canvas.TryGetComponent(out ProjectRidge.UI.HudScaler _)) canvas.AddComponent<ProjectRidge.UI.HudScaler>(); // mismo tamaño físico en iPhone y iPad
             var safe = canvas.transform.Find("SafeArea");
             foreach (var n in new[] { "StickBase", "Attack", "Interact", "Crouch", "Sprint", "Pause", "TouchControls", "StickArea", "Action", "Object", "Flashlight", "HealHold", "StealthHud", "SurvivalHud", "DamageFlash", "Fire", "Throw", "DetectionIndicators" })
             {
@@ -110,8 +111,9 @@ namespace ProjectRidge.EditorTools
             obso.ApplyModifiedPropertiesWithoutUndo();
 
             // Íconos pequeños arriba a la derecha: linterna y pausa.
-            Button("Flashlight", touch, new Vector2(1f, 1f), new Vector2(-Pt(84f), -Pt(30f)), Pt(40f), "LIGHT", "<Gamepad>/buttonNorth", disc, ring);
-            Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-Pt(34f), -Pt(30f)), Pt(40f), "II", "<Gamepad>/start", disc, ring);
+            // 44 pt: mínimo de toque de Apple (HudLayoutCheck medía 40 pt en el iPhone 16).
+            Button("Flashlight", touch, new Vector2(1f, 1f), new Vector2(-Pt(88f), -Pt(32f)), Pt(44f), "LIGHT", "<Gamepad>/buttonNorth", disc, ring);
+            Button("Pause", touch, new Vector2(1f, 1f), new Vector2(-Pt(36f), -Pt(32f)), Pt(44f), "II", "<Gamepad>/start", disc, ring);
 
             // Curarse: mantener el indicador de vida (arriba a la izquierda).
             var healRt = Rect("HealHold", touch, new Vector2(0f, 1f), new Vector2(Pt(34f), -Pt(30f)), Pt(44f));
@@ -149,7 +151,7 @@ namespace ProjectRidge.EditorTools
             var toast = Label("Toast", survival, Vector2.zero, new Vector2(900f, 50f), "", 19, FontStyle.Normal);
             Anchor(toast.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, Pt(84f)));
             // Aviso de recogida: ícono + "+1" a la izquierda del botón OBJETO, 1.2 s.
-            var pickupRt = Rect("Pickup", survival, br, new Vector2(-Pt(248f), Pt(160f)), 0f);
+            var pickupRt = Rect("Pickup", survival, br, new Vector2(-Pt(262f), Pt(160f)), 0f); // sin tapar el botón (borde en -220 pt)
             pickupRt.sizeDelta = new Vector2(Pt(70f), Pt(30f));
             var pickupGroup = pickupRt.gameObject.AddComponent<CanvasGroup>();
             pickupGroup.alpha = 0f;

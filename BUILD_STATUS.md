@@ -2,6 +2,14 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-27 — HUD en iPhone y iPad: tamaño físico, área segura y mínimos de toque
+Editor (sin dispositivo). Nueva prueba `HudLayoutCheck.Run()` (menú Project Ridge/QA): simula el área segura y la densidad de cada equipo, renderiza el HUD a su resolución nativa y comprueba que los controles quedan dentro del área segura, no se tapan y miden ≥ 44 pt (mínimo de toque de Apple). Capturas con el área segura en rojo: `hud_iPhone16.png`, `hud_iPhone16ProMax.png`, `hud_iPadPro11.png`, `hud_iPadAir13.png`. Resultado: **OK en los 4** (ACCIÓN 110 pt, OBJETO 84, linterna/pausa/curar 44). Regresión `PolishTests.Run("P8")` → **9/9**.
+
+- **Antes**: el canvas escalaba con la pantalla (1920×1080, mezcla 0.5) y en iPad todo crecía ~70% (ACCIÓN 191–225 pt, ~7–8 cm; pausa y curar salían del área segura en el iPad Air 13"); en el iPhone 16 la linterna y la pausa medían 40 pt; el aviso "+1" tapaba el borde del botón OBJETO.
+- **Ahora**: `HudScaler` fija 2.49 unidades por punto en móvil (3 px/pt en iPhone, 2 en iPad, según `Screen.dpi`): mismo tamaño físico en todos; en PC sigue el escalado por pantalla. Linterna y pausa a 44 pt; el aviso "+1" 14 pt más a la izquierda. `SafeAreaFitter.Simulated` permite probar el área segura en el editor.
+- Corrección a la entrada de rendimiento: al reaparecer, los Lurker ya tienen 6 s sin ver ni oír y los que están a < 20 m vuelven al punto más lejano de su ruta (`respawnGraceSeconds`); el riesgo del checkpoint del campamento es menor que lo anotado.
+- `UNVERIFIED`: en dispositivo (valor real de `Screen.dpi`, márgenes reales del área segura, que el tamaño se sienta bien con los pulgares).
+
 ## 2026-10-27 — Arreglos que solo se veían en el build: efecto de captura, viñeta de escondido, brillos
 Editor y build de Windows (0 errores, 0 advertencias, 260 MB; 40 s sin excepciones). `PolishTests.Run("P2")` → **5/5**.
 
