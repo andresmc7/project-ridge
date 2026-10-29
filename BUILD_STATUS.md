@@ -2,6 +2,27 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-29 — Regresión completa tras los cambios del 2026-10-28
+Editor, play mode vía Unity MCP, `PolishSuite.RunAll()` (cada fase en su propia sesión de play). Cubre los cambios del día anterior: círculo del reflector, helechos y cantos sin sombra, CP_Thicket movido 1 m.
+
+| Fase | Resultado |
+|---|---|
+| P0 | **8/8** |
+| P1 | **12/12** |
+| P2 | **5/5** |
+| P3 | **6/6** |
+| P4 | **5/5** |
+| P5 | **5/5** |
+| P6 | **5/5** |
+| P7 | **7/7** |
+| P8 | **9/9** |
+| SNEAK | **2/2** |
+| CPSAFE | 0/1 (3/6 checkpoints seguros; mismos números: TwoLights 14.5 s, Camp 13.2 s, Radio 10.4 s) |
+| SKATE | 0/1 (44% de los cuadros en línea recta patinan; causa: trote y sprint en diagonal) |
+
+- Las 64 comprobaciones de POLISH_PASS pasan. Las dos pruebas que fallan son nuevas, fallan por lo ya documentado y esperan decisiones de diseño: qué hacer con los 3 checkpoints visibles, y cómo corregir el ángulo y la velocidad del trote y el sprint.
+- Consola sin excepciones; `runInBackground` en 0 al terminar.
+
 ## 2026-10-28 — Pies que patinan: prueba SKATE y hallazgo en los bucles de locomoción
 Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAll`).
 
