@@ -433,7 +433,7 @@ namespace ProjectRidge.EditorTools
             Vector3 size = RockSize(variant, cliff);
             // Roca Poly Haven (rock_moss_set) reducida a <= 3k triángulos y llevada al tamaño de la maqueta (POLISH_PASS 3.9).
             var sources = cliff ? CliffRockSources : LooseRockSources;
-            var mesh = PolyHavenRockMesh(sources[variant % sources.Length], "PH_" + name, size);
+            var mesh = PolyHavenRockMesh(sources[variant % sources.Length], "PolyHaven_" + name, size);
             var go = new GameObject(name);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var mr = go.AddComponent<MeshRenderer>();
@@ -442,7 +442,7 @@ namespace ProjectRidge.EditorTools
             var mc = go.AddComponent<MeshCollider>();
             // Convexo dentro del límite de 256 polígonos, sacado de la malla de 3000: con la visual de 1600 el colisionador
             // cambiaba unos cm y la roca de cobertura de la sala 4 dejaba de tapar al papá en el checkpoint.
-            var collisionSource = PolyHavenRockMesh(sources[variant % sources.Length], "PH_" + name + "_ColSrc", size, CollisionSourceTriangles);
+            var collisionSource = PolyHavenRockMesh(sources[variant % sources.Length], "PolyHaven_" + name + "_ColSrc", size, CollisionSourceTriangles);
             mc.sharedMesh = CollisionMesh(collisionSource);
             mc.convex = true;
             GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
@@ -670,7 +670,7 @@ namespace ProjectRidge.EditorTools
             for (int i = 0; i < 4; i++)
             {
                 var rock = RockPrefab(i, false, m).GetComponent<MeshFilter>().sharedMesh;
-                pebbleMeshes[i] = ChunkyMeshGenerator.Save(MeshDecimator.Decimate(rock, 120, "PH_HollowPebble_" + i));
+                pebbleMeshes[i] = ChunkyMeshGenerator.Save(MeshDecimator.Decimate(rock, 120, "PolyHaven_HollowPebble_" + i));
             }
             var twig = LogMesh(0.9f, 0.035f);
             var (leafA, leafN) = ChunkyMeshGenerator.PatternTextures(ChunkyMeshGenerator.Pattern.Leaves, 23);

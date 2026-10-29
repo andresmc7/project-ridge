@@ -1422,7 +1422,7 @@ namespace ProjectRidge.EditorTools
             // Rocas para móvil: <= 3k triángulos.
             int maxTris = 0;
             // En play las rocas se combinan (batching estático): se miran las mallas de los prefabs.
-            foreach (var guid in AssetDatabase.FindAssets("PH_Hollow t:Mesh"))
+            foreach (var guid in AssetDatabase.FindAssets("PolyHaven_Hollow t:Mesh"))
             {
                 var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(AssetDatabase.GUIDToAssetPath(guid));
                 if (mesh != null && !mesh.name.EndsWith("_Col")) maxTris = Mathf.Max(maxTris, mesh.triangles.Length / 3);

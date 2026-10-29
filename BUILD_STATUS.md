@@ -2,6 +2,15 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-29 — Auditoría de ASSETS.md y prefijo `PH_` corregido
+- Cruce de los 166 archivos de `ThirdParty` contra ASSETS.md: todos tienen fuente y licencia. Las texturas del papá (MakeHuman), las de pelo y ojos (Quaternius) y las ramitas de `fir_tree_01` están cubiertas por sus filas. La fuente Barlow figura con OFL 1.1.
+- Faltaba registrar lo propio: el audio sintetizado por `SoundSynth` (`Audio/Generated/`) y las mallas generadas. Se agregó la sección "Propios del proyecto".
+- **Conflicto de nombres**: 28 mallas de roca derivadas de Poly Haven (CC0) se llamaban `PH_*`, el prefijo que CLAUDE.md reserva para placeholders de IA no comercial. Se renombraron a `PolyHaven_*`:
+  - con `AssetDatabase.RenameAsset`, que conserva el GUID: la escena no cambió, y las referencias se contaron antes y después (1055 de render, 902 de colisión, 0 `PH_` restantes);
+  - en los builders (`HollowBuilder`, 3 lugares) y en la búsqueda de P4.
+  Ya no queda ningún `PH_` en el proyecto.
+- Prueba: P4 **5/5** (la de "rocas ≤ 3k" encuentra las mallas con el nombre nuevo: la mayor tiene 2954 triángulos).
+
 ## 2026-10-29 — Build de Windows con los cambios del 2026-10-28
 - `Builds/Windows/ProjectRidge.exe`: **Succeeded, 0 errores, 0 advertencias, 260 MB**, `runInBackground` 0. Incluye el shader nuevo del círculo del reflector. Tardó 1 h 50 min: el editor en segundo plano casi no avanza. Un `delayCall` lanzado desde el MCP nunca se ejecutó; el build corrió en llamada síncrona y la llamada del MCP expiró a los 30 min, pero el editor lo terminó.
 - `Assets/Resources/PerformanceTest*.json` aparece durante el build (lo crea el paquete de pruebas de rendimiento) y se borra solo al terminar; no quedó nada en git.

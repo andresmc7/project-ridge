@@ -113,3 +113,12 @@ Descartado: "Outrunners" (OOG37): la página dice CC0 pero el aviso dice "Copyri
 **Barlow Condensed SemiBold** — The Barlow Project Authors (https://github.com/jpt/barlow), **SIL Open Font License 1.1** (`OFL.txt` junto al archivo). Descargada de https://github.com/google/fonts/tree/main/ofl/barlowcondensed. En `Assets/ThirdParty/Fonts/BarlowCondensed/`. Única fuente del HUD. Fecha: 2026-10-21.
 
 Copias normalizadas (`Assets/_Project/Audio/Normalized/*_n.ogg`): derivadas de los clips CC0 de arriba (Kenney, OpenGameArt) y de los sintetizados del proyecto, solo con ganancia para llegar a su objetivo de loudness (pico limitado a −1 dBFS). Las genera `Tools/Blender/normalize_audio.py` con la lista que escribe `MusicBuilder` (P8). Misma licencia que el original.
+
+## Propios del proyecto (sin licencia externa)
+
+Generados por código del proyecto; no son de terceros:
+
+- `Assets/_Project/Audio/Generated/*.wav`: efectos sintetizados por `Scripts/Editor/SoundSynth.cs` (pasos alternativos, golpes del garrote, bengala, Lurker, ambiente, latido, stingers de alerta y checkpoint, etc.). Sus copias normalizadas están en `Audio/Normalized/`.
+- `Assets/_Project/Art/Meshes/Chunky/*`: mallas generadas por los builders (`ChunkyMeshGenerator`, `MeshDecimator`). Las `PolyHaven_*` son versiones reducidas de rocas de Poly Haven (CC0, ver arriba): `rock_moss_set_01/02`, `boulder_01`.
+
+**Prefijos**: `PH_` queda reservado para placeholders de IA con licencia no comercial (CLAUDE.md); hoy **no hay ninguno** en el proyecto. Lo derivado de Poly Haven usa `PolyHaven_`. El 2026-10-29 se renombraron 28 mallas `PH_Hollow*` → `PolyHaven_Hollow*`: eran rocas CC0 de Poly Haven, no placeholders. Se renombraron con `AssetDatabase.RenameAsset`, que conserva el GUID: la escena y los prefabs mantienen las 1055 referencias de render y las 902 de colisión.
