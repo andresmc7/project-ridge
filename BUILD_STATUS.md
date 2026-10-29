@@ -2,6 +2,15 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-29 — Build de Windows con los cambios del 2026-10-28
+- `Builds/Windows/ProjectRidge.exe`: **Succeeded, 0 errores, 0 advertencias, 260 MB**, `runInBackground` 0. Incluye el shader nuevo del círculo del reflector. Tardó 1 h 50 min: el editor en segundo plano casi no avanza. Un `delayCall` lanzado desde el MCP nunca se ejecutó; el build corrió en llamada síncrona y la llamada del MCP expiró a los 30 min, pero el editor lo terminó.
+- `Assets/Resources/PerformanceTest*.json` aparece durante el build (lo crea el paquete de pruebas de rendimiento) y se borra solo al terminar; no quedó nada en git.
+- **Arranque**:
+  - Primera vez: escena cargada, los 4 Lurker en el NavMesh, **0 excepciones** en `Player.log`.
+  - En los tres arranques la ventana se cerró de forma ordenada (cierre del sistema de input, sin crash ni error) a los ~5 s.
+  - En el mismo rato se cerró también el editor. Es compatible con alguien cerrando las ventanas a mano; no se volvió a lanzar.
+  - `UNVERIFIED`: que el build corra 40 s seguidos como el del 2026-10-28.
+
 ## 2026-10-29 — Regresión completa tras los cambios del 2026-10-28
 Editor, play mode vía Unity MCP, `PolishSuite.RunAll()` (cada fase en su propia sesión de play). Cubre los cambios del día anterior: círculo del reflector, helechos y cantos sin sombra, CP_Thicket movido 1 m.
 
