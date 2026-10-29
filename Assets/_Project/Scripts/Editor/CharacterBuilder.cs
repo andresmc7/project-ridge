@@ -603,9 +603,11 @@ namespace ProjectRidge.EditorTools
                 floorL = Mathf.Min(floorL, ls[i].y);
                 floorR = Mathf.Min(floorR, rs[i].y);
             }
-            // Un pie apoyado se desliza hacia atrás (+Z: el modelo mira a -Z) a la velocidad del cuerpo; en el vuelo vuelve
-            // hacia adelante. Velocidad = recorrido hacia atrás / tiempo yendo hacia atrás (robusto en el sprint).
-            // Por si el eje está invertido: la fase de apoyo es siempre la más lenta de las dos direcciones.
+            // Un pie apoyado se desliza hacia atrás a la velocidad del cuerpo; en el vuelo vuelve hacia adelante.
+            // Velocidad = recorrido hacia atrás / tiempo yendo hacia atrás (robusto en el sprint). El papá MakeHuman mira a
+            // +Z; por si el eje está invertido, la fase de apoyo es siempre la más lenta de las dos direcciones.
+            // Ojo: solo se mide el eje Z. Jog_Fwd_Loop (29°) y Sprint_Loop (20°) corren en diagonal, así que para ellos el
+            // resultado no es la velocidad real (BUILD_STATUS 2026-10-28/29); Walk y Crouch sí coinciden.
             float back = 0f, backT = 0f, fwd = 0f, fwdT = 0f;
             for (int i = 1; i <= samples; i++)
                 foreach (float d in new[] { ls[i].z - ls[i - 1].z, rs[i].z - rs[i - 1].z })

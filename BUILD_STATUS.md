@@ -87,6 +87,8 @@ Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAl
   - **El ángulo de los clips de correr se confirma** con dos métodos independientes: jog **29°**, sprint **19–20°** (el signo depende de la convención; es el mismo giro).
   - **La velocidad de los clips de correr no se puede medir así**: jog 5.79 y sprint 8.77 m/s. La punta toca solo en el 14% de los cuadros y 8.8 m/s no es creíble. La búsqueda anterior daba jog 1.0 y sprint 5.0. Ningún método fuera de juego es fiable para trote y sprint.
 - **Plan una vez decidido cómo corregir el ángulo**: con el ángulo corregido, calibrar en juego la escala de tiempo del trote y del sprint con SKATE (la que deja el pie de apoyo cerca de 0 en línea recta) y recién ahí decidir las velocidades de `PlayerMovementConfig`.
+- **El Lurker tiene el mismo problema** (2026-10-29): su persecución (`Hunt` en `Lurker.controller`) mezcla los mismos clips Jog_Fwd_Loop (umbral 3.34 m/s) y Sprint_Loop (4.6 m/s). Medidos sobre su cuerpo (escala 1.3) con el método de contacto, corren a **29°** y **20°**, igual que en el papá. Su caminata de patrulla (Zombie_Walk_Fwd_Loop) se desvía 7°, como la caminata del papá, que en SKATE está bien. La decisión sobre cómo corregir el ángulo vale para los dos personajes.
+- El comentario de `CharacterBuilder.MeasureNaturalSpeed` decía que el modelo mira a −Z. Se corrigió (+Z) y ahora advierte que solo mide el eje Z, así que no sirve para los clips en diagonal.
 - `UNVERIFIED`: la velocidad natural del trote y del sprint; que la corrección se vea bien en movimiento.
 
 
