@@ -34,6 +34,9 @@ namespace ProjectRidge.EditorTools
         public static bool Running { get; private set; }
         /// <summary>Al terminar, salir de play mode (false para inspeccionar la escena tras la prueba).</summary>
         public static bool StopPlayWhenDone = true;
+        /// <summary>Experimento de SKATE: velocidad global del Animator del papá durante la prueba (1 = normal). En
+        /// SessionState porque entrar en play recarga el dominio.</summary>
+        public static float SkateAnimatorSpeed { get => SessionState.GetFloat("ridge.skate.animspeed", 1f); set => SessionState.SetFloat("ridge.skate.animspeed", value); }
 
         public static void Run(string which)
         {
@@ -817,8 +820,11 @@ namespace ProjectRidge.EditorTools
             Calm();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
             var anim = player.transform.Find("Visual").GetComponent<Animator>();
-            var feet = new[] { anim.GetBoneTransform(HumanBodyBones.LeftFoot), anim.GetBoneTransform(HumanBodyBones.RightFoot) };
+            // La punta (ball) y no el tobillo: con el talón levantándose al final del apoyo el tobillo avanza aunque el pie
+            // esté bien plantado (mismo punto que usa CharacterBuilder.MeasureNaturalSpeed).
+            var feet = new[] { anim.GetBoneTransform(HumanBodyBones.LeftToes) ?? anim.GetBoneTransform(HumanBodyBones.LeftFoot), anim.GetBoneTransform(HumanBodyBones.RightToes) ?? anim.GetBoneTransform(HumanBodyBones.RightFoot) };
             const float Window = 0.6f, SkateSpeed = 0.15f;
+            anim.speed = SkateAnimatorSpeed;
 
             Teleport(Ground(-58f, 0f));
             yield return 2f;
@@ -837,9 +843,13 @@ namespace ProjectRidge.EditorTools
             var skating = new Dictionary<string, int>();
             var stanceSum = new Dictionary<string, float>();
             var bodySum = new Dictionary<string, float>();
-            var history = new[] { new List<(float t, float v)>(), new List<(float t, float v)>() };
+            var history = new[] { new List<(float t, float v, float fwd)>(), new List<(float t, float v, float fwd)>() };
+            var fwdSum = new Dictionary<string, float>(); // con signo: + el pie de apoyo avanza (clip lento), − retrocede (clip rápido)
             var last = new Vector3[2];
             Vector3 lastRoot = player.transform.position;
+            float lastYaw = player.transform.eulerAngles.y;
+            int turnTotal = 0, turnSkating = 0;
+            const float TurningYawRate = 30f; // °/s: por encima, el cuerpo gira y los pies apoyados barren de lado (otro problema)
             int frame = -1, total = 0, totalSkating = 0;
             float driven = 0f, lastTime = Time.time;
             bool first = true;
@@ -859,23 +869,31 @@ namespace ProjectRidge.EditorTools
                     lastRoot = rp;
                     var clips = anim.GetCurrentAnimatorClipInfo(0);
                     string clip = clips.Length > 0 ? clips[0].clip.name : "-";
+                    float yaw = player.transform.eulerAngles.y;
+                    bool turning = dt > 0f && Mathf.Abs(Mathf.DeltaAngle(lastYaw, yaw)) / dt > TurningYawRate;
+                    lastYaw = yaw;
+                    if (turning) clip += " (turning)";
                     for (int f = 0; f < 2; f++)
                     {
                         Vector3 p = feet[f].position;
                         if (!first && dt > 0f)
                         {
                             var h = history[f];
-                            h.Add((now, new Vector2(p.x - last[f].x, p.z - last[f].z).magnitude / dt));
+                            Vector3 fv = (p - last[f]) / dt; fv.y = 0f;
+                            h.Add((now, fv.magnitude, Vector3.Dot(fv, player.transform.forward)));
                             while (h.Count > 0 && h[0].t < now - Window) h.RemoveAt(0);
                             if (h.Count >= 3 && h[h.Count - 1].t - h[0].t >= Window * 0.8f)
                             {
-                                float stance = float.MaxValue;
-                                foreach (var s in h) stance = Mathf.Min(stance, s.v);
+                                float stance = float.MaxValue, stanceFwd = 0f;
+                                foreach (var s in h) if (s.v < stance) { stance = s.v; stanceFwd = s.fwd; }
+                                fwdSum[clip] = fwdSum.GetValueOrDefault(clip) + stanceFwd;
                                 frames[clip] = frames.GetValueOrDefault(clip) + 1;
                                 stanceSum[clip] = stanceSum.GetValueOrDefault(clip) + stance;
                                 bodySum[clip] = bodySum.GetValueOrDefault(clip) + body;
-                                total++;
-                                if (stance > SkateSpeed) { skating[clip] = skating.GetValueOrDefault(clip) + 1; totalSkating++; }
+                                bool slides = stance > SkateSpeed;
+                                if (slides) skating[clip] = skating.GetValueOrDefault(clip) + 1;
+                                if (turning) { turnTotal++; if (slides) turnSkating++; }
+                                else { total++; if (slides) totalSkating++; }
                             }
                         }
                         last[f] = p;
@@ -888,11 +906,11 @@ namespace ProjectRidge.EditorTools
             var sb = new System.Text.StringBuilder();
             foreach (var kv in frames)
                 if (kv.Value >= 10)
-                    sb.Append(kv.Key + " " + (100f * skating.GetValueOrDefault(kv.Key) / kv.Value).ToString("0") + "% (stance " + (stanceSum[kv.Key] / kv.Value).ToString("0.00") + " m/s, body " + (bodySum[kv.Key] / kv.Value).ToString("0.00") + " m/s, n " + kv.Value + "); ");
+                    sb.Append(kv.Key + " " + (100f * skating.GetValueOrDefault(kv.Key) / kv.Value).ToString("0") + "% (stance " + (stanceSum[kv.Key] / kv.Value).ToString("0.00") + " m/s, along facing " + (fwdSum[kv.Key] / kv.Value).ToString("+0.00;-0.00") + ", body " + (bodySum[kv.Key] / kv.Value).ToString("0.00") + " m/s, n " + kv.Value + "); ");
             float share = total > 0 ? (float)totalSkating / total : 1f;
-            Debug.Log("POLISH: SKATE per clip — " + sb);
-            Check("planted feet do not slide (≤ 10% of foot-frames whose slowest speed in 0.6 s is above 0.15 m/s, ~60 s)", share <= 0.1f,
-                  (share * 100f).ToString("0.0") + "% skating of " + total + " foot-frames in " + driven.ToString("0") + " s");
+            Debug.Log("POLISH: SKATE (animator speed " + anim.speed.ToString("0.00") + ") per clip — " + sb);
+            Check("planted feet do not slide moving straight (≤ 10% of foot-frames whose slowest speed in 0.6 s is above 0.15 m/s, ~60 s)", share <= 0.1f,
+                  (share * 100f).ToString("0.0") + "% skating of " + total + " straight foot-frames in " + driven.ToString("0") + " s; while turning (> " + TurningYawRate + "°/s, reported only) " + (turnTotal > 0 ? 100f * turnSkating / turnTotal : 0f).ToString("0") + "% of " + turnTotal);
         }
 
         static IEnumerator P8()

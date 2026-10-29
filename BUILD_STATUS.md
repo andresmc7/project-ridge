@@ -24,9 +24,17 @@ Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAl
 | **Sprint_Loop** | **100%** | **1.27** | 3.60 |
 
   Total: **41% FALLA**. Arranques, frenadas, giros y sigilo están bien. Los tres bucles de locomoción patinan: el pie de apoyo nunca se detiene y se desliza a un tercio de la velocidad del cuerpo.
-- **Causa probable**: los bucles son "en el sitio" (velocidad media 0). El pie solo queda quieto si el paso del clip coincide con la velocidad del cuerpo, y los umbrales del árbol de mezcla (1 / 2.6 / 3.6 m/s, `Father.controller`) no coinciden con el paso real de cada clip.
-- Un intento de medir el paso de cada clip muestreándolo fuera de juego dio números poco fiables (signo invertido, 4.7 m/s para el trote), así que no se tocó nada.
-- **Siguiente bloque**: calibrar en juego, a velocidades fijas, la velocidad de reproducción o los umbrales que dejan el pie de apoyo en 0. Volver a correr SKATE y P7.
+- **Diagnóstico** (continuación, mismo día; la prueba ahora mide la punta del pie como `MeasureNaturalSpeed`, separa los cuadros en línea recta de los de giro (> 30°/s) y da la componente a lo largo de hacia dónde mira el papá):
+  - **Velocidad natural de los clips**: medida de nuevo sobre el papá actual (MakeHuman) con `CharacterBuilder.MeasureNaturalSpeed`: walk 0.91, jog 2.51, sprint 3.53, crouch 0.67 m/s, a ≤ 3% de la tabla del builder (0.93 / 2.60 / 3.62 / 0.69). La tabla no está desactualizada.
+  - **Punta en vez de tobillo**: la componente hacia adelante baja a la mitad (el talón que se levanta adelantaba el tobillo).
+  - **En línea recta** (sin giros) siguen patinando: Walk_Loop 0.66 m/s (adelante +0.31), Jog 0.85 (+0.50), Sprint 0.80 (+0.48). Casi todo es **lateral**.
+  - **Experimento con el Animator a ×1.2** (`PolishTests.SkateAnimatorSpeed`, solo para pruebas): la componente hacia adelante baja (walk +0.23, jog +0.27, sprint +0.17), pero mucho menos de lo que predice un desajuste de velocidad (el trote debería bajar ~0.65); lo lateral sigue en 0.5–0.65 m/s.
+  - **Conclusión**: el patinaje de los bucles **no** es principalmente la velocidad de reproducción, sino un deslizamiento lateral del pie apoyado aun en línea recta. Causa **sin identificar**. Candidatos por revisar:
+    - el IK de pies, que rota el pie a la normal del terreno y mueve la punta;
+    - la inclinación procedural (`FatherAnimator.LateUpdate`, columna y pecho);
+    - el balanceo propio de los clips de Quaternius.
+  - No se cambió nada del juego.
+- **Siguiente bloque**: repetir SKATE en suelo plano con el IK de pies apagado y luego sin la inclinación, para aislar la causa lateral.
 
 ## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CPSAFE")` (incluida en `PolishSuite.RunAll`).
