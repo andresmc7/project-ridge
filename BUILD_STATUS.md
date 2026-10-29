@@ -34,7 +34,17 @@ Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAl
     - la inclinación procedural (`FatherAnimator.LateUpdate`, columna y pecho);
     - el balanceo propio de los clips de Quaternius.
   - No se cambió nada del juego.
-- **Siguiente bloque**: repetir SKATE en suelo plano con el IK de pies apagado y luego sin la inclinación, para aislar la causa lateral.
+- **Causa encontrada** (simulación fuera de juego: el clip muestreado con `PlayableGraph` sobre una copia del papá, sin IK, sin inclinación y sin física; el cuerpo avanza en línea recta; se mide la punta del pie con la misma ventana de 0.6 s):
+  - El modelo mira a **+Z**, no a −Z como dice el comentario de `MeasureNaturalSpeed`. Con +Z, Walk_Loop deja el pie de apoyo a 0.11 m/s y Crouch_Fwd_Loop a 0.11 (0.13 en juego): bien.
+  - **Jog_Fwd_Loop y Sprint_Loop corren en diagonal** respecto del frente del modelo. Rotando el clip y probando velocidades:
+    - Sprint_Loop: ángulo **−19°**, velocidad natural **5.0 m/s** (la tabla dice 3.62). Residuo 0.03 m/s (era 0.92).
+    - Jog_Fwd_Loop: ángulo **−29°**. Velocidad poco fiable: la búsqueda da 1.0 m/s, en el borde del rango, con residuo 0.12.
+  - `MeasureNaturalSpeed` solo mira el eje Z: con la diagonal subestima el sprint. Eso, más el ángulo, es lo que el pie apoyado convierte en deslizamiento lateral (0.5–1 m/s).
+- **Lo que no se hizo y por qué**: el arreglo choca con dos reglas y necesita una decisión.
+  - La rotación se corrige en la importación del clip (`Root Transform Rotation → Offset` en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`). CLAUDE.md dice que `ThirdParty` va sin modificar. La alternativa es compensar la rotación del `Visual` por código según el peso del trote y el sprint.
+  - POLISH_PASS 3.7 limita la escala de tiempo de los clips a 0.85–1.1×. Con el sprint a 5.0 m/s, correr a 3.6 m/s exige 0.72×. O se sube `sprintSpeed` (~4.3–5.5 m/s, cambia el balance del nivel) o se acepta una escala fuera del rango.
+- `UNVERIFIED`: la velocidad real del trote (hace falta otra medición), y que la corrección se vea bien en movimiento.
+
 
 ## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CPSAFE")` (incluida en `PolishSuite.RunAll`).
