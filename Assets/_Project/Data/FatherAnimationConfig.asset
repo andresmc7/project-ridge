@@ -15,6 +15,9 @@ MonoBehaviour:
   restSpeed: 0.15
   stopMinSpeed: 0.5
   runStopSpeed: 1.9
+  jogTravelYaw: 29
+  sprintTravelYaw: 20
+  travelYawSmoothing: 8
   pivotAngle: 150
   pivotMinSpeed: 1.9
   pivotCooldown: 0.8
@@ -24,6 +27,7 @@ MonoBehaviour:
   lookAroundAfter: 6
   lookAroundRepeat: 9
   tenseRadius: 14
+  tenseIdleWeight: 0.5
   tenseBlendTime: 0.8
   curveLeanPerDegPerSec: 0.02
   maxCurveLean: 7
@@ -38,3 +42,6 @@ MonoBehaviour:
   footLiftFade: 0.12
   maxHipDrop: 0.35
   hipSmoothing: 12
+  limpBelowHealth: 0.35
+  limpDip: 0.06
+  limpTilt: 5

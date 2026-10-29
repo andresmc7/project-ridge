@@ -17,6 +17,15 @@ namespace ProjectRidge.Player
         [Tooltip("Desde esta velocidad (m/s) la frenada es la de carrera.")]
         [Min(0f)] public float runStopSpeed = 1.9f;
 
+        [Header("Dirección de los clips de correr")]
+        [Tooltip("Ángulo (°) hacia la derecha al que avanza Jog_Fwd_Loop respecto del frente del modelo (medido con el pie de " +
+                 "apoyo, BUILD_STATUS 2026-10-28/29). El modelo se gira al revés para que los pies avancen recto y no patinen de lado.")]
+        [Range(-45f, 45f)] public float jogTravelYaw = 29f;
+        [Tooltip("Igual que jogTravelYaw para Sprint_Loop.")]
+        [Range(-45f, 45f)] public float sprintTravelYaw = 20f;
+        [Tooltip("Rapidez con que el giro de compensación sigue a la mezcla de trote/sprint (1/s).")]
+        [Min(0.1f)] public float travelYawSmoothing = 8f;
+
         [Header("Pivote en carrera")]
         [Tooltip("Ángulo (°) entre el cuerpo y el input que cuenta como media vuelta.")]
         [Range(90f, 180f)] public float pivotAngle = 150f;

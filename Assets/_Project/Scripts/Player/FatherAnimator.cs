@@ -61,6 +61,7 @@ namespace ProjectRidge.Player
         private Quaternion clubHandRot;
         private bool clubOnBack;
         private float lastSpeed, lean;
+        private float travelYaw; // giro de compensación del modelo (°), ver UpdateTravelYaw
         private bool hadInput, startArmed;
         private float idleTime, nextLookAround, pivotReady, tension;
         private float lastYaw, curveLean, hipOffset, limp;
@@ -267,10 +268,30 @@ namespace ProjectRidge.Player
             if (controller.ActionLocked && Time.time >= actionUnlock) controller.ActionLocked = false;
 
             UpdateLocomotionEvents(dt);
+            UpdateTravelYaw(dt);
             fireTimer += dt;
             if (flareGun != null) flareGun.SetActive(fireTimer < 0.8f);
             UpdateClub();
             if (torchProp != null) torchProp.SetActive(flashlight != null && flashlight.IsOn);
+        }
+
+        /// <summary>
+        /// Jog_Fwd_Loop y Sprint_Loop (Quaternius, "in place") avanzan en diagonal respecto del frente del modelo; con el
+        /// cuerpo yendo recto, el pie de apoyo patinaba de lado. Se gira el modelo al revés según cuánto trote/sprint hay en
+        /// la mezcla de Locomotion (mismos umbrales que el árbol: velocidades de PlayerMovementConfig).
+        /// </summary>
+        private void UpdateTravelYaw(float dt)
+        {
+            if (animConfig == null || controller.Config == null) return;
+            var mv = controller.Config;
+            float s = animator.GetFloat(SpeedId), jog = 0f, sprint = 0f;
+            if (s > mv.sprintSpeed) sprint = 1f;
+            else if (s > mv.jogSpeed) { sprint = (s - mv.jogSpeed) / Mathf.Max(0.01f, mv.sprintSpeed - mv.jogSpeed); jog = 1f - sprint; }
+            else if (s > mv.walkSpeed) jog = (s - mv.walkSpeed) / Mathf.Max(0.01f, mv.jogSpeed - mv.walkSpeed);
+            bool loco = animator.GetCurrentAnimatorStateInfo(0).IsName("Locomotion") && !controller.IsCrouching && !health.IsDead;
+            float target = loco ? -(animConfig.jogTravelYaw * jog + animConfig.sprintTravelYaw * sprint) : 0f;
+            travelYaw = Mathf.Lerp(travelYaw, target, 1f - Mathf.Exp(-animConfig.travelYawSmoothing * dt));
+            transform.localRotation = Quaternion.Euler(0f, travelYaw, 0f);
         }
 
         /// <summary>

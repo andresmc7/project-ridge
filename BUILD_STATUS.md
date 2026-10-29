@@ -2,6 +2,26 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-29 — Trote y sprint del papá: el modelo se gira para que los pies avancen recto
+Editor, play mode vía Unity MCP. Elegida por defecto la corrección por código de la decisión pendiente sobre el ángulo: no toca `ThirdParty` (CLAUDE.md) y se revierte quitando dos líneas. Si se prefiere el offset de importación en el `.meta`, se cambia.
+
+- `FatherAnimator.UpdateTravelYaw`: en el estado Locomotion gira el `Visual` del papá −29° × peso del trote − 20° × peso del sprint. Los pesos salen de la velocidad y de los mismos umbrales del árbol (velocidades de `PlayerMovementConfig`). Al agacharse, en arranques, frenadas y acciones vuelve a 0° con suavizado.
+- Datos en `FatherAnimationConfig`: `jogTravelYaw` 29°, `sprintTravelYaw` 20°, `travelYawSmoothing` 8/s. Sin números mágicos en el código.
+- **SKATE en línea recta** (velocidad mínima del pie de apoyo en 0.6 s):
+
+| Clip | Antes | Ahora | Componente hacia adelante |
+|---|---|---|---|
+| Walk_Loop | 0.66 m/s | 0.33 | +0.11 |
+| Jog_Fwd_Loop | 0.85 | 0.39 | +0.02 |
+| Sprint_Loop | 0.80 | 0.29 | −0.11 |
+
+  Cuadros patinando: 44.8% → 34.9% y 37.0% (dos corridas). En giro: 25% → 15–19%.
+- **Ajuste fino probado**: 36°/26° (jog 0.44, sprint 0.34) y 22°/14° (jog 0.44, sprint 0.43) dan peor que lo medido (29°/20°), que queda.
+- **Además**: en el clip de trote las caderas apuntan ~30° al costado, casi el mismo ángulo al que avanza el clip. Antes el papá trotaba con el cuerpo girado ~30° respecto de hacia dónde iba; con la compensación las caderas deberían quedar mirando hacia donde corre. `UNVERIFIED` a ojo (sin captura).
+- Lo que sigue patinando (~0.3 m/s) es sobre todo la velocidad de reproducción del trote y el sprint: depende de la decisión pendiente sobre `sprintSpeed` y el rango 0.85–1.1×.
+- El Lurker usa los mismos clips y **no** tiene todavía esta compensación (`LurkerAnimator` es otro script).
+- Regresión: P0 **8/8**, P1 **12/12**, P6 **5/5**, P7 **7/7**. SKATE sigue fallando (37%).
+
 ## 2026-10-29 — Auditoría de ASSETS.md y prefijo `PH_` corregido
 - Cruce de los 166 archivos de `ThirdParty` contra ASSETS.md: todos tienen fuente y licencia. Las texturas del papá (MakeHuman), las de pelo y ojos (Quaternius) y las ramitas de `fir_tree_01` están cubiertas por sus filas. La fuente Barlow figura con OFL 1.1.
 - Faltaba registrar lo propio: el audio sintetizado por `SoundSynth` (`Audio/Generated/`) y las mallas generadas. Se agregó la sección "Propios del proyecto".
