@@ -43,7 +43,12 @@ Editor, play mode vía Unity MCP. `PolishTests.Run("SKATE")` (incluida en `RunAl
 - **Lo que no se hizo y por qué**: el arreglo choca con dos reglas y necesita una decisión.
   - La rotación se corrige en la importación del clip (`Root Transform Rotation → Offset` en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`). CLAUDE.md dice que `ThirdParty` va sin modificar. La alternativa es compensar la rotación del `Visual` por código según el peso del trote y el sprint.
   - POLISH_PASS 3.7 limita la escala de tiempo de los clips a 0.85–1.1×. Con el sprint a 5.0 m/s, correr a 3.6 m/s exige 0.72×. O se sube `sprintSpeed` (~4.3–5.5 m/s, cambia el balance del nivel) o se acepta una escala fuera del rango.
-- `UNVERIFIED`: la velocidad real del trote (hace falta otra medición), y que la corrección se vea bien en movimiento.
+- **Segunda medición (2026-10-29)**: solo los cuadros en que la punta toca el suelo (≤ 1.5 cm de su mínimo); la velocidad es la de la punta hacia atrás y el ángulo, el que anula la velocidad lateral.
+  - Walk: 0.97 m/s a 7°. Crouch: 0.71 m/s a −4°. Coinciden con la tabla: el método sirve para clips con apoyo largo.
+  - **El ángulo de los clips de correr se confirma** con dos métodos independientes: jog **29°**, sprint **19–20°** (el signo depende de la convención; es el mismo giro).
+  - **La velocidad de los clips de correr no se puede medir así**: jog 5.79 y sprint 8.77 m/s. La punta toca solo en el 14% de los cuadros y 8.8 m/s no es creíble. La búsqueda anterior daba jog 1.0 y sprint 5.0. Ningún método fuera de juego es fiable para trote y sprint.
+- **Plan una vez decidido cómo corregir el ángulo**: con el ángulo corregido, calibrar en juego la escala de tiempo del trote y del sprint con SKATE (la que deja el pie de apoyo cerca de 0 en línea recta) y recién ahí decidir las velocidades de `PlayerMovementConfig`.
+- `UNVERIFIED`: la velocidad natural del trote y del sprint; que la corrección se vea bien en movimiento.
 
 
 ## 2026-10-28 — Checkpoints seguros: prueba nueva (CPSAFE) y CP_Thicket fuera de vista
