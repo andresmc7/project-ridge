@@ -63,6 +63,7 @@ namespace ProjectRidge.EditorTools
                 "SKATE" => FootSkate(),
                 "JOGSHOT" => JogShot(),
                 "LURKSHOT" => LurkerRunShot(),
+                "CALIB" => RunCalibration(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -1050,6 +1051,64 @@ namespace ProjectRidge.EditorTools
             Debug.Log("POLISH: LURKSHOT " + string.Join("; ", lines));
             Check("chasing Lurker's pelvis faces where it runs (≤ 12°, better than without compensation)",
                   errors[true] <= 12f && errors[true] < errors[false], string.Join("; ", lines));
+        }
+
+        /// <summary>
+        /// Calibración (solo mide, no cambia nada): corriendo en línea recta a velocidad de trote y de sprint, prueba varias
+        /// velocidades globales del Animator y anota la velocidad mínima del pie de apoyo (punta, ventana de 0.6 s) y su
+        /// componente hacia adelante. La que deja el pie quieto dice cuánto más rápido o lento debe ir cada clip.
+        /// </summary>
+        static IEnumerator RunCalibration()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var anim = player.transform.Find("Visual").GetComponent<Animator>();
+            var toes = new[] { anim.GetBoneTransform(HumanBodyBones.LeftToes), anim.GetBoneTransform(HumanBodyBones.RightToes) };
+            var report = new List<string>();
+            try
+            {
+                foreach (var (label, stick) in new[] { ("jog", new Vector2(0.9f, 0f)), ("sprint", new Vector2(1f, 0f)) })
+                    foreach (float k in new[] { 0.8f, 1f, 1.2f, 1.4f, 1.6f })
+                    {
+                        anim.speed = 1f;
+                        Teleport(Ground(-58f, 0f));
+                        yield return 1f;
+                        Stick(stick);
+                        yield return 1.5f;
+                        anim.speed = k;
+                        yield return 0.6f;
+                        var hist = new[] { new List<(float t, float v, float f)>(), new List<(float t, float v, float f)>() };
+                        var last = new[] { toes[0].position, toes[1].position };
+                        float sumV = 0f, sumF = 0f, body = 0f, lastT = Time.time; int n = 0, frame = Time.frameCount;
+                        Vector3 start = player.transform.position; float t0 = Time.time, end = Time.time + 2f;
+                        while (Time.time < end)
+                        {
+                            yield return 0f;
+                            if (Time.frameCount == frame) continue;
+                            frame = Time.frameCount;
+                            float now = Time.time, dt = now - lastT; lastT = now;
+                            if (dt <= 0f) continue;
+                            for (int f = 0; f < 2; f++)
+                            {
+                                Vector3 fv = (toes[f].position - last[f]) / dt; fv.y = 0f; last[f] = toes[f].position;
+                                var h = hist[f];
+                                h.Add((now, fv.magnitude, Vector3.Dot(fv, player.transform.forward)));
+                                while (h[0].t < now - 0.6f) h.RemoveAt(0);
+                                if (now - t0 < 0.6f) continue;
+                                var best = h[0]; foreach (var s in h) if (s.v < best.v) best = s;
+                                sumV += best.v; sumF += best.f; n++;
+                            }
+                        }
+                        Stick(Vector2.zero);
+                        body = (player.transform.position - start).magnitude / 2f;
+                        report.Add(label + " @" + k.ToString("0.0") + "x: body " + body.ToString("0.00") + " m/s, stance " + (n > 0 ? sumV / n : 0f).ToString("0.00") + " (fwd " + (n > 0 ? sumF / n : 0f).ToString("+0.00;-0.00") + ")");
+                        Debug.Log("POLISH: CALIB " + report[report.Count - 1]);
+                        yield return 0.5f;
+                    }
+            }
+            finally { anim.speed = 1f; }
+            Check("calibration ran (measurement only)", report.Count == 10, string.Join("; ", report));
         }
 
         /// <summary>Primer plano de costado (4 m) del papá, para revisar la pose a ojo.</summary>

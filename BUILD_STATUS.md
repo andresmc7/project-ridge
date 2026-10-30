@@ -2,6 +2,23 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-30 — Calibración en juego de la velocidad del trote y el sprint (solo medición)
+Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CALIB")`, solo mide; no está en `RunAll`. Ya con el ángulo corregido, el papá corre en línea recta a velocidad de trote (2.6 m/s) y de sprint (3.6 m/s) con el Animator a 0.8–1.6×; se anota la velocidad mínima del pie de apoyo (punta, ventana de 0.6 s) y su componente hacia adelante.
+
+| Velocidad del Animator | Trote 2.6 m/s: pie (adelante) | Sprint 3.6 m/s: pie (adelante) |
+|---|---|---|
+| 0.8× | 0.55 (+0.38) | 0.24 (−0.07) |
+| 1.0× (actual) | 0.54 (+0.24) | 0.22 (+0.12) |
+| 1.2× | **0.28 (+0.04)** | 0.27 (−0.01) |
+| 1.4× | 0.34 (−0.11) | 0.26 (−0.06) |
+| 1.6× | 0.22 (−0.02) | 0.32 (−0.17) |
+
+- **Sprint**: bien como está. La componente hacia adelante cruza 0 entre 1.0× y 1.2× y el pie se queda en ~0.22 m/s a cualquier velocidad; eso es residuo lateral, no velocidad. La estimación fuera de juego (5.0 m/s) estaba mal.
+- **Trote**: va ~20% lento. El pie deja de adelantarse hacia 1.2×, así que su velocidad natural real es ~2.2 m/s, no los 2.6 de la tabla. Para corregirlo hay dos caminos:
+  - escala de tiempo 1.2× a 2.6 m/s, fuera del rango 0.85–1.1× de POLISH_PASS 3.7;
+  - `jogSpeed` ≈ 2.4 m/s (1.1×, en el rango): el trote sería un 8% más lento.
+- Esto reemplaza la pregunta abierta sobre `sprintSpeed`: el sprint no necesita cambio y la decisión es solo sobre el trote.
+
 ## 2026-10-30 — Regresión completa tras girar el modelo en trote/sprint (papá y Lurker)
 Editor, play mode vía Unity MCP, `PolishSuite.RunAll()`.
 
