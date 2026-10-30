@@ -2,6 +2,19 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## Decisiones pendientes del usuario (actualizado 2026-10-30)
+Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entradas fechadas de abajo.
+
+1. **Checkpoints a la vista de una patrulla** (prueba `CPSAFE`, 3/6 seguros). Quieto en el checkpoint, al papá lo descubren:
+   - CP_TwoLights: a los 14.7 s, el Lurker de la sala 2 a 6 m.
+   - CP_Camp: a los 13.2 s, Lurker_C a 8.6 m.
+   - CP_Radio: a los 10.4 s, Lurker_C a 7.3 m.
+
+   Nunca al reaparecer (no hay bucle inmediato de muertes). Opciones: (a) pasto alto (escondite) junto a cada uno; (b) cambiar las rutas de patrulla; (c) aceptar los ~10 s.
+   Mover CP_TwoLights al lugar seguro más cercano lo deja pasando el haz S2, y morir ahí haría repetir la sala 2.
+2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop** (29° / 20°, papá y Lurker). Hoy está por código (`FatherAnimator` / `LurkerAnimator.UpdateTravelYaw`), elegido por defecto porque no toca `ThirdParty`. Resultado: la pelvis del papá pasa de 28.5° a 1.8° respecto de hacia dónde corre, y la del Lurker de 24.1° a 4.9°. Alternativa: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`. ¿Se mantiene el código?
+3. **Trote del papá**. Calibrado en juego, el clip necesita ~1.2×; hoy va a 1.1×, el máximo de POLISH_PASS 3.7. Opciones: (a) permitir ~1.2× (fuera del rango); (b) bajar `jogSpeed` de 2.6 a ~2.4 m/s (el papá trota un 8% más lento). El sprint está bien; el Lurker no necesita cambio.
+
 ## 2026-10-30 — Trote del papá a 1.1× (dentro del rango de POLISH_PASS 3.7)
 Editor, play mode vía Unity MCP. Paso intermedio que no necesita la decisión pendiente: no cambia ninguna velocidad de juego.
 
