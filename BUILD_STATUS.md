@@ -15,6 +15,15 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop** (29° / 20°, papá y Lurker). Hoy está por código (`FatherAnimator` / `LurkerAnimator.UpdateTravelYaw`), elegido por defecto porque no toca `ThirdParty`. Resultado: la pelvis del papá pasa de 28.5° a 1.8° respecto de hacia dónde corre, y la del Lurker de 24.1° a 4.9°. Alternativa: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`. ¿Se mantiene el código?
 3. **Trote del papá**. Calibrado en juego, el clip necesita ~1.2×; hoy va a 1.1×, el máximo de POLISH_PASS 3.7. Opciones: (a) permitir ~1.2× (fuera del rango); (b) bajar `jogSpeed` de 2.6 a ~2.4 m/s (el papá trota un 8% más lento). El sprint está bien; el Lurker no necesita cambio.
 
+## 2026-10-30 — Rendimiento: abetos lejanos sin sombra (umbral conservador por el histograma)
+Editor, play mode vía Unity MCP, `PerfProbe` con `Mobile_RPAsset`.
+
+- Mismo criterio que los cantos sueltos: el LOD0 de un abeto (9 m de alto) a más de **16 m** del suelo caminable no proyecta sombra. Son 82 de 520. Regla en `HollowBuilder.FarTreeShadows` (constante `FarTreeNoShadow`), aplicada en el builder y en la escena guardada. Toca solo el LOD0 y en los dos sentidos; el impostor ya iba sin sombra.
+- **Primero se probó 12 m** (205 abetos): proyectores −2 a −22% y captura igual a ojo, pero el histograma de P3 bajó de 51% a **50%** de sombra profunda, justo el límite. Esas sombras sí oscurecen el cuadro, así que se subió a 16 m: histograma de vuelta en **51%**.
+- Proyectores a 16 m (antes → ahora): (−55, 0) 301 → 275; (−24, 0) 317 → 284; (−1.5, 0.2) 260 → 239; (24, 0) 269 → 243; (47.6, −0.5) 375 → 352; (60, −3) 330 → 335. Es decir, −6 a −10% en 5 de 6 puntos. Batches 487–720 (ruido de ±20 por Lurkers y haces en vivo).
+- Regresión: P3 **6/6** (histograma 51% / 4.2%, desvanecido de árboles OK), P4 **5/5**; con 12 m, P5 **5/5**.
+- Siguiente paso posible, documentado pero no hecho: un solo material para los abetos (atlas 2048×1024 de ramitas y corteza, UV del tronco remapeadas, impostor y variantes "Faded" rehechos). Bajaría de 2 a 1 draw por árbol, unos 100 batches menos en el campamento. Es un cambio grande en el arte.
+
 ## 2026-10-30 — Trote del papá a 1.1× (dentro del rango de POLISH_PASS 3.7)
 Editor, play mode vía Unity MCP. Paso intermedio que no necesita la decisión pendiente: no cambia ninguna velocidad de juego.
 

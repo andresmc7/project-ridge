@@ -1018,6 +1018,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -2512,6 +2516,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -2927,6 +2935,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0442735
@@ -4440,6 +4452,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5728,6 +5744,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6482,6 +6502,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -7167,6 +7191,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9224012
@@ -7333,6 +7361,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7593,6 +7625,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -8339,6 +8375,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10344,6 +10384,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10459,6 +10503,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -11947,6 +11995,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0910892
@@ -29135,6 +29187,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1403108
@@ -29930,6 +29986,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -31566,6 +31626,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -31840,6 +31904,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -34060,6 +34128,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -34462,6 +34534,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0222896
@@ -35062,6 +35138,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -42404,6 +42484,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.076835
@@ -42970,6 +43054,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -44052,6 +44140,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -44879,6 +44971,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -45166,6 +45262,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -47370,6 +47470,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -50063,6 +50167,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.93376184
@@ -51133,6 +51241,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1330407
@@ -53458,6 +53570,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -55457,6 +55573,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0407169
@@ -56589,6 +56709,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -56661,6 +56785,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -57471,6 +57599,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -57824,6 +57956,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -60162,6 +60298,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8998976
@@ -60284,6 +60424,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -60306,6 +60450,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0796732
@@ -62537,6 +62685,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -64424,6 +64576,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -64756,6 +64912,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -65732,6 +65892,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9444197
@@ -65936,6 +66100,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -66124,6 +66292,10 @@ PrefabInstance:
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -72911,6 +73083,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0179183
@@ -73241,6 +73417,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -78124,6 +78304,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -79827,6 +80011,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -81276,6 +81464,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -81513,6 +81705,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -82764,6 +82960,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -85455,6 +85655,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -85908,6 +86112,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0307268
@@ -87660,6 +87868,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -89369,6 +89581,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1089883
@@ -89849,6 +90065,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0230124
@@ -90215,6 +90435,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -91049,6 +91273,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -96598,6 +96826,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9978726
@@ -97470,6 +97702,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -98540,6 +98776,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0456257
@@ -99557,6 +99797,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.95211625
@@ -105495,6 +105739,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -111231,6 +111479,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -114126,6 +114378,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -114298,6 +114554,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -117803,6 +118063,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.04795
@@ -118441,6 +118705,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -120326,6 +120594,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -123265,6 +123537,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -131367,6 +131643,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -137988,6 +138268,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -138926,6 +139210,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -142876,6 +143164,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -145211,6 +145503,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8599456
@@ -149575,6 +149871,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -151400,6 +151700,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.97795177
@@ -151514,6 +151818,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -158447,6 +158755,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -158620,6 +158932,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
@@ -159124,6 +159440,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1067568
@@ -159343,6 +159663,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -160124,6 +160448,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -161883,6 +162211,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -163628,6 +163960,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1258771
@@ -166706,6 +167042,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0123304
@@ -167690,6 +168030,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -169534,6 +169878,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -169758,6 +170106,10 @@ PrefabInstance:
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -171575,6 +171927,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -174039,6 +174395,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -174494,6 +174854,10 @@ PrefabInstance:
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -181986,6 +182350,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -182723,6 +183091,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1466732
@@ -183431,6 +183803,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -186487,6 +186863,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.99208015
@@ -187172,6 +187552,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -188451,6 +188835,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
@@ -190063,6 +190451,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1347815
@@ -190871,6 +191263,10 @@ PrefabInstance:
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -193240,6 +193636,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.98649687
@@ -193438,6 +193838,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -194657,6 +195061,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -198419,6 +198827,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -198485,6 +198897,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -200191,6 +200607,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.92238563
@@ -200794,6 +201214,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -200977,6 +201401,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -201323,6 +201751,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -204876,6 +205308,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -205299,6 +205735,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.89976823
@@ -207176,6 +207616,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -207341,6 +207785,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0881044
@@ -207619,6 +208067,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -208626,6 +209078,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -212085,6 +212541,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -213446,6 +213906,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.99060166
@@ -214990,6 +215454,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -220093,6 +220561,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -220279,6 +220751,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0241119
@@ -220411,6 +220887,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -222033,6 +222513,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -223813,6 +224297,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.91077834
@@ -225014,6 +225502,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -225217,6 +225709,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -228670,6 +229166,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -233296,6 +233796,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -234947,6 +235451,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9011528
@@ -238116,6 +238624,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -238703,6 +239215,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -240503,6 +241019,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -241713,6 +242233,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -241896,6 +242420,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -242362,6 +242890,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.88972896
@@ -244140,6 +244672,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.149873
@@ -244254,6 +244790,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -245684,6 +246224,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -247517,6 +248061,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -248492,6 +249040,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -256572,6 +257124,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -264528,6 +265084,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -264882,6 +265442,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -265039,6 +265603,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -265698,6 +266266,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.99667054
@@ -266046,6 +266618,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -268436,6 +269012,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -276977,6 +277557,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -285125,6 +285709,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1105003
@@ -285934,6 +286522,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1110481
@@ -286639,6 +287231,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -287991,6 +288587,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -291623,6 +292223,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -292193,6 +292797,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -297446,6 +298054,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.94697565
@@ -297981,6 +298593,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0141377
@@ -298216,6 +298832,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -298413,6 +299033,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -299532,6 +300156,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -301626,6 +302254,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -302128,6 +302760,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1275287
@@ -302890,6 +303526,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -304087,6 +304727,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -305254,6 +305898,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -307017,6 +307665,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0373597
@@ -312278,6 +312930,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -313032,6 +313688,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0380559
@@ -313677,6 +314337,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -315560,6 +316224,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1090208
@@ -315685,6 +316353,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -319319,6 +319991,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -319471,6 +320147,10 @@ PrefabInstance:
     - target: {fileID: 3492507834127864781, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6883199072351321646, guid: 6d300e4452f8d3a4d8f023dcfce6c74c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -321303,6 +321983,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -321473,6 +322157,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -322138,6 +322826,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -322927,6 +323619,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -323407,6 +324103,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -330976,6 +331676,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -331735,6 +332439,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -334386,6 +335094,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.9571352
@@ -335670,6 +336382,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0142958
@@ -337295,6 +338011,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.079577
@@ -341025,6 +341745,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -345083,6 +345807,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1087424
@@ -345210,6 +345938,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0526764
@@ -353111,6 +353843,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -354539,6 +355275,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1468637
@@ -354953,6 +355693,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0747684
@@ -355350,6 +356094,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.1455954
@@ -355468,6 +356216,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -355720,6 +356472,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -356821,6 +357577,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -358801,6 +359561,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8740527
@@ -360006,6 +360770,10 @@ PrefabInstance:
     - target: {fileID: 7788005614597267789, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -362074,6 +362842,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -362143,6 +362915,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -364084,6 +364860,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
       value: HollowFir_2
@@ -364188,6 +364968,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
@@ -365415,6 +366199,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9147794260162915915, guid: c6c54f8c4fa208848911298bd6898af8, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -365985,6 +366773,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -370680,6 +371472,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.94463235
@@ -373703,6 +374499,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0716698
@@ -374459,6 +375259,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 129542472}
     m_Modifications:
+    - target: {fileID: 4066160500572837287, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4967469343761011554, guid: cee666775113f254bb9d263b7a0c8cab, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.0604632
@@ -375633,6 +376437,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name
@@ -382715,6 +383523,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HollowFir_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.8604288
@@ -386108,6 +386920,10 @@ PrefabInstance:
     - target: {fileID: 5629425045254946981, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_Name
       value: HollowFir_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5878335326517731982, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9204319514774381911, guid: 3cd57698ade2ad242a86035cb0778757, type: 3}
       propertyPath: m_LocalScale.x
@@ -390361,6 +391177,10 @@ PrefabInstance:
     - target: {fileID: 3941467200632037561, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7292722548427069021, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7571914166767232444, guid: a2afcde771416c746b2aac15ed10d0bc, type: 3}
       propertyPath: m_Name

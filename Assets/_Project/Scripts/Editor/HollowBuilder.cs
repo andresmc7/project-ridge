@@ -493,6 +493,7 @@ namespace ProjectRidge.EditorTools
                 var tree = Spawn(CardConiferPrefab(variant), parent, p, R(0f, 360f), scale);
                 // Red de seguridad: si el encuadre (mirar adelante, amenaza) lo pone delante del papá, se desvanece con dithering.
                 if (!north) MakeFadeable(tree);
+                FarTreeShadows(tree);
                 placed.Add(p);
             }
             return placed.Count;
@@ -501,6 +502,19 @@ namespace ProjectRidge.EditorTools
         /// <summary>Un canto suelto a más de esta distancia (m) del suelo caminable no proyecta sombra: queda en el bosque
         /// entre salas, donde su sombra cae sobre suelo que nadie mira de cerca (−5 a −10% de proyectores en móvil).</summary>
         const float FarRockNoShadow = 4f;
+
+        /// <summary>Un abeto (9 m de alto) a más de esta distancia (m) del suelo caminable no proyecta sombra: su sombra cae
+        /// en el bosque y no llega al camino. A 12 m el histograma de P3 bajaba de 51% a 50% de sombra profunda (el límite),
+        /// así que se usa 16 m.</summary>
+        const float FarTreeNoShadow = 16f;
+
+        /// <summary>Sombra del LOD0 según la distancia al suelo caminable (el impostor ya va sin sombra).</summary>
+        public static void FarTreeShadows(GameObject tree)
+        {
+            var lod0 = tree.transform.Find("LOD0");
+            if (lod0 == null) return;
+            lod0.GetComponent<MeshRenderer>().shadowCastingMode = Walk(tree.transform.position) > FarTreeNoShadow ? ShadowCastingMode.Off : ShadowCastingMode.On;
+        }
 
         public static void FarRockShadows(GameObject rock)
         {
