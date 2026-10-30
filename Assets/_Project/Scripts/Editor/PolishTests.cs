@@ -1016,6 +1016,11 @@ namespace ProjectRidge.EditorTools
                     lurker.Perception.Suppress(0f);
                     lurker.AlertTo(player.transform.position);
                     float sum = 0f, speedSum = 0f; int n = 0, frame = -1;
+                    // Pie de apoyo (punta): velocidad mínima en 0.6 s y su componente a lo largo del avance, como en SKATE.
+                    var toes = new[] { anim.GetBoneTransform(HumanBodyBones.LeftToes) ?? anim.GetBoneTransform(HumanBodyBones.LeftFoot), anim.GetBoneTransform(HumanBodyBones.RightToes) ?? anim.GetBoneTransform(HumanBodyBones.RightFoot) };
+                    var hist = new[] { new List<(float t, float v, float f)>(), new List<(float t, float v, float f)>() };
+                    var lastToe = new[] { toes[0].position, toes[1].position };
+                    float stanceSum = 0f, stanceFwd = 0f, lastT = Time.time, huntStart = -1f; int stanceN = 0;
                     float end = Time.time + 6f;
                     string shot = "";
                     while (Time.time < end)
@@ -1029,6 +1034,18 @@ namespace ProjectRidge.EditorTools
                         Vector3 across = anim.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - anim.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
                         Vector3 facing = Vector3.Cross(across, Vector3.up); facing.y = 0f;
                         sum += Mathf.Abs(Vector3.SignedAngle(v, facing, Vector3.up)); speedSum += v.magnitude; n++;
+                        float now = Time.time, dtt = now - lastT; lastT = now;
+                        if (huntStart < 0f) huntStart = now;
+                        for (int f = 0; f < 2 && dtt > 0f; f++)
+                        {
+                            Vector3 fv = (toes[f].position - lastToe[f]) / dtt; fv.y = 0f; lastToe[f] = toes[f].position;
+                            var h = hist[f];
+                            h.Add((now, fv.magnitude, Vector3.Dot(fv, v.normalized)));
+                            while (h[0].t < now - 0.6f) h.RemoveAt(0);
+                            if (now - huntStart < 0.6f) continue;
+                            var best = h[0]; foreach (var q in h) if (q.v < best.v) best = q;
+                            stanceSum += best.v; stanceFwd += best.f; stanceN++;
+                        }
                         if (shot == "" && n == 20)
                         {
                             shot = ProgressDir + "LURK_run" + (compensated ? "_compensated" : "_raw") + ".png";
@@ -1037,7 +1054,7 @@ namespace ProjectRidge.EditorTools
                     }
                     float mean = n > 0 ? sum / n : 999f;
                     errors[compensated] = mean;
-                    lines.Add((compensated ? "compensated" : "raw") + " pelvis vs travel " + mean.ToString("0.0") + "° (n " + n + ", mean speed " + (n > 0 ? speedSum / n : 0f).ToString("0.0") + " m/s)");
+                    lines.Add((compensated ? "compensated" : "raw") + " pelvis vs travel " + mean.ToString("0.0") + "° (n " + n + ", mean speed " + (n > 0 ? speedSum / n : 0f).ToString("0.0") + " m/s), planted toe " + (stanceN > 0 ? stanceSum / stanceN : 0f).ToString("0.00") + " m/s (along travel " + (stanceN > 0 ? stanceFwd / stanceN : 0f).ToString("+0.00;-0.00") + ")");
                     lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
                     lurker.Perception.Suppress(9999f);
                     yield return 1f;
