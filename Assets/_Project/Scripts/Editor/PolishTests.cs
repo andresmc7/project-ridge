@@ -61,6 +61,7 @@ namespace ProjectRidge.EditorTools
                 "SNEAK" => SneakHintTest(),
                 "CPSAFE" => CheckpointSafety(),
                 "SKATE" => FootSkate(),
+                "JOGSHOT" => JogShot(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -911,6 +912,98 @@ namespace ProjectRidge.EditorTools
             Debug.Log("POLISH: SKATE (animator speed " + anim.speed.ToString("0.00") + ") per clip — " + sb);
             Check("planted feet do not slide moving straight (≤ 10% of foot-frames whose slowest speed in 0.6 s is above 0.15 m/s, ~60 s)", share <= 0.1f,
                   (share * 100f).ToString("0.0") + "% skating of " + total + " straight foot-frames in " + driven.ToString("0") + " s; while turning (> " + TurningYawRate + "°/s, reported only) " + (turnTotal > 0 ? 100f * turnSkating / turnTotal : 0f).ToString("0") + "% of " + turnTotal);
+        }
+
+        /// <summary>
+        /// ¿El papá corre mirando hacia donde va? Ángulo entre el frente de la pelvis (perpendicular a la línea entre las
+        /// caderas) y la dirección en que se mueve, trotando y en sprint en línea recta, con la compensación de
+        /// FatherAnimationConfig.jog/sprintTravelYaw y sin ella (0°). Guarda un primer plano de cada caso.
+        /// </summary>
+        static IEnumerator JogShot()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            var anim = player.transform.Find("Visual").GetComponent<Animator>();
+            var cfg = AssetDatabase.LoadAssetAtPath<FatherAnimationConfig>("Assets/_Project/Data/FatherAnimationConfig.asset");
+            float jogYaw = cfg.jogTravelYaw, sprintYaw = cfg.sprintTravelYaw;
+            var lines = new List<string>();
+            var errors = new Dictionary<string, float>();
+            try
+            {
+                foreach (bool compensated in new[] { true, false })
+                {
+                    cfg.jogTravelYaw = compensated ? jogYaw : 0f;
+                    cfg.sprintTravelYaw = compensated ? sprintYaw : 0f;
+                    foreach (var (label, stick) in new[] { ("jog", new Vector2(0.9f, 0f)), ("sprint", new Vector2(1f, 0f)) })
+                    {
+                        Teleport(Ground(-58f, 0f)); // mismo claro que SKATE (en x = −62 el papá no se movía: borde del nivel)
+                        yield return 1f;
+                        Stick(stick);
+                        yield return 1.5f; // ya en el bucle
+                        float sum = 0f; int n = 0, frames = 0; Vector3 last = player.transform.position, start = last; int frame = Time.frameCount;
+                        float end = Time.time + 1.5f;
+                        string shot = "";
+                        while (Time.time < end)
+                        {
+                            yield return 0f;
+                            if (Time.frameCount == frame) continue;
+                            frame = Time.frameCount;
+                            frames++;
+                            Vector3 v = player.transform.position - last; v.y = 0f; last = player.transform.position;
+                            if (v.sqrMagnitude < 1e-6f) continue;
+                            Vector3 across = anim.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - anim.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
+                            Vector3 facing = Vector3.Cross(across, Vector3.up); facing.y = 0f;
+                            sum += Mathf.Abs(Vector3.SignedAngle(v, facing, Vector3.up)); n++;
+                            if (shot == "" && end - Time.time < 0.75f)
+                            {
+                                shot = ProgressDir + "JOG_" + label + (compensated ? "_compensated" : "_raw") + ".png";
+                                CloseUp(shot, player.transform.position);
+                            }
+                        }
+                        Debug.Log("POLISH: JOGSHOT dbg " + label + " frames " + frames + " moved " + (player.transform.position - start).magnitude.ToString("0.00") + " m, clip " + (anim.GetCurrentAnimatorClipInfo(0).Length > 0 ? anim.GetCurrentAnimatorClipInfo(0)[0].clip.name : "-") + ", speed " + player.CurrentSpeed.ToString("0.00"));
+                        Stick(Vector2.zero);
+                        float mean = n > 0 ? sum / n : 999f;
+                        errors[label + (compensated ? "+" : "-")] = mean;
+                        lines.Add(label + (compensated ? " compensated" : " raw") + " pelvis vs travel " + mean.ToString("0.0") + "° (n " + n + ")");
+                        yield return 1f;
+                    }
+                }
+            }
+            finally
+            {
+                cfg.jogTravelYaw = jogYaw;
+                cfg.sprintTravelYaw = sprintYaw;
+            }
+            Debug.Log("POLISH: JOGSHOT " + string.Join("; ", lines));
+            Check("running pelvis faces the direction of travel (≤ 12°, better than without compensation)",
+                  errors["jog+"] <= 12f && errors["sprint+"] <= 12f && errors["jog+"] < errors["jog-"] && errors["sprint+"] < errors["sprint-"],
+                  string.Join("; ", lines));
+        }
+
+        /// <summary>Primer plano de costado (4 m) del papá, para revisar la pose a ojo.</summary>
+        static void CloseUp(string file, Vector3 focus)
+        {
+            var go = new GameObject("CloseUpCam");
+            var cam = go.AddComponent<Camera>();
+            cam.CopyFrom(Camera.main);
+            cam.fieldOfView = 35f;
+            go.transform.position = focus + new Vector3(0.5f, 2.2f, -4f);
+            go.transform.LookAt(focus + Vector3.up * 0.9f);
+            var rt = RenderTexture.GetTemporary(960, 720, 24, RenderTextureFormat.ARGB32);
+            cam.targetTexture = rt;
+            cam.Render();
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+            tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+            tex.Apply();
+            RenderTexture.active = prev;
+            cam.targetTexture = null;
+            RenderTexture.ReleaseTemporary(rt);
+            System.IO.File.WriteAllBytes(file, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            Object.DestroyImmediate(go);
         }
 
         static IEnumerator P8()
