@@ -2,6 +2,21 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-30 — Regresión completa tras girar el modelo en trote/sprint (papá y Lurker)
+Editor, play mode vía Unity MCP, `PolishSuite.RunAll()`.
+
+| Fase | Resultado |
+|---|---|
+| P0–P8 | **8/8, 12/12, 5/5, 6/6, 5/5, 5/5, 5/5, 7/7, 9/9** |
+| SNEAK | **2/2** |
+| JOGSHOT | **1/1** |
+| LURKSHOT | **1/1** |
+| CPSAFE | 0/1 (3/6; esperan decisión de diseño) |
+| SKATE | 0/1 (35.9% de los cuadros en línea recta patinan, antes 44.8%; lo que queda depende de la velocidad de reproducción del trote y el sprint) |
+
+- El giro del modelo no rompió nada de lo ya probado: encuadre e histograma (P3), escondites (P4), legibilidad de la IA (P5), personajes (P6), animación (P7), música y HUD (P8).
+- `runInBackground` en 0 al terminar.
+
 ## 2026-10-29 — Trote y sprint del papá: el modelo se gira para que los pies avancen recto
 Editor, play mode vía Unity MCP. Elegida por defecto la corrección por código de la decisión pendiente sobre el ángulo: no toca `ThirdParty` (CLAUDE.md) y se revierte quitando dos líneas. Si se prefiere el offset de importación en el `.meta`, se cambia.
 
