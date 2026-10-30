@@ -120,7 +120,23 @@ namespace ProjectRidge.EditorTools
             EditorApplication.update -= Tick;
             QualitySettings.renderPipeline = previousPipeline;
             Debug.Log(log + "PERF: DONE");
+            // Entrar en play con runInBackground lo deja en 1 en ProjectSettings; se restaura al volver al editor (como
+            // PolishSuite). La marca va en SessionState porque salir de play puede recargar el dominio.
+            SessionState.SetBool(RestoreKey, true);
             EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
+        }
+
+        const string RestoreKey = "ridge.perf.restoreRunInBackground";
+
+        [InitializeOnLoadMethod]
+        static void WatchPlayMode() => EditorApplication.playModeStateChanged += RestoreRunInBackground;
+
+        static void RestoreRunInBackground(PlayModeStateChange change)
+        {
+            if (change != PlayModeStateChange.EnteredEditMode || !SessionState.GetBool(RestoreKey, false)) return;
+            SessionState.EraseBool(RestoreKey);
+            PlayerSettings.runInBackground = false;
+            AssetDatabase.SaveAssets();
         }
     }
 }

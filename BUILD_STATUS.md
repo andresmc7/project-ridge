@@ -15,6 +15,10 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop** (29° / 20°, papá y Lurker). Hoy está por código (`FatherAnimator` / `LurkerAnimator.UpdateTravelYaw`), elegido por defecto porque no toca `ThirdParty`. Resultado: la pelvis del papá pasa de 28.5° a 1.8° respecto de hacia dónde corre, y la del Lurker de 24.1° a 4.9°. Alternativa: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`. ¿Se mantiene el código?
 3. **Trote del papá**. Calibrado en juego, el clip necesita ~1.2×; hoy va a 1.1×, el máximo de POLISH_PASS 3.7. Opciones: (a) permitir ~1.2× (fuera del rango); (b) bajar `jogSpeed` de 2.6 a ~2.4 m/s (el papá trota un 8% más lento). El sprint está bien; el Lurker no necesita cambio.
 
+## 2026-10-30 — Probado: 1 cascada de sombra en el perfil iPhone (descartado); PerfProbe ya no deja `runInBackground` en 1
+- **Experimento** (`Mobile_RPAsset`: 28 m, 2 cascadas, 2048): con 1 cascada, `PerfProbe` da proyectores 261 / 295 / 237 / 236 / 367 / 313, contra 275 / 284 / 239 / 243 / 352 / 335 con 2. La diferencia está dentro del ruido entre corridas; los batches tampoco cambian. Los contadores del editor no cuentan proyectores por cascada, y el ahorro real (dibujar el mapa de sombras una vez en vez de dos) es trabajo de GPU que estas estadísticas no ven. Sin poder medirlo en un iPhone no compensa el riesgo visual (sombras más gruesas cerca del papá): **se volvió a 2 cascadas**. `UNVERIFIED`: cuánto ahorraría en GPU de un iPhone.
+- **Arreglo de herramienta**: `PerfProbe` sale de play mode al terminar, pero entrar en play con `runInBackground` dejaba ese ajuste en 1 en `ProjectSettings`. Ahora lo vuelve a 0 al regresar al editor (marca en `SessionState` + `[InitializeOnLoadMethod]`, como `PolishSuite`). Probado: tras una corrida, `ProjectSettings.asset` queda sin cambios y en 0.
+
 ## 2026-10-30 — Rendimiento: abetos lejanos sin sombra (umbral conservador por el histograma)
 Editor, play mode vía Unity MCP, `PerfProbe` con `Mobile_RPAsset`.
 
