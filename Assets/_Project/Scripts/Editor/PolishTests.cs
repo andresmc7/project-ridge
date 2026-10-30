@@ -62,6 +62,7 @@ namespace ProjectRidge.EditorTools
                 "CPSAFE" => CheckpointSafety(),
                 "SKATE" => FootSkate(),
                 "JOGSHOT" => JogShot(),
+                "LURKSHOT" => LurkerRunShot(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -979,6 +980,76 @@ namespace ProjectRidge.EditorTools
             Check("running pelvis faces the direction of travel (≤ 12°, better than without compensation)",
                   errors["jog+"] <= 12f && errors["sprint+"] <= 12f && errors["jog+"] < errors["jog-"] && errors["sprint+"] < errors["sprint-"],
                   string.Join("; ", lines));
+        }
+
+        /// <summary>
+        /// Lo mismo que JOGSHOT para el Lurker: ángulo entre el frente de su pelvis y la dirección en que corre mientras
+        /// persigue al papá (claro de la sala 1), con EnemyConfig.huntJog/SprintTravelYaw y sin ellos.
+        /// </summary>
+        static IEnumerator LurkerRunShot()
+        {
+            yield return PassTitle();
+            Searchlight.SuppressAll(9999f);
+            EnemyController lurker = null;
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (e.name == "Lurker") lurker = e; else e.gameObject.SetActive(false);
+            lurker.gameObject.SetActive(true);
+            var agent = lurker.GetComponent<NavMeshAgent>();
+            Animator anim = null;
+            foreach (var a in lurker.GetComponentsInChildren<Animator>()) if (a.avatar != null) anim = a;
+            var cfg = new SerializedObject(lurker).FindProperty("config").objectReferenceValue as EnemyConfig;
+            float jogYaw = cfg.huntJogTravelYaw, sprintYaw = cfg.huntSprintTravelYaw;
+            var hp = player.GetComponent<PlayerHealth>();
+            var lines = new List<string>();
+            var errors = new Dictionary<bool, float>();
+            try
+            {
+                foreach (bool compensated in new[] { true, false })
+                {
+                    cfg.huntJogTravelYaw = compensated ? jogYaw : 0f;
+                    cfg.huntSprintTravelYaw = compensated ? sprintYaw : 0f;
+                    Teleport(Ground(-46f, 0f));
+                    lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
+                    agent.Warp(Ground(-58f, 0f));
+                    yield return 1f;
+                    lurker.Perception.Suppress(0f);
+                    lurker.AlertTo(player.transform.position);
+                    float sum = 0f, speedSum = 0f; int n = 0, frame = -1;
+                    float end = Time.time + 6f;
+                    string shot = "";
+                    while (Time.time < end)
+                    {
+                        yield return 0f;
+                        hp.Restore();
+                        if (Time.frameCount == frame) continue;
+                        frame = Time.frameCount;
+                        Vector3 v = agent.velocity; v.y = 0f;
+                        if (!lurker.IsHunting || v.magnitude < 2f) continue; // solo corriendo de caza
+                        Vector3 across = anim.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - anim.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
+                        Vector3 facing = Vector3.Cross(across, Vector3.up); facing.y = 0f;
+                        sum += Mathf.Abs(Vector3.SignedAngle(v, facing, Vector3.up)); speedSum += v.magnitude; n++;
+                        if (shot == "" && n == 20)
+                        {
+                            shot = ProgressDir + "LURK_run" + (compensated ? "_compensated" : "_raw") + ".png";
+                            CloseUp(shot, lurker.transform.position);
+                        }
+                    }
+                    float mean = n > 0 ? sum / n : 999f;
+                    errors[compensated] = mean;
+                    lines.Add((compensated ? "compensated" : "raw") + " pelvis vs travel " + mean.ToString("0.0") + "° (n " + n + ", mean speed " + (n > 0 ? speedSum / n : 0f).ToString("0.0") + " m/s)");
+                    lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
+                    lurker.Perception.Suppress(9999f);
+                    yield return 1f;
+                }
+            }
+            finally
+            {
+                cfg.huntJogTravelYaw = jogYaw;
+                cfg.huntSprintTravelYaw = sprintYaw;
+            }
+            Debug.Log("POLISH: LURKSHOT " + string.Join("; ", lines));
+            Check("chasing Lurker's pelvis faces where it runs (≤ 12°, better than without compensation)",
+                  errors[true] <= 12f && errors[true] < errors[false], string.Join("; ", lines));
         }
 
         /// <summary>Primer plano de costado (4 m) del papá, para revisar la pose a ojo.</summary>
