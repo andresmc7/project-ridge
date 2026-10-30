@@ -67,6 +67,15 @@ namespace ProjectRidge.AI
         [Tooltip("Grados por segundo al mirar alrededor durante la búsqueda.")]
         [Min(0f)] public float searchTurnSpeed = 120f;
 
+        [Header("Animación de persecución")]
+        [Tooltip("Umbrales del árbol Hunt de Lurker.controller (CharacterBuilder: NaturalSpeed de Jog_Fwd_Loop y Sprint_Loop del Lurker). Si cambian allá, cambiarlos aquí.")]
+        [Min(0.1f)] public float huntJogSpeed = 3.34f;
+        [Min(0.1f)] public float huntSprintSpeed = 4.6f;
+        [Tooltip("Ángulo (°) hacia la derecha al que avanzan Jog_Fwd_Loop y Sprint_Loop (mismos clips que el papá, BUILD_STATUS 2026-10-29). El modelo se gira al revés para que los pies no patinen de lado.")]
+        [Range(-45f, 45f)] public float huntJogTravelYaw = 29f;
+        [Range(-45f, 45f)] public float huntSprintTravelYaw = 20f;
+        [Min(0.1f)] public float travelYawSmoothing = 8f;
+
         [Header("Navegación")]
         [Tooltip("Distancia máxima para proyectar un destino sobre el NavMesh.")]
         [Min(0.1f)] public float navSampleDistance = 3f;

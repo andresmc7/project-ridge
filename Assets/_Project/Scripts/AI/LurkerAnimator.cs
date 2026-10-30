@@ -29,6 +29,8 @@ namespace ProjectRidge.AI
         private EnemyState state;
         private float stateTime;
         private float hunt, stun, dead;
+        private float travelYaw; // giro de compensación del modelo (°), ver UpdateTravelYaw
+        private Quaternion baseRotation;
         private System.Random rng;
 
         private enum TicTarget { Head, Neck, ArmL, ArmR, Chest, Fingers }
@@ -59,6 +61,7 @@ namespace ProjectRidge.AI
             animator = GetComponent<Animator>();
             rng = new System.Random(GetInstanceID());
             root = transform;
+            baseRotation = transform.localRotation;
             spine = animator.GetBoneTransform(HumanBodyBones.Spine);
             chest = animator.GetBoneTransform(HumanBodyBones.Chest);
             upperChest = animator.GetBoneTransform(HumanBodyBones.UpperChest);
@@ -105,6 +108,22 @@ namespace ProjectRidge.AI
             stun = Mathf.MoveTowards(stun, state == EnemyState.Stunned ? 1f : 0f, dt * 8f);
             dead = Mathf.MoveTowards(dead, state == EnemyState.Dead ? 1f : 0f, dt * 2f);
             UpdateTics(dt, hunting);
+            UpdateTravelYaw(dt, hunting, speed);
+        }
+
+        /// <summary>
+        /// Jog_Fwd_Loop y Sprint_Loop avanzan en diagonal respecto del frente del modelo (como en el papá, ver
+        /// FatherAnimator.UpdateTravelYaw): al cazar, el modelo se gira al revés según la mezcla del árbol Hunt.
+        /// </summary>
+        private void UpdateTravelYaw(float dt, bool hunting, float speed)
+        {
+            float jog = 0f, sprint = 0f;
+            if (speed >= config.huntSprintSpeed) sprint = 1f;
+            else if (speed > config.huntJogSpeed) { sprint = (speed - config.huntJogSpeed) / (config.huntSprintSpeed - config.huntJogSpeed); jog = 1f - sprint; }
+            else jog = speed / config.huntJogSpeed; // de idle (0) a trote
+            float target = hunting && state != EnemyState.Attack ? -(config.huntJogTravelYaw * jog + config.huntSprintTravelYaw * sprint) : 0f;
+            travelYaw = Mathf.Lerp(travelYaw, target, 1f - Mathf.Exp(-config.travelYawSmoothing * dt));
+            transform.localRotation = baseRotation * Quaternion.Euler(0f, travelYaw, 0f);
         }
 
         // Rotación en el espacio del personaje (independiente de los ejes locales de cada hueso).

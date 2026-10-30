@@ -19,7 +19,7 @@ Editor, play mode vía Unity MCP. Elegida por defecto la corrección por código
 - **Ajuste fino probado**: 36°/26° (jog 0.44, sprint 0.34) y 22°/14° (jog 0.44, sprint 0.43) dan peor que lo medido (29°/20°), que queda.
 - **Además**: en el clip de trote las caderas apuntan ~30° al costado, casi el mismo ángulo al que avanza el clip. Antes el papá trotaba con el cuerpo girado ~30° respecto de hacia dónde iba; con la compensación las caderas deberían quedar mirando hacia donde corre. `UNVERIFIED` a ojo (sin captura).
 - Lo que sigue patinando (~0.3 m/s) es sobre todo la velocidad de reproducción del trote y el sprint: depende de la decisión pendiente sobre `sprintSpeed` y el rango 0.85–1.1×.
-- El Lurker usa los mismos clips y **no** tiene todavía esta compensación (`LurkerAnimator` es otro script).
+- **El Lurker** (mismo día): `LurkerAnimator.UpdateTravelYaw` hace lo mismo al cazar, según la mezcla del árbol Hunt (idle 0, trote 3.34, sprint 4.6 m/s). Datos en `EnemyConfig`: umbrales `huntJogSpeed`/`huntSprintSpeed`, que deben coincidir con los del árbol que arma CharacterBuilder; ángulos 29°/20°. Guarda la rotación base del `Visual` en vez de pisarla. Regresión: P1 **12/12**, P2 **5/5**, P5 **5/5**. `UNVERIFIED`: el patinaje medido en el Lurker (SKATE es solo del papá) y cómo se ve (en la captura de P5 el Lurker es una silueta oscura y no se distingue).
 - Regresión: P0 **8/8**, P1 **12/12**, P6 **5/5**, P7 **7/7**. SKATE sigue fallando (37%).
 
 ## 2026-10-29 — Auditoría de ASSETS.md y prefijo `PH_` corregido
