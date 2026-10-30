@@ -564,7 +564,9 @@ namespace ProjectRidge.EditorTools
         /// </summary>
         public static readonly Dictionary<string, float> NaturalSpeed = new Dictionary<string, float>
         {
-            { "Walk_Loop", 0.93f }, { "Jog_Fwd_Loop", 2.6f }, { "Sprint_Loop", 3.62f }, { "Crouch_Fwd_Loop", 0.69f },
+            // Jog_Fwd_Loop: 2.2 calibrado en juego (PolishTests "CALIB", 2026-10-30; antes 2.6, medido solo en Z con el clip
+            // en diagonal). Sprint_Loop 3.62 se confirmó en la misma calibración.
+            { "Walk_Loop", 0.93f }, { "Jog_Fwd_Loop", 2.2f }, { "Sprint_Loop", 3.62f }, { "Crouch_Fwd_Loop", 0.69f },
             // Lurker (cuerpo a escala 1.3, misma medición).
             { "Lurker:Zombie_Walk_Fwd_Loop", 1.15f }, { "Lurker:Jog_Fwd_Loop", 3.34f }, { "Lurker:Sprint_Loop", 4.6f },
         };
@@ -626,9 +628,11 @@ namespace ProjectRidge.EditorTools
         static float ClipRate(string clip, float speed)
         {
             float rate = speed / NaturalSpeed[clip];
+            // Fuera del rango se queda en el borde (los pies patinan un poco) y avisa: lo que falta se resuelve en
+            // PlayerMovementConfig. Antes devolvía la escala fuera de rango igual.
             if (rate < MinClipRate || rate > MaxClipRate)
-                Debug.LogError(clip + " a " + speed + " m/s necesita " + rate.ToString("0.00") + "x (fuera de " + MinClipRate + "–" + MaxClipRate + "): ajusta PlayerMovementConfig");
-            return rate;
+                Debug.LogWarning(clip + " a " + speed + " m/s necesitaría " + rate.ToString("0.00") + "x (fuera de " + MinClipRate + "–" + MaxClipRate + "): queda en el límite; ajusta PlayerMovementConfig");
+            return Mathf.Clamp(rate, MinClipRate, MaxClipRate);
         }
 
         /// <summary>Velocidad del clip de recoger del suelo (Farm_Harvest dura 2.5 s: queda en ~1.6 s).</summary>

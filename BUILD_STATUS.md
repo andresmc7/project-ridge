@@ -2,6 +2,18 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
+## 2026-10-30 — Trote del papá a 1.1× (dentro del rango de POLISH_PASS 3.7)
+Editor, play mode vía Unity MCP. Paso intermedio que no necesita la decisión pendiente: no cambia ninguna velocidad de juego.
+
+- La calibración (`CALIB`) mostró que el trote va ~20% lento (velocidad natural ~2.2 m/s, no 2.6). Cambios:
+  - `CharacterBuilder.NaturalSpeed["Jog_Fwd_Loop"]` pasa a 2.2.
+  - `ClipRate` ahora **recorta** la escala al rango 0.85–1.1× con un aviso. Antes solo registraba un error y devolvía la escala fuera de rango.
+  - El trote de `Father.controller` queda a **1.1×** (2.6 / 2.2 = 1.18 → 1.1), igual que lo dejaría el builder.
+- **Trote puro a 2.6 m/s** (CALIB, Animator a 1×): pie de apoyo **0.54 → 0.34 m/s**, componente hacia adelante **+0.24 → −0.09**.
+- SKATE en conjunto queda en 35.6%: su recorrido va mayormente a 3.28 m/s (mezcla trote/sprint), donde el cambio pesa menos.
+- P7 **7/7**: las escalas siguen en 0.85–1.1×.
+- El resto (de 1.1× a ~1.2×) sigue en la decisión pendiente: escala fuera de rango, o `jogSpeed` ≈ 2.4 m/s. El Lurker usa su propia tabla (`Lurker:Jog_Fwd_Loop` 3.34) y no se tocó.
+
 ## 2026-10-30 — Calibración en juego de la velocidad del trote y el sprint (solo medición)
 Editor, play mode vía Unity MCP. Prueba nueva `PolishTests.Run("CALIB")`, solo mide; no está en `RunAll`. Ya con el ángulo corregido, el papá corre en línea recta a velocidad de trote (2.6 m/s) y de sprint (3.6 m/s) con el Animator a 0.8–1.6×; se anota la velocidad mínima del pie de apoyo (punta, ventana de 0.6 s) y su componente hacia adelante.
 
