@@ -183,7 +183,7 @@ namespace ProjectRidge.EditorTools
             // Las paredes se desvanecen cuando tapan al papá (dentro del refugio o detrás).
             foreach (var wn in new[] { "Wall_N", "Wall_S", "Wall_W", "Wall_E" }) MakeFadeable(c.Find(wn).gameObject);
             // Dintel sobre la ventana sur y un tablón suelto colgando.
-            Board(c, "HangingBoard", new Vector3(1.4f, 0.25f, 0.08f), m.planks, new Vector3(0.3f, 0.2f, -D * 0.5f - 0.35f), new Vector3(0f, 10f, 80f), false);
+            // (2026-10-31) Sin tablón colgante: flotaba sin apoyo.
 
             // Postes de las esquinas.
             foreach (var p in new[] { new Vector3(-W, 0, -D), new Vector3(W, 0, -D), new Vector3(-W, 0, D), new Vector3(W, 0, D) })
@@ -193,12 +193,12 @@ namespace ProjectRidge.EditorTools
             }
 
             // Techo caído: una viga aún cruza, otra apoyada en diagonal, tablones en el suelo.
-            LogPiece(c, "Beam_Standing", W + 0.6f, 0.13f, m, new Vector3(0f, 2.25f, 0.6f), new Vector3(0f, 90f, 0f), false);
-            LogPiece(c, "Beam_Fallen", 5.2f, 0.13f, m, new Vector3(-0.6f, 1.05f, -0.9f), new Vector3(24f, 70f, 0f));
-            Board(c, "RoofBoard_1", new Vector3(2.2f, 0.06f, 0.5f), m.planks, new Vector3(1.4f, 0.17f, 1.4f), new Vector3(0f, 25f, 3f));
-            Board(c, "RoofBoard_2", new Vector3(1.8f, 0.06f, 0.45f), m.planks, new Vector3(-1.9f, 0.25f, 0.8f), new Vector3(8f, -40f, 12f), false);
-            Board(c, "RoofBoard_3", new Vector3(2.4f, 0.06f, 0.5f), m.planks, new Vector3(4.1f, 0.12f, -1.8f), new Vector3(0f, 70f, 6f), false);
-            Board(c, "RoofBoard_4", new Vector3(1.6f, 0.06f, 0.45f), m.planks, new Vector3(-3.9f, 0.1f, 2.6f), new Vector3(0f, -15f, 4f), false);
+            // (2026-10-31) Nada flota: sin vigas en el aire. Tablones del techo caído tirados PLANOS sobre el piso (y = piso + medio grosor).
+            const float FloorTop = 0.1f;
+            Board(c, "RoofBoard_1", new Vector3(2.2f, 0.06f, 0.5f), m.planks, new Vector3(1.4f, FloorTop + 0.03f, 1.4f), new Vector3(0f, 25f, 0f));
+            Board(c, "RoofBoard_2", new Vector3(1.8f, 0.06f, 0.45f), m.planks, new Vector3(-1.9f, FloorTop + 0.03f, 0.8f), new Vector3(0f, -40f, 0f), false);
+            Board(c, "RoofBoard_3", new Vector3(2.4f, 0.06f, 0.5f), m.planks, new Vector3(4.1f, 0.03f, -1.8f), new Vector3(0f, 70f, 0f), false);
+            Board(c, "RoofBoard_4", new Vector3(1.6f, 0.06f, 0.45f), m.planks, new Vector3(-3.9f, 0.03f, 2.6f), new Vector3(0f, -15f, 0f), false);
 
             // Interior: catre, mesa con el farol y la foto, silla volcada.
             Board(c, "Cot", new Vector3(0.9f, 0.4f, 2.0f), m.planks, new Vector3(-2.3f, 0.3f, 1.2f), Vector3.zero);
@@ -517,20 +517,20 @@ namespace ProjectRidge.EditorTools
                 // Farol en la punta y un charco de luz cálida en el suelo (aditivo, sin luz dinámica): "las luces cálidas
                 // marcan el camino" (POLISH_PASS 3.9) y son las islas de luz de las salas sin haces (3.10).
                 // Sin farol ni charco de luz (dirección de arte 2026-10-31): el poste solo lleva la marca de pintura.
-                if (false) Board(post, "Lantern", new Vector3(0.14f, 0.18f, 0.14f), lantern, new Vector3(0f, 1.28f, 0f), Vector3.zero, false);
-                if (false) {
-                var pool = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                Object.DestroyImmediate(pool.GetComponent<Collider>());
-                pool.name = "WarmPool";
-                pool.transform.SetParent(post, false);
-                pool.transform.localPosition = new Vector3(0f, 0.04f, 0f);
-                pool.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                pool.transform.localScale = Vector3.one * WarmPoolSize;
-                var pr = pool.GetComponent<MeshRenderer>();
-                pr.sharedMaterial = warmPool;
-                pr.shadowCastingMode = ShadowCastingMode.Off;
-                pr.receiveShadows = false;
-                }
+                // Board(post, "Lantern", new Vector3(0.14f, 0.18f, 0.14f), lantern, new Vector3(0f, 1.28f, 0f), Vector3.zero, false);
+                // if (false) {
+                // var pool = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                // Object.DestroyImmediate(pool.GetComponent<Collider>());
+                // pool.name = "WarmPool";
+                // pool.transform.SetParent(post, false);
+                // pool.transform.localPosition = new Vector3(0f, 0.04f, 0f);
+                // pool.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                // pool.transform.localScale = Vector3.one * WarmPoolSize;
+                // var pr = pool.GetComponent<MeshRenderer>();
+                // pr.sharedMaterial = warmPool;
+                // pr.shadowCastingMode = ShadowCastingMode.Off;
+                // pr.receiveShadows = false;
+                // }
             }
 
             // Troncos caídos de diseño.
