@@ -15,7 +15,7 @@ MonoBehaviour:
   crouchSpeed: 0.72
   sneakSpeed: 0.8
   walkSpeed: 1
-  jogSpeed: 2.6
+  jogSpeed: 2.2
   sprintSpeed: 3.6
   acceleration: 24
   deceleration: 32
