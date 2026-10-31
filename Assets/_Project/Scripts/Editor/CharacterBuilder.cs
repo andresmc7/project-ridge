@@ -658,7 +658,7 @@ namespace ProjectRidge.EditorTools
                 ("Idle_Loop", 0f, 1f),
                 ("Walk_Loop", mv.walkSpeed, ClipRate("Walk_Loop", mv.walkSpeed)),
                 ("Jog_Fwd_Loop", mv.jogSpeed, ClipRate("Jog_Fwd_Loop", mv.jogSpeed)),
-                ("Sprint_Loop", mv.sprintSpeed, ClipRate("Sprint_Loop", mv.sprintSpeed)),
+                ("Jog_Fwd_Loop", mv.sprintSpeed, mv.sprintSpeed / NaturalSpeed["Jog_Fwd_Loop"]), // (2026-10-31) correr = trote acelerado; Sprint_Loop tiene zancadas de velocista
             }, clips);
             var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", mv.crouchSpeed, ClipRate("Crouch_Fwd_Loop", mv.crouchSpeed)) }, clips);
             sm.defaultState = loco;

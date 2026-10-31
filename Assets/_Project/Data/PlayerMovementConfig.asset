@@ -16,7 +16,7 @@ MonoBehaviour:
   sneakSpeed: 0.8
   walkSpeed: 1
   jogSpeed: 2.2
-  sprintSpeed: 3.6
+  sprintSpeed: 3
   acceleration: 24
   deceleration: 32
   turnSpeed: 540

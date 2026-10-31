@@ -164335,7 +164335,7 @@ Transform:
   m_GameObject: {fileID: 858758842}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.08715574, z: -0, w: 0.9961947}
-  m_LocalPosition: {x: 55, y: 0.3198169, z: -2.2}
+  m_LocalPosition: {x: 55, y: 0.26237231, z: -3.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -255564,7 +255564,7 @@ Transform:
   m_GameObject: {fileID: 1428931552}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -62.4, y: 0.2498169, z: -0.3}
+  m_LocalPosition: {x: -61.300003, y: 0.2498169, z: 0.7499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -265611,8 +265611,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1467864871}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.64278764, z: -0, w: 0.7660445}
-  m_LocalPosition: {x: -50.5, y: 0.3198169, z: 1.2}
+  m_LocalRotation: {x: -0, y: 0.06975647, z: -0, w: 0.9975641}
+  m_LocalPosition: {x: -50.5, y: 2.4806502, z: 2.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -267030,8 +267030,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1479207167}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.1736482, z: -0, w: 0.9848078}
-  m_LocalPosition: {x: -2.4, y: 0.32398587, z: -2}
+  m_LocalRotation: {x: -0, y: 0.104528464, z: -0, w: 0.9945219}
+  m_LocalPosition: {x: -2.4, y: 0.33722335, z: -3.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -293540,7 +293540,7 @@ Transform:
   m_GameObject: {fileID: 1602472303}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -62.4, y: 0.2498169, z: -0.3}
+  m_LocalPosition: {x: -61.300003, y: 0.2498169, z: 0.7499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -293868,7 +293868,7 @@ MonoBehaviour:
   - {fileID: 1172857339}
   fade: 0.35
   hiddenCutoff: 2600
-  silhouette: 0.35
+  silhouette: 0.6
 --- !u!114 &1602472327
 MonoBehaviour:
   m_ObjectHideFlags: 0

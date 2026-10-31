@@ -563,7 +563,7 @@ namespace ProjectRidge.EditorTools
         static void SetupPlayerAndEnemies(Terrain t, GameObject player, System.Text.StringBuilder log)
         {
             var cabinRot = Quaternion.Euler(0f, CabinYaw, 0f);
-            Vector3 start = OnGround(t, CabinCenter.x, CabinCenter.z, 0.25f) + cabinRot * new Vector3(0.6f, 0f, -0.8f);
+            Vector3 start = OnGround(t, CabinCenter.x, CabinCenter.z, 0.25f) + cabinRot * new Vector3(1.6f, 0f, 0.25f); // (2026-10-31) frente al hueco de la puerta este: "ir al este" sale del refugio sin chocar
             var cc = player.GetComponent<CharacterController>();
             cc.enabled = false;
             player.transform.SetPositionAndRotation(start, Quaternion.Euler(0f, CabinYaw + 90f, 0f));

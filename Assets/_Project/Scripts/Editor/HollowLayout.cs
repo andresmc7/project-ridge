@@ -101,11 +101,12 @@ namespace ProjectRidge.EditorTools
         };
 
         /// <summary>Troncos caídos de cobertura: x, z, yaw, largo.</summary>
-        static readonly Vector4[] CoverLogs =
+        internal static readonly Vector4[] CoverLogs =
         {
-            new Vector4(-50.5f, 1.2f, 80f, 3.2f), new Vector4(-45.6f, 3.4f, 20f, 3.6f), new Vector4(-30.8f, -3.6f, -30f, 3.4f),
-            new Vector4(-2.4f, -2f, 20f, 2f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
-            new Vector4(32.6f, -1.2f, 85f, 3f), new Vector4(55f, -2.2f, 10f, 3.2f), new Vector4(65.6f, 2.4f, 80f, 3f),
+            // (2026-10-31) Ningún tronco cruza el sendero principal: son cobertura al borde, no barreras.
+            new Vector4(-50.5f, 2.7f, 8f, 3.2f), new Vector4(-45.6f, 3.4f, 20f, 3.6f), new Vector4(-30.8f, -3.6f, -30f, 3.4f),
+            new Vector4(-2.4f, -3.2f, 12f, 2f), new Vector4(6.2f, 4.6f, 60f, 3.4f), new Vector4(15.8f, -5f, -15f, 3.6f),
+            new Vector4(32.6f, -1.2f, 85f, 3f), new Vector4(55f, -3.8f, 10f, 3.2f), new Vector4(65.6f, 2.4f, 80f, 3f),
         };
 
         struct SearchlightDesign

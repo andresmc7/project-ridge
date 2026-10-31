@@ -130,11 +130,11 @@ namespace ProjectRidge.EditorTools
                 return c;
             }
             var vig = Comp<Vignette>();
-            vig.intensity.Override(0.48f);
+            vig.intensity.Override(0.2f);
             vig.smoothness.Override(0.65f);
             vig.color.Override(Color.black);
             var ca = Comp<ColorAdjustments>();
-            ca.postExposure.Override(-0.25f);
+            ca.postExposure.Override(-0.08f);
             EditorUtility.SetDirty(profile);
             v.sharedProfile = profile;
             return v;

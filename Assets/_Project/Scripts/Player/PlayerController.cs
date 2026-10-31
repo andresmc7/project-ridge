@@ -236,8 +236,8 @@ namespace ProjectRidge.Player
         {
             controller.height = height;
             controller.center = Vector3.up * (height * 0.5f);
-            if (visualRoot != null)
-                visualRoot.localScale = new Vector3(1f, height / config.standHeight, 1f);
+            // (2026-10-31) El Animator ya agacha al personaje con un clip real: escalar el modelo lo hundía en el suelo.
+            if (visualRoot != null) visualRoot.localScale = Vector3.one;
         }
 
         private void SetMode(MovementMode mode)

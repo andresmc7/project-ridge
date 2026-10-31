@@ -21,7 +21,7 @@ namespace ProjectRidge.Player
         [Tooltip("Corte del paso bajo (Hz) estando oculto; fuera, 22 kHz (sin efecto).")]
         [SerializeField] private float hiddenCutoff = 2600f;
         [Tooltip("Brillo del papá estando oculto (1 = normal).")]
-        [Range(0f, 1f)] [SerializeField] private float silhouette = 0.35f;
+        [Range(0f, 1f)] [SerializeField] private float silhouette = 0.6f;
 
         private const float OpenCutoff = 22000f;
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
