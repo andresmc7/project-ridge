@@ -1,0 +1,199 @@
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+namespace ProjectRidge.EditorTools
+{
+    /// <summary>
+    /// Un solo material para los abetos vivos: atlas 2048×1024 con las ramitas a la izquierda y la corteza a la derecha.
+    /// Cada abeto pasa de 2 llamadas (corteza + ramitas) a 1. Un primer intento con una zona de 20 px de la textura de
+    /// ramitas para el tronco falló: en los mips se mezclaba con píxeles transparentes y el recorte borraba el tronco
+    /// (BUILD_STATUS 2026-10-30). Aquí la corteza tiene media textura propia, opaca, con margen.
+    /// </summary>
+    public static partial class HollowBuilder
+    {
+        const int AtlasW = 2048, AtlasH = 1024, HalfW = 1024;
+        /// <summary>Columnas transparentes al inicio de la mitad de corteza: separan las ramitas de la corteza en los mips.</summary>
+        const int AtlasGutter = 128;
+        /// <summary>Margen (fracción) dentro de la región de corteza: el tronco a distancia de juego se ve hacia el mip 5.</summary>
+        const float BarkUvMargin = 0.08f;
+        const string AtlasDir = "Assets/_Project/Art/Textures/FirAtlas";
+
+        static Material firAtlasMat;
+
+        /// <summary>Región UV (u0, u1) de la corteza dentro del atlas, ya con el margen.</summary>
+        static Vector2 BarkU
+        {
+            get
+            {
+                float a = (HalfW + AtlasGutter) / (float)AtlasW, b = 1f;
+                float m = (b - a) * BarkUvMargin;
+                return new Vector2(a + m, b - m);
+            }
+        }
+
+        static Color[] ReadSource(Texture tex, int w, int h)
+        {
+            var t = new Texture2D(2, 2);
+            t.LoadImage(File.ReadAllBytes(AssetDatabase.GetAssetPath(tex)));
+            if (t.width != w || t.height != h)
+            {
+                var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                Graphics.Blit(t, rt);
+                var prev = RenderTexture.active; RenderTexture.active = rt;
+                var r = new Texture2D(w, h, TextureFormat.RGBA32, false, true);
+                r.ReadPixels(new Rect(0, 0, w, h), 0, 0); r.Apply();
+                RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+                Object.DestroyImmediate(t);
+                t = r;
+            }
+            var px = t.GetPixels();
+            Object.DestroyImmediate(t);
+            return px;
+        }
+
+        enum AtlasKind { Albedo, Normal, Mask }
+
+        static Texture2D WriteAtlas(string name, AtlasKind kind, Texture twig, Texture bark, Color twigTint, float twigSmooth, float barkSmooth)
+        {
+            var tw = ReadSource(twig, HalfW, AtlasH);
+            var bk = ReadSource(bark, HalfW, AtlasH);
+            var outTex = new Texture2D(AtlasW, AtlasH, TextureFormat.RGBA32, false, kind != AtlasKind.Albedo);
+            var px = new Color[AtlasW * AtlasH];
+            Color tintLin = twigTint.linear;
+            for (int y = 0; y < AtlasH; y++)
+                for (int x = 0; x < AtlasW; x++)
+                {
+                    Color c;
+                    if (x < HalfW)
+                    {
+                        c = tw[y * HalfW + x];
+                        if (kind == AtlasKind.Albedo) { var lin = c.linear; c = new Color(lin.r * tintLin.r, lin.g * tintLin.g, lin.b * tintLin.b).gamma; c.a = tw[y * HalfW + x].a; }
+                        if (kind == AtlasKind.Mask) c.a *= twigSmooth;
+                    }
+                    else
+                    {
+                        int bx = x - HalfW;
+                        c = bk[y * HalfW + bx];
+                        if (kind == AtlasKind.Albedo) c.a = bx < AtlasGutter ? 0f : 1f;
+                        if (kind == AtlasKind.Mask) c.a *= barkSmooth;
+                    }
+                    px[y * AtlasW + x] = c;
+                }
+            outTex.SetPixels(px);
+            outTex.Apply();
+            if (!Directory.Exists(AtlasDir)) Directory.CreateDirectory(AtlasDir);
+            string path = AtlasDir + "/" + name + ".png";
+            File.WriteAllBytes(path, outTex.EncodeToPNG());
+            Object.DestroyImmediate(outTex);
+            AssetDatabase.ImportAsset(path);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+            imp.textureType = kind == AtlasKind.Normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            imp.sRGBTexture = kind == AtlasKind.Albedo;
+            imp.alphaIsTransparency = kind == AtlasKind.Albedo;
+            // Igual que la textura de ramitas original: los mips conservan la cobertura del recorte alfa.
+            imp.mipMapsPreserveCoverage = kind == AtlasKind.Albedo;
+            imp.alphaTestReferenceValue = 0.4f;
+            imp.mipmapEnabled = true;
+            imp.maxTextureSize = AtlasW;
+            imp.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        /// <summary>Crea (o rehace) el atlas y el material único de los abetos vivos.</summary>
+        static Material FirAtlasMaterial()
+        {
+            if (firAtlasMat != null) return firAtlasMat;
+            ConiferMaterials();
+            Color tint = needleMat.GetColor("_BaseColor");
+            float twigSmooth = needleMat.GetFloat("_Smoothness"), barkSmooth = barkMat.GetFloat("_Smoothness");
+            var set = new PolyHavenMaterialBuilder.TextureSet
+            {
+                Albedo = WriteAtlas("FirAtlas_albedo", AtlasKind.Albedo, needleMat.GetTexture("_BaseMap"), barkMat.GetTexture("_BaseMap"), tint, twigSmooth, barkSmooth),
+                // Sin mapa de normales: el atlas de normales armado así daba normales erróneas y un brillo especular que
+                // volvía pálidas las ramitas (aislado probando URP/Lit con y sin cada mapa, 2026-10-30). Desde la cámara
+                // alta el relieve de ramitas y corteza casi no se ve, y en móvil es una textura menos.
+                Normal = null,
+                Mask = WriteAtlas("FirAtlas_mask", AtlasKind.Mask, needleMat.GetTexture("_MetallicGlossMap"), barkMat.GetTexture("_MetallicGlossMap"), tint, twigSmooth, barkSmooth),
+            };
+            // Tinte y suavidad ya horneados en el atlas: el material va en blanco y con suavidad 1.
+            firAtlasMat = PolyHavenMaterialBuilder.BuildLitMaterial("hollow_fir_atlas", set, 1f, doubleSided: true, alphaClip: set.Albedo);
+            // BuildLitMaterial no quita un mapa de normales que el material ya tuviera.
+            firAtlasMat.SetTexture("_BumpMap", null);
+            firAtlasMat.DisableKeyword("_NORMALMAP");
+            EditorUtility.SetDirty(firAtlasMat);
+            return firAtlasMat;
+        }
+
+        /// <summary>Ramitas a la mitad izquierda del atlas; tronco a la región de corteza (con margen); un solo submesh.</summary>
+        static void RemapToFirAtlas(Mesh mesh)
+        {
+            var uv = new List<Vector2>();
+            mesh.GetUVs(0, uv);
+            var trunk = mesh.GetTriangles(0);
+            var foliage = mesh.GetTriangles(1);
+            var bu = BarkU;
+            var seen = new HashSet<int>();
+            foreach (int i in foliage) if (seen.Add(i)) uv[i] = new Vector2(uv[i].x * 0.5f, uv[i].y);
+            foreach (int i in trunk)
+                if (seen.Add(i))
+                    uv[i] = new Vector2(Mathf.Lerp(bu.x, bu.y, Mathf.Clamp01(uv[i].x)), Mathf.Lerp(BarkUvMargin, 1f - BarkUvMargin, Mathf.Clamp01(uv[i].y)));
+            mesh.SetUVs(0, uv);
+            var all = new List<int>(trunk);
+            all.AddRange(foliage);
+            mesh.subMeshCount = 1;
+            mesh.SetTriangles(all, 0);
+            mesh.RecalculateBounds();
+        }
+
+        /// <summary>
+        /// Pasa los prefabs de abeto existentes al atlas en el lugar (malla, material del LOD0, impostor) y actualiza los
+        /// pares opaco→desvanecido de los abetos de la escena abierta. No rehace los prefabs desde cero: las instancias
+        /// conservan sus referencias al LOD0 y sus overrides (sombra de los abetos lejanos).
+        /// </summary>
+        public static void ApplyFirAtlas()
+        {
+            firAtlasMat = null;
+            var atlas = FirAtlasMaterial();
+            for (int v = 0; v < CardConifers.Length; v++)
+            {
+                var s = CardConifers[v];
+                if (s.dead) continue;
+                string name = "HollowFir_" + v, path = PrefabDir + "/" + name + ".prefab";
+                var raw = ConiferMeshGenerator.Build("Hollow_Fir_" + v, s, 600 + v * 23, LookDevForestCornerBuilder.TwigSprites);
+                RemapToFirAtlas(raw);
+                var mesh = ConiferMeshGenerator.SaveMesh(raw);
+                var root = PrefabUtility.LoadPrefabContents(path);
+                var lod0 = root.transform.Find("LOD0");
+                lod0.GetComponent<MeshFilter>().sharedMesh = mesh;
+                lod0.GetComponent<MeshRenderer>().sharedMaterials = new[] { atlas };
+                var lod1 = root.transform.Find("LOD1_Impostor");
+                var (imesh, imat) = BakeImpostor(name, lod0.gameObject, s.height, s.crownRadius * 1.05f);
+                lod1.GetComponent<MeshFilter>().sharedMesh = imesh;
+                lod1.GetComponent<MeshRenderer>().sharedMaterial = imat;
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+                PrefabUtility.UnloadPrefabContents(root);
+                prefabCache.Remove(name);
+            }
+            // Desvanecido por oclusión: los pares opaco→desvanecido se arman con los materiales actuales de cada abeto.
+            var trees = GameObject.Find("Trees");
+            if (trees != null)
+                foreach (var f in trees.GetComponentsInChildren<ProjectRidge.CameraRig.OcclusionFadeable>())
+                {
+                    var mats = new List<Material>();
+                    foreach (var r in f.Renderers) foreach (var m in r.sharedMaterials) if (m != null && !mats.Contains(m)) mats.Add(m);
+                    var so = new SerializedObject(f);
+                    var op = so.FindProperty("opaqueMaterials"); var fa = so.FindProperty("fadedMaterials");
+                    op.arraySize = mats.Count; fa.arraySize = mats.Count;
+                    for (int i = 0; i < mats.Count; i++)
+                    {
+                        op.GetArrayElementAtIndex(i).objectReferenceValue = mats[i];
+                        fa.GetArrayElementAtIndex(i).objectReferenceValue = LookDevForestCornerBuilder.FadedVariant(mats[i]);
+                    }
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+            AssetDatabase.SaveAssets();
+        }
+    }
+}

@@ -15,6 +15,17 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop** (29° / 20°, papá y Lurker). Hoy está por código (`FatherAnimator` / `LurkerAnimator.UpdateTravelYaw`), elegido por defecto porque no toca `ThirdParty`. Resultado: la pelvis del papá pasa de 28.5° a 1.8° respecto de hacia dónde corre, y la del Lurker de 24.1° a 4.9°. Alternativa: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`. ¿Se mantiene el código?
 3. **Trote del papá**. Calibrado en juego, el clip necesita ~1.2×; hoy va a 1.1×, el máximo de POLISH_PASS 3.7. Opciones: (a) permitir ~1.2× (fuera del rango); (b) bajar `jogSpeed` de 2.6 a ~2.4 m/s (el papá trota un 8% más lento). El sprint está bien; el Lurker no necesita cambio.
 
+## 2026-10-31 — Atlas de abetos (2 materiales → 1): intentado, revertido; causa encontrada
+- **Qué se hizo**: atlas 2048×1024 (ramitas a la izquierda con el tinte horneado, corteza a la derecha con 128 px de separación transparente), UV del tronco dentro de la región de corteza con 8% de margen, un solo submesh y un material URP/Lit doble cara con recorte. Prefabs actualizados en el lugar y pares opaco→desvanecido de la escena rehechos; se conservaron las referencias y los overrides.
+- **Qué falló y por qué** (aislado paso a paso):
+  1. Las ramitas salían pálidas. La causa era el **mapa de normales del atlas** (probado URP/Lit con y sin cada mapa). Se quitó: desde la cámara alta casi no se nota.
+  2. Aun así, las tarjetas de ramitas salían **rellenas**: el recorte alfa fallaba. En un quad visto de cerca el material del atlas recorta igual que el original. La misma malla aislada a distancia normal sale rellena.
+  - **Causa**: Unity preserva la cobertura del recorte en los mips por **textura entera**, y la mitad de corteza (87% opaca) arrastra a la mitad de ramitas (24% opaca). Con la textura de ramitas sola cada una tiene su propio ajuste.
+  - Hipótesis descartadas por medición: malla desactualizada en GPU, streaming de mips, tiling del material, material desvanecido.
+- **Para retomarlo**: armar la cadena de mips del atlas a mano (la mitad de ramitas copiada de los mips de la textura original, la corteza reducida aparte) y guardarla comprimida por plataforma (ASTC en iOS). O usar un `Texture2DArray` de 2 capas con un shader propio.
+- **Estado**: todo revertido con `git checkout` de los archivos de este bloque. Lo nuevo (script, texturas y materiales del atlas) se movió fuera de `Assets/` a `docs/wip/fir-atlas/`; se versiona solo el script (`HollowFirAtlas.cs.txt`).
+- `UNVERIFIED`: que el editor recargue bien la escena restaurada. Un `Refresh(ForceUpdate)` reimportó todo el proyecto (más de 30 min) y luego el editor dejó de responder al MCP, probablemente por el diálogo de "escena modificada fuera del editor". Pendiente: confirmar en el editor que los abetos volvieron a 2 materiales y correr P3/P4.
+
 ## 2026-10-30 — Probado y descartado: abetos con un solo material usando la textura de ramitas
 - **Idea**: dibujar cada abeto vivo con una sola llamada mapeando el tronco a una zona opaca y marrón de la textura de ramitas (24×24 px en la esquina (0, 0) de `fir_tree_01_twig`, color medio 0.34/0.30/0.20) y uniendo los dos submeshes. Sin texturas nuevas.
 - **Rendimiento** (prueba en tiempo de ejecución, `PerfProbe`): batches **−9 a −25%** (579→497 … 649→487) y proyectores −8 a −24%. Es la mayor ganancia vista.
