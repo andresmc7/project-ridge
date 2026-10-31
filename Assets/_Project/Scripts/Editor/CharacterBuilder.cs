@@ -27,6 +27,7 @@ namespace ProjectRidge.EditorTools
             var log = new System.Text.StringBuilder();
             if (((ModelImporter)AssetImporter.GetAtPath(MakeHumanImport.Body)).animationType != ModelImporterAnimationType.Human)
                 log.AppendLine(MakeHumanImport.Configure());
+            if (MixamoImport.NeedsConfigure()) log.AppendLine(MixamoImport.Configure());
             var fatherCtrl = FatherController();
             var lurkerCtrl = LurkerController();
 
@@ -583,14 +584,15 @@ namespace ProjectRidge.EditorTools
             var copy = Object.Instantiate(body);
             copy.transform.SetPositionAndRotation(new Vector3(0f, 400f, 0f), Quaternion.identity);
             foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>()) mb.enabled = false;
-            var anim = copy.GetComponent<Animator>();
+            var anim = copy.GetComponentInChildren<Animator>();
+            var diag = new System.Text.StringBuilder();
+            diag.AppendLine("clip=" + clip.name + " len=" + clip.length + " human=" + clip.isHumanMotion + " legacy=" + clip.legacy + " body=" + body.name + " animator=" + (anim != null ? anim.name + " avatarHuman=" + (anim.avatar != null && anim.avatar.isHuman) : "null"));
             // La punta (ball) es el punto que apoya más tiempo: el tobillo baja más en el vuelo del trote que al pisar.
             Transform fl = anim.GetBoneTransform(HumanBodyBones.LeftToes) ?? anim.GetBoneTransform(HumanBodyBones.LeftFoot);
             Transform fr = anim.GetBoneTransform(HumanBodyBones.RightToes) ?? anim.GetBoneTransform(HumanBodyBones.RightFoot);
-            var graph = UnityEngine.Playables.PlayableGraph.Create("Measure");
-            var output = UnityEngine.Animations.AnimationPlayableOutput.Create(graph, "out", anim);
-            var playable = UnityEngine.Animations.AnimationClipPlayable.Create(graph, clip);
-            UnityEngine.Playables.PlayableOutputExtensions.SetSourcePlayable(output, playable);
+            // (2026-10-31) Con el cuerpo de MakeHuman el PlayableGraph no movía los huesos en modo edición (pies fijos):
+            // se muestrea con AnimationMode, que es lo que usa la vista previa del editor y retargetea Humanoid.
+            UnityEditor.AnimationMode.StartAnimationMode();
             float dt = clip.length / samples, sum = 0f;
             int count = 0;
             var ls = new Vector3[samples + 1];
@@ -598,30 +600,33 @@ namespace ProjectRidge.EditorTools
             float floorL = float.MaxValue, floorR = float.MaxValue;
             for (int i = 0; i <= samples; i++)
             {
-                UnityEngine.Playables.PlayableExtensions.SetTime(playable, i * dt);
-                graph.Evaluate();
+                UnityEditor.AnimationMode.SampleAnimationClip(copy, clip, i * dt);
                 ls[i] = copy.transform.InverseTransformPoint(fl.position);
                 rs[i] = copy.transform.InverseTransformPoint(fr.position);
                 floorL = Mathf.Min(floorL, ls[i].y);
                 floorR = Mathf.Min(floorR, rs[i].y);
             }
-            // Un pie apoyado se desliza hacia atrás a la velocidad del cuerpo; en el vuelo vuelve hacia adelante.
-            // Velocidad = recorrido hacia atrás / tiempo yendo hacia atrás (robusto en el sprint). El papá MakeHuman mira a
-            // +Z; por si el eje está invertido, la fase de apoyo es siempre la más lenta de las dos direcciones.
-            // Ojo: solo se mide el eje Z. Jog_Fwd_Loop (29°) y Sprint_Loop (20°) corren en diagonal, así que para ellos el
-            // resultado no es la velocidad real (BUILD_STATUS 2026-10-28/29); Walk y Crouch sí coinciden.
-            float back = 0f, backT = 0f, fwd = 0f, fwdT = 0f;
+            // (2026-10-31) Un pie apoyado (punta a menos de 3 cm del suelo del clip) se desliza hacia atrás a la velocidad
+            // del cuerpo: la velocidad natural es la mediana de |dz/dt| en esos cuadros (robusta al apoyo del talón y al
+            // despegue). Se descartan los saltos de un cuadro (clips con root motion que vuelven al origen al cerrar el loop).
+            // La punta rueda al final del apoyo (desliza menos) y en el talón aún no toca: la velocidad del cuerpo es el
+            // percentil 85 de |dz/dt| de los cuadros apoyados que van hacia atrás (−z: el papá mira a +Z).
+            var stance = new List<float>();
             for (int i = 1; i <= samples; i++)
-                foreach (float d in new[] { ls[i].z - ls[i - 1].z, rs[i].z - rs[i - 1].z })
+                foreach (var (cur, prev, floor) in new[] { (ls[i], ls[i - 1], floorL), (rs[i], rs[i - 1], floorR) })
                 {
-                    if (d > 0f) { back += d; backT += dt; }
-                    else { fwd -= d; fwdT += dt; }
+                    float dz = cur.z - prev.z;
+                    if (cur.y < floor + 0.03f && dz < 0f && dz > -0.3f) stance.Add(-dz / dt);
                 }
-            count = backT > 0f && fwdT > 0f ? 1 : 0;
-            sum = count > 0 ? Mathf.Min(back / backT, fwd / fwdT) : 0f;
+            stance.Sort();
+            count = stance.Count >= 8 ? 1 : 0;
+            sum = count > 0 ? stance[Mathf.Min(stance.Count - 1, Mathf.RoundToInt(stance.Count * 0.85f))] : 0f;
+            float back = stance.Count > 0 ? stance[stance.Count / 2] : 0f, fwd = stance.Count > 0 ? stance[stance.Count - 1] : 0f, backT = stance.Count, fwdT = 0f;
             float scale = body.transform.lossyScale.x;
-            graph.Destroy();
+            UnityEditor.AnimationMode.StopAnimationMode();
             Object.DestroyImmediate(copy);
+            diag.AppendLine("back=" + back + " backT=" + backT + " fwd=" + fwd + " fwdT=" + fwdT + " scale=" + scale + " result=" + (count > 0 ? sum / count * scale : 0f));
+            try { System.IO.Directory.CreateDirectory("Logs"); System.IO.File.AppendAllText("Logs/claude_measure.txt", diag + "\n"); } catch { }
             return count > 0 ? sum / count * scale : 0f;
         }
 
@@ -635,12 +640,60 @@ namespace ProjectRidge.EditorTools
             return Mathf.Clamp(rate, MinClipRate, MaxClipRate);
         }
 
+        [MenuItem("Project Ridge/Characters/Measure Locomotion Clip Speeds")]
+        public static void MeasureLocomotionClips()
+        {
+            var body = AssetDatabase.LoadAssetAtPath<GameObject>(MakeHumanImport.Body);
+            var q = QuaterniusImport.Clips();
+            var sb = new System.Text.StringBuilder();
+            foreach (var k in new[] { "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Crouch_Fwd_Loop" })
+                if (q.ContainsKey(k)) sb.AppendLine("Quaternius " + k + " = " + MeasureNaturalSpeed(body, q[k], 240).ToString("0.00") + " m/s (len " + q[k].length.ToString("0.00") + ")");
+            foreach (var f in new[] { "walking", "Jogging", "Unarmed Run Forward", "standard run", "Crouched Walking", "left strafe walking" })
+            {
+                var c = MixamoImport.Clip(f);
+                if (c != null) sb.AppendLine("Mixamo " + f + " = " + MeasureNaturalSpeed(body, c, 240).ToString("0.00") + " m/s (len " + c.length.ToString("0.00") + ")");
+            }
+            Debug.Log("SPEEDS\n" + sb);
+            try { System.IO.File.WriteAllText("Logs/claude_speeds.txt", sb.ToString()); } catch { }
+        }
+
         /// <summary>Velocidad del clip de recoger del suelo (Farm_Harvest dura 2.5 s: queda en ~1.6 s).</summary>
         public const float PickUpClipSpeed = 1.6f;
+
+        /// <summary>Con clips de Mixamo, PlayerMovementConfig toma las velocidades naturales medidas (sin patinar).</summary>
+        public const bool FitConfigToClips = false; // las velocidades de juego se fijan a mano en PlayerMovementConfig; ClipRate avisa si un clip sale del rango
 
         static AnimatorController FatherController()
         {
             var clips = QuaterniusImport.Clips();
+            // (2026-10-31) Locomoción y acciones de Mixamo cuando el FBX existe (Assets/ThirdParty/Mixamo): el trote de
+            // Quaternius es de dibujo animado (pies altísimos, zancadas de velocista). Las velocidades naturales de los
+            // clips nuevos se miden aquí y, si FitConfigToClips, PlayerMovementConfig se ajusta a ellas (POLISH_PASS 3.7).
+            var mixamo = MixamoImport.Override(clips, MixamoImport.Father);
+            var mv = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
+            if (mixamo.Count > 0)
+            {
+                var body = AssetDatabase.LoadAssetAtPath<GameObject>(MakeHumanImport.Body);
+                var measured = new System.Text.StringBuilder("MIXAMO velocidades naturales: ");
+                foreach (var k in new[] { "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Crouch_Fwd_Loop" })
+                {
+                    if (!mixamo.Contains(k)) continue;
+                    float v = MeasureNaturalSpeed(body, clips[k], 240);
+                    if (v > 0.05f) NaturalSpeed[k] = v;
+                    measured.Append(k + "=" + v.ToString("0.00") + " ");
+                }
+                Debug.Log(measured);
+                if (FitConfigToClips)
+                {
+                    var so = new SerializedObject(mv);
+                    if (mixamo.Contains("Walk_Loop")) so.FindProperty("walkSpeed").floatValue = NaturalSpeed["Walk_Loop"];
+                    if (mixamo.Contains("Jog_Fwd_Loop")) so.FindProperty("jogSpeed").floatValue = NaturalSpeed["Jog_Fwd_Loop"];
+                    if (mixamo.Contains("Sprint_Loop")) so.FindProperty("sprintSpeed").floatValue = NaturalSpeed["Sprint_Loop"];
+                    if (mixamo.Contains("Crouch_Fwd_Loop")) so.FindProperty("crouchSpeed").floatValue = NaturalSpeed["Crouch_Fwd_Loop"];
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    EditorUtility.SetDirty(mv);
+                }
+            }
             var c = NewController("Father");
             foreach (var p in new[] { "Speed" }) c.AddParameter(p, AnimatorControllerParameterType.Float);
             foreach (var p in new[] { "Crouch", "Dead" }) c.AddParameter(p, AnimatorControllerParameterType.Bool);
@@ -652,13 +705,15 @@ namespace ProjectRidge.EditorTools
 
             // Las velocidades del papá salen de los clips (POLISH_PASS 3.7): el tiempo de cada clip se escala solo por
             // velocidad de config / velocidad natural, y eso tiene que quedar entre 0.85x y 1.1x (si no, patina).
-            var mv = AssetDatabase.LoadAssetAtPath<ProjectRidge.Player.PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
+            bool realSprint = mixamo.Contains("Sprint_Loop");
             var loco = Tree(c, "Locomotion", "Speed", new[]
             {
                 ("Idle_Loop", 0f, 1f),
                 ("Walk_Loop", mv.walkSpeed, ClipRate("Walk_Loop", mv.walkSpeed)),
                 ("Jog_Fwd_Loop", mv.jogSpeed, ClipRate("Jog_Fwd_Loop", mv.jogSpeed)),
-                ("Jog_Fwd_Loop", mv.sprintSpeed, mv.sprintSpeed / NaturalSpeed["Jog_Fwd_Loop"]), // (2026-10-31) correr = trote acelerado; Sprint_Loop tiene zancadas de velocista
+                // Con Mixamo la carrera es su propio clip; con Quaternius, trote acelerado (Sprint_Loop era de velocista).
+                realSprint ? ("Sprint_Loop", mv.sprintSpeed, ClipRate("Sprint_Loop", mv.sprintSpeed))
+                           : ("Jog_Fwd_Loop", mv.sprintSpeed, mv.sprintSpeed / NaturalSpeed["Jog_Fwd_Loop"]),
             }, clips);
             var crouch = Tree(c, "Crouch", "Speed", new[] { ("Crouch_Idle_Loop", 0f, 1f), ("Crouch_Fwd_Loop", mv.crouchSpeed, ClipRate("Crouch_Fwd_Loop", mv.crouchSpeed)) }, clips);
             sm.defaultState = loco;
@@ -666,11 +721,21 @@ namespace ProjectRidge.EditorTools
             var toCrouch = loco.AddTransition(crouch); toCrouch.AddCondition(AnimatorConditionMode.If, 0, "Crouch"); toCrouch.duration = 0.25f; toCrouch.hasExitTime = false;
             var toStand = crouch.AddTransition(loco); toStand.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouch"); toStand.duration = 0.25f; toStand.hasExitTime = false;
 
-            var attack = Action(sm, "Attack", clips["Sword_Regular_A"], 1.35f);
-            var attackRec = Action(sm, "AttackRecover", clips["Sword_Regular_A_Rec"], 2.2f);
-            FromAny(sm, attack, "Attack", duration: 0.05f);
-            Back(attack, attackRec, 0.95f, 0.05f);
-            Back(attackRec, loco, 0.7f, 0.2f);
+            if (mixamo.Contains("Sword_Regular_A"))
+            {
+                // El golpe de Mixamo trae su propia recuperación en el mismo clip.
+                var attack = Action(sm, "Attack", clips["Sword_Regular_A"], 1.25f);
+                FromAny(sm, attack, "Attack", duration: 0.05f);
+                Back(attack, loco, 0.85f, 0.2f);
+            }
+            else
+            {
+                var attack = Action(sm, "Attack", clips["Sword_Regular_A"], 1.35f);
+                var attackRec = Action(sm, "AttackRecover", clips["Sword_Regular_A_Rec"], 2.2f);
+                FromAny(sm, attack, "Attack", duration: 0.05f);
+                Back(attack, attackRec, 0.95f, 0.05f);
+                Back(attackRec, loco, 0.7f, 0.2f);
+            }
             var fire = Action(sm, "Fire", clips["Pistol_Shoot"], 1f); FromAny(sm, fire, "Fire"); Back(fire, loco, 0.9f);
             var thr = Action(sm, "Throw", clips["OverhandThrow"], 1.3f); FromAny(sm, thr, "Throw"); Back(thr, loco, 0.85f);
             var hit = Action(sm, "Hit", clips["Hit_Chest"], 1f); FromAny(sm, hit, "Hit", duration: 0.04f); Back(hit, loco, 0.9f, 0.15f);

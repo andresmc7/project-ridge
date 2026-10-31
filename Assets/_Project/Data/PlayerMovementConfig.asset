@@ -16,11 +16,15 @@ MonoBehaviour:
   sneakSpeed: 0.8
   walkSpeed: 1
   jogSpeed: 2.2
-  sprintSpeed: 3
+  sprintSpeed: 2.8
   acceleration: 24
   deceleration: 32
   turnSpeed: 540
   alignmentSharpness: 2
+  standingTurnAngle: 70
+  standingTurnMaxSpeed: 0.3
+  standingTurnTime90: 0.45
+  standingTurnTime180: 0.65
   stickDeadzone: 0.15
   sneakThreshold: 0.35
   jogThreshold: 0.85
@@ -29,5 +33,6 @@ MonoBehaviour:
   standHeight: 1.8
   crouchHeight: 1.1
   crouchTransitionSpeed: 6
+  knockbackDrag: 14
   gravity: -20
   groundedStickVelocity: -2

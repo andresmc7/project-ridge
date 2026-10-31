@@ -109,5 +109,17 @@ namespace ProjectRidge.EditorTools
         {
             if (!EditorApplication.isPlaying) EditorApplication.isPlaying = true;
         }
+
+        [MenuItem("Project Ridge/Claude/QA Calibration (CALIB)")]
+        public static void RunCalib() => PolishSuite.Run("CALIB");
+
+        [MenuItem("Project Ridge/Claude/QA Foot Skate (SKATE)")]
+        public static void RunSkate() => PolishSuite.Run("SKATE");
+
+        [MenuItem("Project Ridge/Claude/QA Locomotion Burst (BURST)")]
+        public static void RunBurst() => PolishSuite.Run("BURST");
+
+        [MenuItem("Project Ridge/Claude/QA Jog Shot (JOGSHOT)")]
+        public static void RunJogShot() => PolishSuite.Run("JOGSHOT");
     }
 }

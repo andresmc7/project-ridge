@@ -64,6 +64,7 @@ namespace ProjectRidge.EditorTools
                 "JOGSHOT" => JogShot(),
                 "LURKSHOT" => LurkerRunShot(),
                 "CALIB" => RunCalibration(),
+                "BURST" => Burst(),
                 _ => Unknown(),
             };
             stack.Push(routine);
@@ -121,6 +122,7 @@ namespace ProjectRidge.EditorTools
             int fails = 0;
             foreach (var r in results) if (r.StartsWith("FAIL")) fails++;
             Debug.Log("POLISH: DONE " + phase + " " + (results.Count - fails) + "/" + results.Count + " passed\n" + string.Join("\n", results));
+            try { System.IO.File.WriteAllText("Logs/claude_polish_" + phase + ".txt", string.Join("\n", results)); } catch { }
             PolishSuite.Report(phase, results.Count - fails, results.Count, string.Join("\n", results.FindAll(r => r.StartsWith("FAIL"))));
             // Sale de play mode al terminar (ver LoopBot.StopPlayWhenDone).
             if (StopPlayWhenDone) EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
@@ -913,7 +915,7 @@ namespace ProjectRidge.EditorTools
             float share = total > 0 ? (float)totalSkating / total : 1f;
             Debug.Log("POLISH: SKATE (animator speed " + anim.speed.ToString("0.00") + ") per clip — " + sb);
             Check("planted feet do not slide moving straight (≤ 10% of foot-frames whose slowest speed in 0.6 s is above 0.15 m/s, ~60 s)", share <= 0.1f,
-                  (share * 100f).ToString("0.0") + "% skating of " + total + " straight foot-frames in " + driven.ToString("0") + " s; while turning (> " + TurningYawRate + "°/s, reported only) " + (turnTotal > 0 ? 100f * turnSkating / turnTotal : 0f).ToString("0") + "% of " + turnTotal);
+                  (share * 100f).ToString("0.0") + "% skating of " + total + " straight foot-frames in " + driven.ToString("0") + " s; while turning (> " + TurningYawRate + "°/s, reported only) " + (turnTotal > 0 ? 100f * turnSkating / turnTotal : 0f).ToString("0") + "% of " + turnTotal + "; per clip: " + sb);
         }
 
         /// <summary>
@@ -1126,6 +1128,32 @@ namespace ProjectRidge.EditorTools
             }
             finally { anim.speed = 1f; }
             Check("calibration ran (measurement only)", report.Count == 10, string.Join("; ", report));
+        }
+
+        /// <summary>
+        /// (2026-10-31) Ráfaga de primeros planos para revisar la locomoción a ojo: caminar, trotar, correr y agachado, 12
+        /// cuadros cada 0.08 s desde el costado y desde 3/4 (docs/progress/burst_*.png).
+        /// </summary>
+        static IEnumerator Burst()
+        {
+            yield return PassTitle();
+            Calm();
+            foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsSortMode.None)) e.gameObject.SetActive(false);
+            foreach (var (label, stick) in new[] { ("sneak", new Vector2(0.25f, 0f)), ("walk", new Vector2(0.5f, 0f)), ("jog", new Vector2(0.9f, 0f)), ("sprint", new Vector2(1f, 0f)) })
+            {
+                Teleport(Ground(-58f, 0f));
+                yield return 1f;
+                Stick(stick);
+                yield return 1.5f;
+                for (int i = 0; i < 12; i++)
+                {
+                    CloseUp(ProgressDir + "burst_" + label + "_" + i.ToString("00") + ".png", player.transform.position);
+                    yield return 0.08f;
+                }
+                Stick(Vector2.zero);
+                yield return 0.5f;
+            }
+            Check("burst captured", true, "docs/progress/burst_*.png");
         }
 
         /// <summary>Primer plano de costado (4 m) del papá, para revisar la pose a ojo.</summary>

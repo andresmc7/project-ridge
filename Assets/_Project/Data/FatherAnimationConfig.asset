@@ -15,8 +15,8 @@ MonoBehaviour:
   restSpeed: 0.15
   stopMinSpeed: 0.5
   runStopSpeed: 1.9
-  jogTravelYaw: 29
-  sprintTravelYaw: 29
+  jogTravelYaw: 0
+  sprintTravelYaw: 0
   travelYawSmoothing: 8
   pivotAngle: 150
   pivotMinSpeed: 1.9

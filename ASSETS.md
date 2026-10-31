@@ -92,6 +92,19 @@ Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (C
 | `S100_TenseIdle` | BentForward_ID 600–1200 | Idle tenso (encorvado) |
 | `S100_LookAround` | Followed_ID 640–830 | Mirar atrás asustado tras 6 s quieto |
 
+## Mixamo (animación del papá y del Lurker, pulido 2026-10-31)
+
+**Mixamo** (Adobe), https://www.mixamo.com — animaciones descargadas con la cuenta de Andres como "FBX for Unity", sin piel ("Without Skin"), 30 fps, locomoción "In Place". Licencia: Adobe permite usar los personajes y animaciones de Mixamo libres de regalías en proyectos propios, comerciales incluidos (Términos de uso de Adobe / FAQ de Mixamo); no se pueden redistribuir sueltos como assets. En `Assets/ThirdParty/Mixamo/`. Los importa `Scripts/Editor/MixamoImport.cs` (Humanoid, un clip por archivo) y `CharacterBuilder` los prefiere a los de Quaternius cuando existen.
+
+| Archivo | Uso |
+|---|---|
+| `Breathing Idle`, `Jogging`, `Unarmed Run Forward`, `Crouch Idle`, `Crouched Walking`, `Locomotion/walking` | Locomoción del papá (idle, trote, carrera, agachado, caminar) |
+| `Standing Melee Attack Horizontal`, `Hit Reaction`, `Picking Up Object`, `Two Handed Sword Death`, `Getting Up`, `Being Electrocuted`, `Nervously Look Around` | Acciones del papá (garrote, golpe recibido, recoger, muerte, levantarse, haz del OVNI, mirar alrededor) |
+| `Mutant Breathing Idle`, `Mutant Walking`, `Mutant Run`, `Mutant Swiping`, `Mutant Roaring`, `Mutant Dying` | Lurker |
+| `Locomotion/` (Male Locomotion Pack: idle, walking, standard run, strafes, turn 90, jump) | Reserva: giros y caminar |
+
+Sustituyen a la locomoción de Quaternius (trote de dibujo animado) y a la de 100STYLE (descartada por velocidad: caminar 0.7 m/s, correr 1.4 m/s).
+
 ## Música y stingers (POLISH P8)
 
 FreePD cerró (2026); todo sale de **OpenGameArt** con licencia **CC0** verificada en la página de cada asset. Sin modificar salvo `piano_sting` (era un contenedor MP4/M4A con extensión .mp3: se pasó a WAV con Blender, mismo audio). En `Assets/ThirdParty/OpenGameArt/Music/`. Fecha: 2026-10-21.
