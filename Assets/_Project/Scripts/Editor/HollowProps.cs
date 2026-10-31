@@ -457,7 +457,7 @@ namespace ProjectRidge.EditorTools
                     if (Walk(p) > -0.4f) continue;
                     var post = Group(parent, "RoadMarker", p, 0f);
                     LogPiece(post, "Post", 1f, 0.05f, m, new Vector3(0f, 0.5f, 0f), new Vector3(-90f, 0f, 0f), false);
-                    Board(post, "Reflector", new Vector3(0.08f, 0.1f, 0.02f), m.glowLantern, new Vector3(0f, 0.9f, -0.05f), Vector3.zero, false);
+                    Board(post, "Reflector", new Vector3(0.08f, 0.1f, 0.02f), m.darkMetal, new Vector3(0f, 0.9f, -0.05f), Vector3.zero, false);
                 }
             }
             blockers.Add(TruckPos);
@@ -516,7 +516,9 @@ namespace ProjectRidge.EditorTools
                 Board(post, "Blaze", new Vector3(0.16f, 0.2f, 0.16f), orange, new Vector3(0f, 0.95f, 0f), Vector3.zero, false);
                 // Farol en la punta y un charco de luz cálida en el suelo (aditivo, sin luz dinámica): "las luces cálidas
                 // marcan el camino" (POLISH_PASS 3.9) y son las islas de luz de las salas sin haces (3.10).
-                Board(post, "Lantern", new Vector3(0.14f, 0.18f, 0.14f), lantern, new Vector3(0f, 1.28f, 0f), Vector3.zero, false);
+                // Sin farol ni charco de luz (dirección de arte 2026-10-31): el poste solo lleva la marca de pintura.
+                if (false) Board(post, "Lantern", new Vector3(0.14f, 0.18f, 0.14f), lantern, new Vector3(0f, 1.28f, 0f), Vector3.zero, false);
+                if (false) {
                 var pool = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 Object.DestroyImmediate(pool.GetComponent<Collider>());
                 pool.name = "WarmPool";
@@ -528,6 +530,7 @@ namespace ProjectRidge.EditorTools
                 pr.sharedMaterial = warmPool;
                 pr.shadowCastingMode = ShadowCastingMode.Off;
                 pr.receiveShadows = false;
+                }
             }
 
             // Troncos caídos de diseño.

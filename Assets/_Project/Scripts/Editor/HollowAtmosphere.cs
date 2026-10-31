@@ -180,7 +180,7 @@ namespace ProjectRidge.EditorTools
             log.AppendLine("fog cards=" + cards);
             int puddles = 0; // sin charcos: desde la cámara alta se leían como agujeros negros (Puddles queda disponible)
             log.AppendLine("puddles=" + puddles);
-            int fungi = GlowFungi(root, t);
+            int fungi = 0; // Hongos luminosos retirados (dirección de arte 2026-10-31: el único acento de luz es el OVNI; más sombra)
             log.AppendLine("glow fungi=" + fungi);
             Particles(root, player, dot);
             log.AppendLine("particles ok");
@@ -376,7 +376,7 @@ namespace ProjectRidge.EditorTools
         }
 
         /// <summary>Exposición y contraste del grading (ajustados midiendo el histograma de las capturas, P3).</summary>
-        public static float GradingExposure = 4.1f, GradingContrast = 18f; // 3.7 en P3; con el bosque nuevo (copas oscuras, sin "blobs" claros) la imagen bajó: medido otra vez en P4
+        public static float GradingExposure = 2.9f, GradingContrast = 26f; // 3.7 en P3; con el bosque nuevo (copas oscuras, sin "blobs" claros) la imagen bajó: medido otra vez en P4
 
         /// <summary>QA (P3): prueba otra exposición/contraste sobre el perfil de post.</summary>
         public static void TuneGrading(float exposure, float contrast)
@@ -418,7 +418,7 @@ namespace ProjectRidge.EditorTools
             vig.intensity.Override(0.36f); vig.smoothness.Override(0.5f); vig.color.Override(new Color(0.01f, 0.015f, 0.02f));
             var bloom = Get<Bloom>();
             // Umbral bajo e intensidad alta: las islas de luz brillan alrededor (P3: >= 3% de píxeles > 0.6).
-            bloom.threshold.Override(0.7f); bloom.intensity.Override(1.6f); bloom.clamp.Override(6f); bloom.scatter.Override(0.72f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f)); // clamp: sin tope, la linterna a medio metro de una pared se volvía un disco blanco gigante
+            bloom.threshold.Override(1.15f); bloom.intensity.Override(0.7f); bloom.clamp.Override(6f); bloom.scatter.Override(0.6f); bloom.tint.Override(new Color(1f, 0.95f, 0.9f)); // clamp: sin tope, la linterna a medio metro de una pared se volvía un disco blanco gigante
             var dof = Get<DepthOfField>(); // reemplazado por el tilt-shift (pase propio)
             dof.mode.Override(DepthOfFieldMode.Off);
             dof.gaussianStart.Override(17f); dof.gaussianEnd.Override(34f); dof.gaussianMaxRadius.Override(1.2f);
@@ -460,8 +460,8 @@ namespace ProjectRidge.EditorTools
             if (t == null) return;
             var l = t.GetComponent<Light>();
             // Linterna de mano: haz con anillo (cookie), alcance medio, sombras suaves (una de las dos luces con sombra).
-            l.intensity = 30f; // isla de luz cálida en el suelo (P3: histograma >= 3% de luces); el disco blanco lo evitan el tope del bloom y el origen adelantado
-            l.range = 14f;
+            l.intensity = 95f; // (2026-10-31: exposición 2.9, la linterna es la lectura principal) isla de luz cálida en el suelo (P3: histograma >= 3% de luces); el disco blanco lo evitan el tope del bloom y el origen adelantado
+            l.range = 16f;
             l.spotAngle = 52f;
             l.innerSpotAngle = 20f; // halo suave: borde ancho, sin disco duro
             l.colorTemperature = 3200f;

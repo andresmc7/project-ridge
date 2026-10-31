@@ -332483,8 +332483,8 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.95, b: 0.88, a: 1}
-  m_Intensity: 30
-  m_Range: 14
+  m_Intensity: 95
+  m_Range: 16
   m_SpotAngle: 52
   m_InnerSpotAngle: 20
   m_CookieSize2D: {x: 0.5, y: 0.5}
