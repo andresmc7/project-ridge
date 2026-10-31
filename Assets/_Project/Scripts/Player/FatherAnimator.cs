@@ -260,8 +260,10 @@ namespace ProjectRidge.Player
             // Capa del brazo izquierdo (sostener la linterna): solo de pie, sin acción en curso.
             bool torch = flashlight != null && flashlight.IsOn && !controller.IsCrouching && !controller.ActionLocked
                          && combat.Phase == PlayerCombat.SwingPhase.None && fireTimer > 0.8f && !health.IsDead;
-            torchWeight = Mathf.MoveTowards(torchWeight, torch ? 1f : 0f, dt * 4f);
-            animator.SetLayerWeight(1, torchWeight);
+            // (2026-10-31) Sin capa de brazo: la mano estirada al frente se leía como apuntar un arma. El brazo
+            // balancea natural; la luz va fija al cuerpo con suavizado (abajo).
+            torchWeight = 0f;
+            animator.SetLayerWeight(1, 0f);
             animator.SetBool(DeadId, health.IsDead);
             if (wasDead && !health.IsDead) animator.SetTrigger(ReviveId);
             wasDead = health.IsDead;
@@ -359,7 +361,10 @@ namespace ProjectRidge.Player
             // Linterna: en la mano, apuntando hacia adelante con suavizado (no tiembla con la animación).
             if (flashlightLight != null)
             {
-                flashlightLight.position = handL.position + transform.forward * 0.35f; // por delante del cuerpo: no ilumina su propia mano a centímetros (eso reventaba el bloom)
+                // Linterna "en la mano baja": la luz nace a la altura de la cadera, un poco adelantada y al lado izquierdo,
+                // sin seguir el balanceo del brazo (eso mareaba). Sigue al cuerpo con suavizado.
+                Vector3 anchor = transform.position + Vector3.up * 1.0f + transform.right * -0.25f + transform.forward * 0.4f;
+                flashlightLight.position = Vector3.Lerp(flashlightLight.position, anchor, 1f - Mathf.Exp(-flashlightFollow * Time.deltaTime));
                 Quaternion target = Quaternion.LookRotation(Quaternion.AngleAxis(flashlightPitch, transform.right) * transform.forward);
                 flashlightLight.rotation = Quaternion.Slerp(flashlightLight.rotation, target, 1f - Mathf.Exp(-flashlightFollow * Time.deltaTime));
             }

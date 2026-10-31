@@ -311,7 +311,7 @@ namespace ProjectRidge.EditorTools
             var moon = RenderSettings.sun != null ? RenderSettings.sun : Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
             if (moon == null) { log.AppendLine("no moon"); return; }
             moon.color = new Color(0.66f, 0.74f, 0.8f); // fría pero poco saturada: la escena no debe teñirse de azul
-            moon.intensity = 1.35f; // baja: la luz fuerte sale de las islas (linterna, faroles, haces), no del cielo
+            moon.intensity = 2.6f; // (2026-10-31) con exposición 2.9 el terreno debe seguir leyéndose sin linterna; // baja: la luz fuerte sale de las islas (linterna, faroles, haces), no del cielo
             moon.shadows = LightShadows.Soft;
             moon.shadowStrength = 0.9f;
             moon.transform.rotation = Quaternion.Euler(30f, 200f, 0f); // contraluz (POLISH_PASS 3.10): desde el fondo hacia la cámara, recorta siluetas
@@ -323,8 +323,8 @@ namespace ProjectRidge.EditorTools
             cs.FindProperty("velocity").vector2Value = new Vector2(0.25f, 0.1f);
             cs.ApplyModifiedPropertiesWithoutUndo();
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.11f, 0.13f, 0.14f); // 40% menos que antes: el 60% de la pantalla en sombra profunda
-            RenderSettings.ambientEquatorColor = new Color(0.05f, 0.052f, 0.045f);
+            RenderSettings.ambientSkyColor = new Color(0.16f, 0.19f, 0.21f); // 40% menos que antes: el 60% de la pantalla en sombra profunda
+            RenderSettings.ambientEquatorColor = new Color(0.075f, 0.08f, 0.072f);
             RenderSettings.ambientGroundColor = new Color(0.021f, 0.024f, 0.027f);
             // Sin skybox, los reflejos usaban un cubemap viejo y brillante: charcos y superficies mojadas
             // reflejan ahora un cielo nocturno tenue con el halo de la luna.
