@@ -36,6 +36,10 @@ namespace ProjectRidge.Player
         private void Awake()
         {
             block = new MaterialPropertyBlock();
+            // Si el modelo se reconstruyó después del cableado (CharacterBuilder), las referencias quedan colgando:
+            // se toman los SkinnedMeshRenderer actuales del papá.
+            if (body == null || body.Length == 0 || System.Array.Exists(body, r => r == null))
+                body = GetComponentsInChildren<SkinnedMeshRenderer>();
             baseColors = new Color[body.Length][];
             for (int r = 0; r < body.Length; r++)
             {

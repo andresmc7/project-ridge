@@ -40,6 +40,7 @@ namespace ProjectRidge.EditorTools
                 BuildLurker(enemy.gameObject, lurkerCtrl, lurkerAsset);
                 log.AppendLine("lurker ok: " + enemy.name);
             }
+            log.AppendLine(SyncApparitionAnimator());
             var scene = EditorSceneManager.GetActiveScene();
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -245,6 +246,41 @@ namespace ProjectRidge.EditorTools
                 var aso = new SerializedObject(audio);
                 aso.FindProperty("fatherAnimator").objectReferenceValue = fa;
                 aso.ApplyModifiedPropertiesWithoutUndo();
+            }
+            RewireVisualDependents(player, fa, body);
+        }
+
+        /// <summary>
+        /// El Visual se destruye y se crea de nuevo, así que todo lo que apuntaba dentro de él queda en null:
+        /// la pose de descarga del OVNI (vive en el Visual) y las referencias de la captura, la bengala de mano y
+        /// la silueta de "oculto". Antes solo se recableaban en sus propios builders y una reconstrucción las rompía.
+        /// </summary>
+        public static void RewireVisualDependents(GameObject player, ProjectRidge.Player.FatherAnimator fa, GameObject body)
+        {
+            var shock = body.GetComponent<ProjectRidge.Player.ShockPose>();
+            if (shock == null) shock = body.AddComponent<ProjectRidge.Player.ShockPose>();
+            var seq = Object.FindFirstObjectByType<ProjectRidge.Core.CaptureSequence>();
+            if (seq != null)
+            {
+                var so = new SerializedObject(seq);
+                so.FindProperty("father").objectReferenceValue = fa;
+                so.FindProperty("shock").objectReferenceValue = shock;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            if (player.TryGetComponent(out ProjectRidge.Player.PlayerFlareTool tool))
+            {
+                var so = new SerializedObject(tool);
+                so.FindProperty("animator").objectReferenceValue = fa;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            if (player.TryGetComponent(out ProjectRidge.Player.HiddenFeedback hidden))
+            {
+                var renderers = body.GetComponentsInChildren<SkinnedMeshRenderer>();
+                var so = new SerializedObject(hidden);
+                var list = so.FindProperty("body");
+                list.arraySize = renderers.Length;
+                for (int i = 0; i < renderers.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = renderers[i];
+                so.ApplyModifiedPropertiesWithoutUndo();
             }
         }
 
@@ -511,6 +547,24 @@ namespace ProjectRidge.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
             body.SetActive(false);
             return "apparition ok";
+        }
+
+        /// <summary>
+        /// El avistamiento es una copia del Visual de un Lurker: al reconstruir los Lurkers su Animator se quedaba sin
+        /// controller ni avatar (en la escena, `{fileID: 0}`) y no se movía. Se copian del Lurker reconstruido.
+        /// </summary>
+        public static string SyncApparitionAnimator()
+        {
+            var ap = Object.FindFirstObjectByType<ProjectRidge.AI.ScriptedApparition>(FindObjectsInactive.Include);
+            var source = Object.FindObjectsByType<ProjectRidge.AI.EnemyController>(FindObjectsSortMode.None).FirstOrDefault();
+            if (ap == null || source == null) return "apparition: nothing to sync";
+            var from = source.transform.Find("Visual").GetComponent<Animator>();
+            var to = new SerializedObject(ap).FindProperty("animator").objectReferenceValue as Animator;
+            if (to == null) return "apparition: no animator";
+            to.runtimeAnimatorController = from.runtimeAnimatorController;
+            to.avatar = from.avatar;
+            EditorUtility.SetDirty(to);
+            return "apparition animator synced";
         }
 
         // ------------------------------------------------------------------ Animator Controllers

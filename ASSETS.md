@@ -96,6 +96,8 @@ Packs descargados pero **no usados** (no entran al juego): shirts02 y pants02 (C
 
 **Mixamo** (Adobe), https://www.mixamo.com — animaciones descargadas con la cuenta de Andres como "FBX for Unity", sin piel ("Without Skin"), 30 fps, locomoción "In Place". Licencia: Adobe permite usar los personajes y animaciones de Mixamo libres de regalías en proyectos propios, comerciales incluidos (Términos de uso de Adobe / FAQ de Mixamo); no se pueden redistribuir sueltos como assets. En `Assets/ThirdParty/Mixamo/`. Los importa `Scripts/Editor/MixamoImport.cs` (Humanoid, un clip por archivo) y `CharacterBuilder` los prefiere a los de Quaternius cuando existen.
 
+**Versionado (2026-11-11)**: el repo `andresmc7/project-ridge` es **público**, y subir los `.fbx` sería redistribuirlos sueltos. Por eso se versionan solo los `.meta` (GUIDs y ajustes de importación); los `.fbx` están en `.gitignore` y viven en cada máquina (originales en `ProjectRidge_incoming/mixamo/`, también ignorado). Un clon sin los `.fbx` vuelve a la locomoción de Quaternius al reconstruir el personaje. Pendiente de decisión del usuario (ver BUILD_STATUS): hacer el repo privado y subirlos por LFS, o seguir así.
+
 | Archivo | Uso |
 |---|---|
 | `Breathing Idle`, `Jogging`, `Unarmed Run Forward`, `Crouch Idle`, `Crouched Walking`, `Locomotion/walking` | Locomoción del papá (idle, trote, carrera, agachado, caminar) |

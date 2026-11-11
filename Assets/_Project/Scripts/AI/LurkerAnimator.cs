@@ -150,7 +150,7 @@ namespace ProjectRidge.AI
             // La cabeza apunta a donde mira (POLISH_PASS 3.5): con una pista, hacia ella (cuello y cabeza, hasta 75°).
             // Así el jugador lee hacia dónde vigila por la postura, sin cono pintado.
             bool tracking = enemy.HasFocus;
-            lookWeight = Mathf.MoveTowards(lookWeight, tracking ? 1f : 0f, Time.deltaTime * 3f);
+            lookWeight = Mathf.MoveTowards(lookWeight, tracking ? 1f : 0f, Time.deltaTime * (tracking ? config.headLookInRate : config.headLookOutRate));
             if (lookWeight > 0.001f && head != null)
             {
                 Vector3 to = enemy.FocusPoint - head.position;

@@ -76,6 +76,12 @@ namespace ProjectRidge.AI
         [Range(-45f, 45f)] public float huntSprintTravelYaw = 20f;
         [Min(0.1f)] public float travelYawSmoothing = 8f;
 
+        [Header("Mirada (cabeza hacia lo que vigila, POLISH_PASS 3.5)")]
+        [Tooltip("Peso por segundo con que la cabeza se clava en algo nuevo. Rápido: el cuerpo gira a 540°/s (NavMeshAgent), y la cabeza tiene que llegar antes para que se lea.")]
+        [Min(0.1f)] public float headLookInRate = 14f;
+        [Tooltip("Peso por segundo con que la cabeza suelta el foco.")]
+        [Min(0.1f)] public float headLookOutRate = 3f;
+
         [Header("Navegación")]
         [Tooltip("Distancia máxima para proyectar un destino sobre el NavMesh.")]
         [Min(0.1f)] public float navSampleDistance = 3f;

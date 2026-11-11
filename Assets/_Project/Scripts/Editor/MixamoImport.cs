@@ -26,7 +26,9 @@ namespace ProjectRidge.EditorTools
             ("Sprint_Loop", "unarmed run forward", true),
             ("Sword_Regular_A", "standing melee attack horizontal", false),
             ("Hit_Chest", "hit reaction", false),
-            ("Farm_Harvest", "picking up", false),
+            // Farm_Harvest (recoger del suelo) sigue con Quaternius: "Picking Up Object" recoge a la altura de la
+            // cintura (medido: cadera −0.06 m, mano a 0.92 m del suelo; Farm_Harvest: −0.28 m y 0.23 m). Para abrir
+            // cajas, que están a esa altura, sí sirve.
             ("Chest_Open", "picking up", false),
             ("Death01", "two handed sword death", false),
             ("LayToIdle", "getting up", false),

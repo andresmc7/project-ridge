@@ -173829,8 +173829,8 @@ MonoBehaviour:
   player: {fileID: 1602472306}
   body: {fileID: 1602472308}
   input: {fileID: 1602472304}
-  father: {fileID: 0}
-  shock: {fileID: 0}
+  father: {fileID: 1992108482}
+  shock: {fileID: 1992108483}
   flashlight: {fileID: 1602472310}
   ufoExposure: {fileID: 0}
   volume: {fileID: 479443482}
@@ -192840,7 +192840,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -89.64, y: -79.68}
+  m_AnchoredPosition: {x: -89.63989, y: -79.68005}
   m_SizeDelta: {x: 109.56, y: 109.56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1013056879
@@ -218307,7 +218307,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 84.66, y: -74.7}
+  m_AnchoredPosition: {x: 84.65991, y: -74.69995}
   m_SizeDelta: {x: 109.56, y: 109.56}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1186213988
@@ -247518,8 +247518,8 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1378518748}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: 677387436799c9b47b1c6d023bf1182c, type: 2}
+  m_Controller: {fileID: 9100000, guid: b2e3259489840564982b5bfe5b070677, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -293520,7 +293520,7 @@ MonoBehaviour:
   health: {fileID: 1602472311}
   inventory: {fileID: 1602472316}
   interactor: {fileID: 1602472315}
-  animator: {fileID: 0}
+  animator: {fileID: 1992108482}
   flareItem: {fileID: 11400000, guid: 772f11b6d48222f46bc2367b808bb718, type: 2}
   prefab: {fileID: 2552096164099283082, guid: 56c177db1fc881849bc115bcdc692342, type: 3}
   groundMask:
@@ -293615,7 +293615,7 @@ MonoBehaviour:
   vignette: {fileID: 360619605}
   lowPass: {fileID: 30572893}
   body:
-  - {fileID: 0}
+  - {fileID: 1939040852}
   fade: 0.35
   hiddenCutoff: 2600
   silhouette: 0.6
@@ -364537,6 +364537,7 @@ GameObject:
   - component: {fileID: 1992108480}
   - component: {fileID: 1992108481}
   - component: {fileID: 1992108482}
+  - component: {fileID: 1992108483}
   m_Layer: 9
   m_Name: Visual
   m_TagString: Untagged
@@ -364615,6 +364616,22 @@ MonoBehaviour:
   maxLean: 9
   leanSmoothing: 10
   pickUpLock: 1.3
+--- !u!114 &1992108483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1992108479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fac8578e93fd5eb4fa085ab3986e1a53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectRidge.Player.ShockPose
+  armSpread: 32
+  elbowBend: 18
+  fingerSpread: 22
+  headBack: 14
 --- !u!1 &1992158885
 GameObject:
   m_ObjectHideFlags: 0

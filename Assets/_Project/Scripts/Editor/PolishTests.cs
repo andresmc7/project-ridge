@@ -677,31 +677,58 @@ namespace ProjectRidge.EditorTools
                   "patrol shown " + calmInd.arc + ", partial fill seen " + sawPartial + " (" + partialFill.ToString("0.00") + "), hunting fill " + huntInd.fill.ToString("0.00"));
 
             // Fuera de cámara: flecha en el borde hacia el Lurker.
-            Vector3 away = player.transform.position + (player.transform.position - lurker.transform.position).normalized * 16f;
-            Teleport(Ground(away.x, away.z));
+            // Lo bastante lejos para que quede fuera del cuadro con el aspecto actual de la Game view (en una ventana
+            // panorámica, 2.9:1, a 16 m todavía se ve): se aleja de 4 en 4 m hasta que la cámara ya no lo tiene.
+            Vector3 fromLurker = (player.transform.position - lurker.transform.position).normalized;
+            Vector3 away = player.transform.position + fromLurker * 16f;
+            for (float d = 16f; d <= 40f; d += 4f)
+            {
+                away = Ground(lurker.transform.position.x + fromLurker.x * d, lurker.transform.position.z + fromLurker.z * d);
+                Teleport(away);
+                yield return 0.5f; // la cámara llega
+                Vector3 v = Camera.main.WorldToViewportPoint(lurker.transform.position);
+                if (v.z < 0f || v.x < 0f || v.x > 1f || v.y < 0f || v.y > 1f) break;
+            }
             lurker.Perception.Notice(player.transform.position);
-            bool arrow = false;
+            bool arrow = false, everOff = false, everArrow = false;
+            Vector3 lastVp = Vector3.zero;
             limit = Time.time + 2f;
             while (Time.time < limit)
             {
                 var st = indicators.State(lurker);
                 Vector3 vp = Camera.main.WorldToViewportPoint(lurker.transform.position);
                 bool off = vp.z < 0f || vp.x < 0f || vp.x > 1f || vp.y < 0f || vp.y > 1f;
+                everOff |= off; everArrow |= st.arrow; lastVp = vp;
                 if (off && st.arrow) { arrow = true; ShotUI("P5_after_edge_arrow"); break; }
                 yield return null;
             }
-            Check("edge arrow when the lurker is off camera", arrow, "arrow shown " + arrow + " (lurker " + lurker.State + ")");
+            Check("edge arrow when the lurker is off camera", arrow, "arrow shown " + arrow + " (lurker " + lurker.State + "; ever off camera " + everOff + ", ever arrow " + everArrow +
+                  ", last viewport " + lastVp.ToString("0.00") + ", dad at " + Flat(player.transform.position).ToString("0.0") + ", wanted " + Flat(away).ToString("0.0") + ")");
 
             // La cabeza apunta a lo que vigila.
             lurker.ResetAfterPlayerRespawn(player.transform.position, 0f, 0f);
             lurker.Perception.Suppress(9999f);
             yield return 0.5f;
             Vector3 side = lurker.transform.position + lurker.transform.right * 5f;
+            var stateBeforeAlert = lurker.State;
             lurker.AlertTo(side);
+            var stateAfterAlert = lurker.State;
             float maxYaw = 0f;
+            var trace = new System.Text.StringBuilder();
+            float nextTrace = Time.time;
             limit = Time.time + 1.2f;
-            while (Time.time < limit) { maxYaw = Mathf.Max(maxYaw, Mathf.Abs(lanim.HeadYaw)); yield return null; }
-            Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side");
+            while (Time.time < limit)
+            {
+                maxYaw = Mathf.Max(maxYaw, Mathf.Abs(lanim.HeadYaw));
+                if (Time.time >= nextTrace)
+                {
+                    nextTrace += 0.2f;
+                    float bodyToSide = Vector3.SignedAngle(Flat(lurker.transform.forward), Flat(side - lurker.transform.position), Vector3.up);
+                    trace.Append(lurker.State + " head " + lanim.HeadYaw.ToString("0") + "° body→point " + bodyToSide.ToString("0") + "°; ");
+                }
+                yield return null;
+            }
+            Check("head turns to what it watches", maxYaw > 20f, "head yaw " + maxYaw.ToString("0") + "° toward a point 90° to the side (state " + stateBeforeAlert + " → " + stateAfterAlert + "; " + trace + ")");
             player.GetComponent<PlayerHealth>().Restore();
             foreach (var e in Object.FindObjectsByType<EnemyController>(FindObjectsInactive.Include, FindObjectsSortMode.None)) e.gameObject.SetActive(true);
         }
@@ -980,8 +1007,10 @@ namespace ProjectRidge.EditorTools
                 cfg.sprintTravelYaw = sprintYaw;
             }
             Debug.Log("POLISH: JOGSHOT " + string.Join("; ", lines));
-            Check("running pelvis faces the direction of travel (≤ 12°, better than without compensation)",
-                  errors["jog+"] <= 12f && errors["sprint+"] <= 12f && errors["jog+"] < errors["jog-"] && errors["sprint+"] < errors["sprint-"],
+            // Con clips que ya corren rectos (Mixamo, d4cd389) la compensación es 0 y "con" y "sin" dan lo mismo: basta
+            // con no empeorar (±0.5° de ruido entre corridas).
+            Check("running pelvis faces the direction of travel (≤ 12°, no worse than without compensation)",
+                  errors["jog+"] <= 12f && errors["sprint+"] <= 12f && errors["jog+"] <= errors["jog-"] + 0.5f && errors["sprint+"] <= errors["sprint-"] + 0.5f,
                   string.Join("; ", lines));
         }
 

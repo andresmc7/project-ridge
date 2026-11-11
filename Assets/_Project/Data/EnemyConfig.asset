@@ -19,12 +19,18 @@ MonoBehaviour:
   viewDistance: 9
   viewAngle: 80
   proximityRadius: 1.8
+  proximityMinVisibility: 0.55
   perceptionInterval: 0.1
   suspicionGainNear: 3.5
   suspicionGainFar: 1.1
   suspicionDecay: 0.5
   investigateThreshold: 0.35
   chaseThreshold: 1
+  hiddenNoticeRadius: 1.4
+  hiddenNoticeGain: 1.2
+  hiddenNoticeHeight: 1.2
+  lureStandOff: 2
+  lureSpeed: 2
   hearingSensitivity: 1
   hearingPositionError: 0.15
   patrolPause: 2.8
@@ -35,6 +41,13 @@ MonoBehaviour:
   searchRadius: 6
   searchLookPause: 1.2
   searchTurnSpeed: 120
+  huntJogSpeed: 3.34
+  huntSprintSpeed: 4.6
+  huntJogTravelYaw: 29
+  huntSprintTravelYaw: 20
+  travelYawSmoothing: 8
+  headLookInRate: 14
+  headLookOutRate: 3
   navSampleDistance: 3
   repathInterval: 0.2
   loseSightTime: 2.5
@@ -47,6 +60,14 @@ MonoBehaviour:
   attackRecovery: 1
   attackDamage: 35
   attackArc: 100
+  attackLunge: 1.1
+  attackKnockback: 5.5
+  attackHitReaction: 1.6
+  attackCameraKick: 1.5
+  attackHitStop: 0.07
+  attackHitStopScale: 0.05
+  maxHealth: 100
+  canDie: 0
   eyesCalm: {r: 0.6, g: 0.02, b: 0.02, a: 1}
   eyesAlert: {r: 2.5, g: 0.15, b: 0.05, a: 1}
   eyesHunt: {r: 6, g: 0.1, b: 0.05, a: 1}

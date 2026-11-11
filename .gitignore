@@ -53,3 +53,12 @@ desktop.ini
 
 # Descargas de terceros pendientes de revisar (no se versionan)
 _incoming/
+ProjectRidge_incoming/
+
+# Mixamo (Adobe): se usan en el proyecto pero no se pueden redistribuir sueltos y el repo es público.
+# Se versionan solo los .meta (GUIDs e import settings); los .fbx viven en cada máquina. Ver ASSETS.md.
+/Assets/ThirdParty/Mixamo/**/*.fbx
+
+# Atlas de abetos descartado: se regenera con docs/wip/fir-atlas/HollowFirAtlas.cs.txt
+/docs/wip/fir-atlas/*
+!/docs/wip/fir-atlas/HollowFirAtlas.cs.txt

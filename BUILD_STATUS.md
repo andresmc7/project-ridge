@@ -2,7 +2,7 @@
 
 Qué compila, qué se probó, dónde y cuándo. Lo no verificado va marcado `UNVERIFIED`.
 
-## Decisiones pendientes del usuario (actualizado 2026-10-30)
+## Decisiones pendientes del usuario (actualizado 2026-11-11)
 Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entradas fechadas de abajo.
 
 1. **Checkpoints a la vista de una patrulla** (prueba `CPSAFE`, 3/6 seguros). Quieto en el checkpoint, al papá lo descubren:
@@ -12,8 +12,39 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 
    Nunca al reaparecer (no hay bucle inmediato de muertes). Opciones: (a) pasto alto (escondite) junto a cada uno; (b) cambiar las rutas de patrulla; (c) aceptar los ~10 s.
    Mover CP_TwoLights al lugar seguro más cercano lo deja pasando el haz S2, y morir ahí haría repetir la sala 2.
-2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop** (29° / 20°, papá y Lurker). Hoy está por código (`FatherAnimator` / `LurkerAnimator.UpdateTravelYaw`), elegido por defecto porque no toca `ThirdParty`. Resultado: la pelvis del papá pasa de 28.5° a 1.8° respecto de hacia dónde corre, y la del Lurker de 24.1° a 4.9°. Alternativa: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`. ¿Se mantiene el código?
-3. **Trote del papá**. Calibrado en juego, el clip necesita ~1.2×; hoy va a 1.1×, el máximo de POLISH_PASS 3.7. Opciones: (a) permitir ~1.2× (fuera del rango); (b) bajar `jogSpeed` de 2.6 a ~2.4 m/s (el papá trota un 8% más lento). El sprint está bien; el Lurker no necesita cambio.
+2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop del Lurker** (29° / 20°). Desde `d4cd389` el papá usa Mixamo (corre recto, `jog/sprintTravelYaw` 0), así que solo queda el Lurker. Hoy está por código (`LurkerAnimator.UpdateTravelYaw`, pelvis de 24.1° a 4.9° respecto de hacia dónde corre). Alternativas: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`, o pasar al Lurker a los clips `Mutant *` de Mixamo (ya importados, sin usar en código). ¿Se mantiene el código?
+3. **Los `.fbx` de Mixamo y el repo público.** `d4cd389` dejó pendiente subirlos por LFS, pero el repo es público y la licencia de Adobe no permite redistribuirlos sueltos. Hoy están en `.gitignore` (solo se versionan los `.meta`). Opciones: (a) hacer el repo privado y subirlos; (b) seguir así: cada máquina (y un build de iOS en la nube) necesita copiarlos a mano, o el papá vuelve a Quaternius.
+4. **Islas de luz en el histograma de P3** (POLISH_PASS pide ≥ 3% de píxeles claros). Desde 0e2c14e ("el OVNI es el único acento de luz", pedido de Andres) da 0.8%, y la sombra profunda subió a 79%. Opciones: (a) bajar o quitar el criterio de islas de luz; (b) volver a poner alguna fuente de luz cálida por sala.
+- Resuelta por `d4cd389` (otra sesión, 2026-10-31): la velocidad del trote. Con Mixamo, trote 2.2 m/s (clip a 1.10×) y carrera 2.8 m/s (1.09×).
+
+## 2026-11-11 — Regresión tras el cambio a Mixamo (d4cd389): 4 fallos reales arreglados
+Editor, play mode vía Unity MCP, `PolishSuite`. Primera corrida tras los commits de la otra sesión (0e2c14e…d4cd389).
+
+- **Error al entrar a play** (`UnassignedReferenceException` en `HiddenFeedback.Awake`) y **la captura del OVNI se colgaba** (`NullReferenceException` en `CaptureSequence.Run`, línea `father.Freeze`): P2 quedaba en `Lock` para siempre. Causa común: `CharacterBuilder` destruye y vuelve a crear el `Visual` del papá, y lo que apuntaba dentro de él quedaba en `{fileID: 0}` en la escena: `CaptureSequence.father` y `.shock` (la `ShockPose` vive en el `Visual` y también se perdía), `PlayerFlareTool.animator` y `HiddenFeedback.body`.
+  - Arreglo: `CharacterBuilder.RewireVisualDependents` los recablea al final de `BuildFather`. Además, `HiddenFeedback` toma los `SkinnedMeshRenderer` del papá si la lista está vacía o con nulos. Escena recableada y guardada.
+  - Barrido de referencias nulas en la escena (`Logs/claude_nullrefs.txt`): las que quedan son opcionales (`focus`/`spawn` caen al propio transform; `visualRoot` es null a propósito desde ade595f; `ufoExposure`, si no existe, se ignora).
+- **Recoger del suelo no agachaba** (P0 D3: cadera −0.04 m). "Picking Up Object" de Mixamo recoge a la altura de la cintura. Medido sobre el modelo: cadera −0.06 m y mano a 0.92 m, contra −0.28 m y 0.23 m de `Farm_Harvest` de Quaternius. `Farm_Harvest` vuelve al estado `PickUp` (tabla de `MixamoImport` y `Father.controller`); "Picking Up Object" sigue para abrir cajas (`Chest_Open`).
+- **P5, flecha de borde**: no es un fallo del juego. La Game view del editor recién abierto mide 2560×888 (2.9:1) y a 16 m el Lurker todavía se ve, así que no hay flecha (correcto). La prueba ahora aleja al papá de 4 en 4 m hasta que el Lurker sale del cuadro (aquí, a ~28 m).
+- **P5, la cabeza apunta a lo que vigila**: con el código anterior era imposible en el caso limpio (Patrol → Investigate). El cuerpo gira a 540°/s (`NavMeshAgent`) y llega en ~0.17 s; la cabeza ganaba peso a 3/s, y el máximo calculado es ~13°, justo lo medido. El pase del 10-30 fue accidental: el paso anterior dejaba al Lurker con el foco ya puesto. Ahora la cabeza se clava rápido (`EnemyConfig.headLookInRate` 14/s) y suelta lento (`headLookOutRate` 3/s): 58° antes de que el cuerpo termine de girar. Es un cambio visible y pequeño: al oír algo, el Lurker gira primero la cabeza.
+- **El Lurker del avistamiento con guion (arroyo) se deslizaba sin animar**: su Animator quedó sin controller ni avatar (`{fileID: 0}`; el 10-30 tenía `Lurker.controller` y `Lurker_Avatar`). Es la misma clase de fallo: la reconstrucción recableó los 4 Lurkers pero no su copia. Arreglo: `CharacterBuilder.SyncApparitionAnimator` (se llama en `Build()`), aplicado a la escena. Probado en play mode: el papá pisa el trigger, la aparición sale con `Zombie_Walk_Fwd_Loop` a Speed 2.2 y la consola queda sin los avisos "Animator is not playing an AnimatorController".
+- **JOGSHOT** pedía que la compensación mejorara la pelvis; con Mixamo la compensación es 0 y da lo mismo con y sin (1.9° / 3.4°, excelente). Ahora pide "no peor que sin compensación" (±0.5°).
+- Diagnóstico en la prueba: las dos comprobaciones de P5 ahora reportan viewport, posición y la secuencia de estados.
+
+| Fase | Antes de los arreglos | Después |
+|---|---|---|
+| P0 | 7/8 (D3) | **8/8** |
+| P1 | 12/12 | **12/12** |
+| P2 | colgada en `Lock` | **5/5** |
+| P3 | 5/6 | 5/6 (islas de luz, decisión 4) |
+| P4 | 5/5 | **5/5** |
+| P5 | 3/5 | **5/5** |
+| P6, P7, P8, SNEAK | 5/5, 7/7, 9/9, 2/2 | **5/5, 7/7, 9/9, 2/2** |
+| JOGSHOT / LURKSHOT | 0/1 / 1/1 | **1/1 / 1/1** |
+
+CPSAFE y SKATE no se corrieron (largas; esperan las decisiones de arriba). Consola sin errores; `runInBackground` en 0.
+- **P3 histograma: 79% de sombra, 0.8% de islas de luz** (pide ≥ 3%). No se tocó: 0e2c14e quitó hongos, faroles y charcos a pedido de Andres ("el OVNI es el único acento de luz"). Ver decisión 4 arriba.
+- **Mixamo y el repo público**: los `.fbx` quedan en `.gitignore` (ver decisión 3 y ASSETS.md). También `ProjectRidge_incoming/` y las texturas del atlas descartado (`docs/wip/fir-atlas/`, se regeneran con su script).
+- Capturas de QA de la otra sesión (`docs/progress/burst_*.png`, `sheets/`) y el cambio de `StoneProjectile.prefab` (rotación aleatoria que pone `ItemsSetupBuilder` en cada reconstrucción) entran en este commit.
 
 ## 2026-10-31 — Atlas de abetos (2 materiales → 1): intentado, revertido; causa encontrada
 - **Qué se hizo**: atlas 2048×1024 (ramitas a la izquierda con el tinte horneado, corteza a la derecha con 128 px de separación transparente), UV del tronco dentro de la región de corteza con 8% de margen, un solo submesh y un material URP/Lit doble cara con recorte. Prefabs actualizados en el lugar y pares opaco→desvanecido de la escena rehechos; se conservaron las referencias y los overrides.
