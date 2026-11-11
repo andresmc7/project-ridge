@@ -17,6 +17,20 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 4. **Islas de luz en el histograma de P3** (POLISH_PASS pide ≥ 3% de píxeles claros). Desde 0e2c14e ("el OVNI es el único acento de luz", pedido de Andres) da 0.8%, y la sombra profunda subió a 79%. Opciones: (a) bajar o quitar el criterio de islas de luz; (b) volver a poner alguna fuente de luz cálida por sala.
 - Resuelta por `d4cd389` (otra sesión, 2026-10-31): la velocidad del trote. Con Mixamo, trote 2.2 m/s (clip a 1.10×) y carrera 2.8 m/s (1.09×).
 
+## 2026-11-11 — Bot: oído y zona muerta del stick en la planificación; la sala 2 sigue sin pasar
+Editor, play mode vía Unity MCP. Solo herramienta de QA (`LoopBot`); el juego no cambia.
+
+- **El bot no tenía en cuenta el oído**: planificaba los tramos solo con la luz y el cono de vista. Ahora un tramo no es seguro si el Lurker predicho queda dentro del radio de las pisadas (`NoiseConfig`: caminar 3.5 m, trotar 7 m, más 0.5 m de margen), solo mientras el papá se mueve.
+- **El bot calculaba mal su velocidad al caminar**: usaba la inclinación cruda del stick (0.45 → 1.24 m/s), pero el control del gamepad aplica la zona muerta por defecto del Input System (0.125–0.925): el juego lee 0.41 y el papá camina a 1.14 m/s, lo medido en el registro. Ahora usa la inclinación procesada (1.135 m/s).
+- **Diagnóstico nuevo en el informe**: el último ruido del papá en cada cambio de estado de un Lurker, y cada 5 s el error de la predicción de patrulla de hace 5 s.
+- **Resultado: el nivel completo sigue FAILED** (8 muertes, todas a la salida del puente, x ≈ −9.45). Lo medido descarta varias causas:
+  - No es el oído: las pisadas son de 3.5 m y el Lurker reacciona a 7.5 m.
+  - No es la predicción de la patrulla: error 0.0 m y 0° (el Lurker está quieto en su parada (−4.6, −4.7)).
+  - No es la velocidad: ahora coincide.
+  - No es la orientación de la percepción: `EnemyPerception` está en la raíz, mismo forward que predice el bot.
+  - Lo que hay: la sospecha sube por la vista a ~7.5 m mientras el papá cruza el puente, en un tramo que el bot dio por seguro.
+- Siguiente paso: registrar el plan que evalúa el bot al salir del escondite (−20.6, −3.3), es decir, el ángulo y la distancia predichos al Lurker en cada instante del tramo, y compararlo con el momento real de la detección. `UNVERIFIED` (sin cambios): si a un jugador le pasa.
+
 ## 2026-11-11 — Nivel completo con el bot tras los cambios del 31 oct: NO termina (sala 2)
 Editor, play mode vía Unity MCP, `LoopBot.Run()`. Antes (10-27/28) terminaba en 242–266 s con 2 muertes, varias corridas seguidas.
 

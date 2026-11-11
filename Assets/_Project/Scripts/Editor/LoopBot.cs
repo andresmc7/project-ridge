@@ -74,6 +74,8 @@ namespace ProjectRidge.EditorTools
         const float StartLatency = 0.6f;
         /// <summary>Márgenes sobre la vista del Lurker (con la patrulla predicha exacta bastan unos pocos).</summary>
         const float ViewDistanceMargin = 1f, ViewAngleMargin = 12f;
+        /// <summary>Margen sobre el radio de las pisadas (la predicción de la patrulla no es exacta al centímetro).</summary>
+        const float HearingMargin = 0.5f;
         /// <summary>Al terminar, salir de play mode (false para inspeccionar la escena tras la corrida).</summary>
         public static bool StopPlayWhenDone = true;
         static PlayerMovementConfig Movement => AssetDatabase.LoadAssetAtPath<PlayerMovementConfig>("Assets/_Project/Data/PlayerMovementConfig.asset");
@@ -82,7 +84,13 @@ namespace ProjectRidge.EditorTools
         const float CarefulTilt = 0.45f;
         /// <summary>Trote: por debajo del borde (al borde el joystick fija el sprint, que hace mucho ruido).</summary>
         const float JogTilt = 0.85f;
-        static float WalkSpeed => Mathf.Lerp(Movement.walkSpeed, Movement.jogSpeed, Mathf.InverseLerp(Movement.sneakThreshold, Movement.jogThreshold, CarefulTilt));
+        static float WalkSpeed => Mathf.Lerp(Movement.walkSpeed, Movement.jogSpeed, Mathf.InverseLerp(Movement.sneakThreshold, Movement.jogThreshold, Processed(CarefulTilt)));
+        /// <summary>
+        /// Lo que el juego lee del stick: el control del gamepad aplica la zona muerta por defecto del Input System
+        /// (0.125–0.925 reescalado). (2026-11-11) Antes el bot planificaba con la inclinación cruda: 0.45 daba 1.24 m/s
+        /// y el papá caminaba a 1.14, y en un tramo de 12 m llegaba ~1 s tarde a la vista del Lurker de la sala 2.
+        /// </summary>
+        static float Processed(float raw) => Mathf.InverseLerp(InputSystem.settings.defaultDeadzoneMin, InputSystem.settings.defaultDeadzoneMax, raw);
         static float stopAtX = float.MaxValue;
         static int actions, objects;
 
@@ -122,10 +130,12 @@ namespace ProjectRidge.EditorTools
             visibility = player.GetComponent<PlayerVisibility>();
             BuildRoute();
             Log("route: " + Waypoints.Length + " design points + " + (Route.Count - Waypoints.Length) + " NavMesh corners");
-            index = 0; deaths = 0; captures = 0; moving = false; aimingThrow = false; committedUntil = -1; report.Clear(); lastStates.Clear(); nextStatus = 0f;
+            index = 0; deaths = 0; captures = 0; moving = false; aimingThrow = false; committedUntil = -1; report.Clear(); lastStates.Clear(); predicted.Clear(); nextStatus = 0f;
             startTime = stateSince = lastProgress = Time.time;
             lastPos = player.transform.position;
             Searchlight.PlayerCaught += OnCaught;
+            ProjectRidge.Noise.NoiseSystem.NoiseEmitted -= OnNoise;
+            ProjectRidge.Noise.NoiseSystem.NoiseEmitted += OnNoise;
             player.GetComponent<PlayerHealth>().Died += OnDied;
             Tap(Key.Space); // título
             EditorApplication.update += Tick;
@@ -152,6 +162,14 @@ namespace ProjectRidge.EditorTools
             index = Route.Count - 1;
             needResync = true;
             Log("starting at checkpoint " + best.name + " " + best.position);
+        }
+
+        /// <summary>Último ruido del papá (radio, tipo y hace cuánto), para el informe cuando un Lurker cambia de estado.</summary>
+        static string lastNoise = "none";
+        static void OnNoise(ProjectRidge.Noise.NoiseEvent n)
+        {
+            if (player == null || n.Source == null || !n.Source.transform.IsChildOf(player.transform)) return;
+            lastNoise = n.Type + " " + n.Radius.ToString("0.0") + " m at t=" + (Time.time - startTime).ToString("0.0");
         }
 
         static void OnCaught(Searchlight s)
@@ -208,13 +226,23 @@ namespace ProjectRidge.EditorTools
             {
                 if (lastStates.TryGetValue(e, out var s) && s == e.State) continue;
                 if (lastStates.ContainsKey(e) || e.State != EnemyState.Patrol)
-                    Log(e.name + " -> " + e.State + " at " + e.transform.position + ", " + Vector3.Distance(Flat(e.transform.position), Flat(p)).ToString("0.0") + " m from the player (crouched " + player.IsCrouching + ")");
+                    Log(e.name + " -> " + e.State + " at " + e.transform.position + ", " + Vector3.Distance(Flat(e.transform.position), Flat(p)).ToString("0.0") + " m from the player (crouched " + player.IsCrouching + "; last dad noise " + lastNoise + ")");
                 lastStates[e] = e.State;
             }
             if (Time.time < nextStatus) return;
             nextStatus = Time.time + 5f;
-            Log("status: step " + index + " moving " + moving + " pos " + p);
+            // Error de la predicción de patrulla: lo que se predijo hace 5 s para ahora contra dónde está (Lurkers a < 15 m).
+            var drift = new System.Text.StringBuilder();
+            foreach (var e in EnemyController.Active)
+            {
+                if (predicted.TryGetValue(e, out var was) && e.State == EnemyState.Patrol && Vector3.Distance(Flat(e.transform.position), Flat(p)) < 15f)
+                    drift.Append("; " + e.name + " drift " + Vector3.Distance(Flat(was.pos), Flat(e.transform.position)).ToString("0.0") + " m, " + Vector3.Angle(Flat(was.fwd), Flat(e.transform.forward)).ToString("0") + "°");
+                if (e.State == EnemyState.Patrol && e.PredictPatrol(5f, out Vector3 ep, out Vector3 ef)) predicted[e] = (ep, ef);
+                else predicted.Remove(e);
+            }
+            Log("status: step " + index + " moving " + moving + " pos " + p + drift);
         }
+        static readonly Dictionary<EnemyController, (Vector3 pos, Vector3 fwd)> predicted = new Dictionary<EnemyController, (Vector3 pos, Vector3 fwd)>();
 
         static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
 
@@ -233,6 +261,7 @@ namespace ProjectRidge.EditorTools
         {
             EditorApplication.update -= Tick;
             Searchlight.PlayerCaught -= OnCaught;
+            ProjectRidge.Noise.NoiseSystem.NoiseEmitted -= OnNoise;
             if (player != null) player.GetComponent<PlayerHealth>().Died -= OnDied;
             Stick(Vector2.zero);
             if (pad != null) InputSystem.RemoveDevice(pad);
@@ -241,14 +270,21 @@ namespace ProjectRidge.EditorTools
             if (StopPlayWhenDone) EditorApplication.delayCall += () => EditorApplication.isPlaying = false;
         }
 
-        /// <summary>¿Se puede ir de a hasta b ahora mismo sin pisar luz ni entrar en el cono de un Lurker?</summary>
-        static bool LegIsSafe(Vector3 a, Vector3 b, float speed) => LegIsSafe(a, b, speed, 0f, true, true, out _);
+        /// <summary>Radio de las pisadas del tramo (NoiseConfig): caminando con cuidado o trotando.</summary>
+        static float StepNoise(bool sneak)
+        {
+            var cfg = AssetDatabase.LoadAssetAtPath<ProjectRidge.Noise.NoiseConfig>("Assets/_Project/Data/NoiseConfig.asset");
+            return sneak ? cfg.walkStepRadius : cfg.jogStepRadius;
+        }
 
         /// <summary>
+        /// ¿Se puede ir de a hasta b sin pisar luz, entrar en el cono de un Lurker ni pasar a distancia de oírlo?
         /// Tramo que empieza en t0 (s desde ahora). fromRest: arranca parado (giro en el sitio y clip de arranque);
         /// last: termina ahí (frenada y agacharse). Devuelve la duración del tramo para encadenar el siguiente.
+        /// (2026-11-11) Antes no miraba el oído: con el papá más lento, el Lurker de la sala 2 lo oía caminar a ~4 m
+        /// junto al escondite del puente y el bot repetía la misma muerte en cada reaparición.
         /// </summary>
-        static bool LegIsSafe(Vector3 a, Vector3 b, float speed, float t0, bool fromRest, bool last, out float duration)
+        static bool LegIsSafe(Vector3 a, Vector3 b, float speed, float stepNoise, float t0, bool fromRest, bool last, out float duration)
         {
             float length = Vector3.Distance(Flat(a), Flat(b));
             // Parado y con un giro grande, el papá gira en el sitio antes de avanzar (P7): se queda en a ese tiempo.
@@ -277,6 +313,9 @@ namespace ProjectRidge.EditorTools
                     to.y = 0f;
                     float d = to.magnitude;
                     if (d < e.Config.proximityRadius + 0.8f) { unsafeReason = e.name + " too close at t+" + (t0 + t).ToString("0.0"); return false; }
+                    // Pisadas: mientras se mueve (no en el giro inicial ni ya agachado al llegar).
+                    bool walking = t > turn && t < turn + travel;
+                    if (walking && d < stepNoise * e.Config.hearingSensitivity + HearingMargin) { unsafeReason = e.name + " would hear at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
                     if (d < e.Config.viewDistance + ViewDistanceMargin && Vector3.Angle(fwd, to) < e.Config.viewAngle * 0.5f + ViewAngleMargin) { unsafeReason = e.name + " would see at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
                 }
             }
@@ -381,7 +420,7 @@ namespace ProjectRidge.EditorTools
             for (int i = index; i <= end; i++)
             {
                 float v = Route[i].sneak ? WalkSpeed : JogSpeed;
-                if (!LegIsSafe(from, Route[i].at, v, t0, i == index, i == end, out float d)) return; // quieto y oculto en el pastizal
+                if (!LegIsSafe(from, Route[i].at, v, StepNoise(Route[i].sneak), t0, i == index, i == end, out float d)) return; // quieto y oculto en el pastizal
                 t0 += d;
                 from = Route[i].at;
             }
