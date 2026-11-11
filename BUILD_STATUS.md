@@ -17,6 +17,14 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 4. **Islas de luz en el histograma de P3** (POLISH_PASS pide ≥ 3% de píxeles claros). Desde 0e2c14e ("el OVNI es el único acento de luz", pedido de Andres) da 0.8%, y la sombra profunda subió a 79%. Opciones: (a) bajar o quitar el criterio de islas de luz; (b) volver a poner alguna fuente de luz cálida por sala.
 - Resuelta por `d4cd389` (otra sesión, 2026-10-31): la velocidad del trote. Con Mixamo, trote 2.2 m/s (clip a 1.10×) y carrera 2.8 m/s (1.09×).
 
+## 2026-11-11 — Nivel completo con el bot tras los cambios del 31 oct: NO termina (sala 2)
+Editor, play mode vía Unity MCP, `LoopBot.Run()`. Antes (10-27/28) terminaba en 242–266 s con 2 muertes, varias corridas seguidas.
+
+- **Dos corridas: FAILED, 8 muertes cada una**, todas a la salida del puente de la sala 2 (x ≈ −9.4, pasos 14 y 16: el escondite (−8.4, −4.4) y su entorno). El Lurker de la sala 2 oye o ve al papá de pie a ~4 m, investiga y lo alcanza. Al reaparecer en CP_Creek, el Lurker vuelve siempre al mismo punto y fase, y el bot (ruta fija, no espera ni se adapta) repite la misma muerte cada ~35 s.
+- **La sala 2 sola sí se cruza**: `RunFrom(-26, 0.2)` desde CP_Creek en t = 0 llega a CP_TwoLights en 44 s **sin muertes** (con el Lurker detrás). El resultado depende de en qué fase de la patrulla llega el bot.
+- Causa probable: el papá ahora es más lento (trote 2.6 → 2.2 m/s en 66abaab, carrera 3.0 → 2.8 en d4cd389, ambos pedidos por Andres o medidos de los clips), así que el bot llega al puente en otra fase. Es la misma trampa de "fase fija al reaparecer" vista en la sala 4 el 10-27. No se cambiaron las velocidades.
+- `UNVERIFIED`: si a un jugador humano le pasa (una persona espera y mira; el bot no). Siguiente bloque: que el bot espere una ventana antes de salir del puente (como ya hace en otros escondites) y volver a correr el nivel completo. Pregunta de diseño relacionada con la decisión 1: variar la fase de la patrulla al reaparecer evitaría bucles de muertes idénticas.
+
 ## 2026-11-11 — Regresión tras el cambio a Mixamo (d4cd389): 4 fallos reales arreglados
 Editor, play mode vía Unity MCP, `PolishSuite`. Primera corrida tras los commits de la otra sesión (0e2c14e…d4cd389).
 
