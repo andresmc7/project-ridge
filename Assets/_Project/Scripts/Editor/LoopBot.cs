@@ -316,11 +316,20 @@ namespace ProjectRidge.EditorTools
                     // Pisadas: mientras se mueve (no en el giro inicial ni ya agachado al llegar).
                     bool walking = t > turn && t < turn + travel;
                     if (walking && d < stepNoise * e.Config.hearingSensitivity + HearingMargin) { unsafeReason = e.name + " would hear at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
-                    if (d < e.Config.viewDistance + ViewDistanceMargin && Vector3.Angle(fwd, to) < e.Config.viewAngle * 0.5f + ViewAngleMargin) { unsafeReason = e.name + " would see at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
+                    float off = Vector3.Angle(fwd, to);
+                    if (d < e.Config.viewDistance + ViewDistanceMargin && off < e.Config.viewAngle * 0.5f + ViewAngleMargin) { unsafeReason = e.name + " would see at t+" + (t0 + t).ToString("0.0") + " (" + d.ToString("0.0") + " m)"; return false; }
+                    // Para el informe del tramo aceptado: el punto más cercano al cono (dentro del alcance de vista + 3 m).
+                    if (d < e.Config.viewDistance + 3f && off - e.Config.viewAngle * 0.5f < planClosestMargin)
+                    {
+                        planClosestMargin = off - e.Config.viewAngle * 0.5f;
+                        planClosest = e.name + " at t+" + (t0 + t).ToString("0.0") + ": " + d.ToString("0.0") + " m, " + off.ToString("0") + "° off its facing (half cone " + (e.Config.viewAngle * 0.5f).ToString("0") + "°), dad at " + Flat(p).ToString("0.0") + ", lurker at " + Flat(ep).ToString("0.0");
+                    }
                 }
             }
             return true;
         }
+        static float planClosestMargin;
+        static string planClosest;
 
         static void Tick()
         {
@@ -417,6 +426,8 @@ namespace ProjectRidge.EditorTools
             while (end < Route.Count - 1 && Route[end].kind == Kind.Pass) end++;
             Vector3 from = pos;
             float t0 = 0f;
+            planClosestMargin = float.MaxValue;
+            planClosest = "no lurker near";
             for (int i = index; i <= end; i++)
             {
                 float v = Route[i].sneak ? WalkSpeed : JogSpeed;
@@ -424,6 +435,7 @@ namespace ProjectRidge.EditorTools
                 t0 += d;
                 from = Route[i].at;
             }
+            Log("GO steps " + index + "–" + end + " (" + t0.ToString("0.0") + " s planned); closest to a cone: " + planClosest);
             committedUntil = end;
             moving = true;
         }

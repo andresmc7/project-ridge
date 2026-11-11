@@ -15,6 +15,7 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 2. **Cómo corregir la diagonal de Jog_Fwd_Loop / Sprint_Loop del Lurker** (29° / 20°). Desde `d4cd389` el papá usa Mixamo (corre recto, `jog/sprintTravelYaw` 0), así que solo queda el Lurker. Hoy está por código (`LurkerAnimator.UpdateTravelYaw`, pelvis de 24.1° a 4.9° respecto de hacia dónde corre). Alternativas: el offset de importación en el `.meta` de `ThirdParty/Quaternius/UAL1_Standard.fbx`, o pasar al Lurker a los clips `Mutant *` de Mixamo (ya importados, sin usar en código). ¿Se mantiene el código?
 3. **Los `.fbx` de Mixamo y el repo público.** `d4cd389` dejó pendiente subirlos por LFS, pero el repo es público y la licencia de Adobe no permite redistribuirlos sueltos. Hoy están en `.gitignore` (solo se versionan los `.meta`). Opciones: (a) hacer el repo privado y subirlos; (b) seguir así: cada máquina (y un build de iOS en la nube) necesita copiarlos a mano, o el papá vuelve a Quaternius.
 4. **Islas de luz en el histograma de P3** (POLISH_PASS pide ≥ 3% de píxeles claros). Desde 0e2c14e ("el OVNI es el único acento de luz", pedido de Andres) da 0.8%, y la sombra profunda subió a 79%. Opciones: (a) bajar o quitar el criterio de islas de luz; (b) volver a poner alguna fuente de luz cálida por sala.
+5. **Salida de la sala 2 (puente → (−1.5, 0.2))**. Con el papá más lento, el bot ya no termina el nivel. A veces lo ven al cruzar el puente y a veces queda atascado en el escondite (−8.4, −4.4), a 3.8 m de la parada sur del Lurker, sin ventana para salir. Opciones: (a) correr la parada sur del Lurker un poco al este; (b) agregar un escondite a mitad del tramo; (c) dejarla así (es tensa a propósito). Detalle en la entrada "Bot: oído y zona muerta" del 11-11.
 - Resuelta por `d4cd389` (otra sesión, 2026-10-31): la velocidad del trote. Con Mixamo, trote 2.2 m/s (clip a 1.10×) y carrera 2.8 m/s (1.09×).
 
 ## 2026-11-11 — Bot: oído y zona muerta del stick en la planificación; la sala 2 sigue sin pasar
@@ -30,6 +31,13 @@ Editor, play mode vía Unity MCP. Solo herramienta de QA (`LoopBot`); el juego n
   - No es la orientación de la percepción: `EnemyPerception` está en la raíz, mismo forward que predice el bot.
   - Lo que hay: la sospecha sube por la vista a ~7.5 m mientras el papá cruza el puente, en un tramo que el bot dio por seguro.
 - Siguiente paso: registrar el plan que evalúa el bot al salir del escondite (−20.6, −3.3), es decir, el ángulo y la distancia predichos al Lurker en cada instante del tramo, y compararlo con el momento real de la detección. `UNVERIFIED` (sin cambios): si a un jugador le pasa.
+- **Hecho (misma fecha, más tarde)**: el informe del bot escribe cada salida ("GO steps a–b, s planificados, punto más cercano a un cono"). Corrida `Run(0.2)`:
+  - El plan del puente (t = 38.4, 16.7 s) predijo al Lurker en su parada **norte** (−4.6, 5.0) cuando el papá pasara a 9.7 m.
+  - Esta vez no lo vio: el bot llegó sin ser visto al escondite (−8.4, −4.4) y quedó **atascado 90 s** sin ventana para seguir ("would see at t+9.2, 6.1 m").
+  - La parada **sur** del Lurker (−4.6, −4.7) está a 3.8 m de ese escondite. El tramo de salida cruza su línea de patrulla caminando a 1.13 m/s y, con el oído ahora en la planificación, no cabe entre dos pasadas.
+  - En las corridas anteriores, el mismo tramo terminaba en detección al llegar.
+- **Conclusión**: la salida de la sala 2 es muy justa para un papá lento. El resultado depende de la fase de la patrulla. No es un fallo del bot que se arregle con más predicción; es una pregunta de diseño.
+- Opciones de diseño (no tocadas): mover la parada sur del Lurker de la sala 2 un poco al este, otro escondite a mitad del tramo hacia (−1.5, 0.2), o aceptar que ahí hay que esperar y correr. `UNVERIFIED`: un humano.
 
 ## 2026-11-11 — Nivel completo con el bot tras los cambios del 31 oct: NO termina (sala 2)
 Editor, play mode vía Unity MCP, `LoopBot.Run()`. Antes (10-27/28) terminaba en 242–266 s con 2 muertes, varias corridas seguidas.
