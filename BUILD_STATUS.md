@@ -18,6 +18,15 @@ Lo que bloquea los siguientes arreglos. El detalle de cada una está en las entr
 5. **Salida de la sala 2 (puente → (−1.5, 0.2))**. Con el papá más lento, el bot ya no termina el nivel. A veces lo ven al cruzar el puente y a veces queda atascado en el escondite (−8.4, −4.4), a 3.8 m de la parada sur del Lurker, sin ventana para salir. Opciones: (a) correr la parada sur del Lurker un poco al este; (b) agregar un escondite a mitad del tramo; (c) dejarla así (es tensa a propósito). Detalle en la entrada "Bot: oído y zona muerta" del 11-11.
 - Resuelta por `d4cd389` (otra sesión, 2026-10-31): la velocidad del trote. Con Mixamo, trote 2.2 m/s (clip a 1.10×) y carrera 2.8 m/s (1.09×).
 
+## 2026-11-11 — Build de Windows con los arreglos de hoy: 0 errores, 0 advertencias, corre 45 s
+Editor vía Unity MCP, `BuildPipeline.BuildPlayer` (TheHollow, StandaloneWindows64).
+
+- Primer build: **Succeeded, 0 errores, 1 advertencia, 260 MB, 3 min 20 s** (con el editor activo; el del 10-29 tardó 1 h 50 min en segundo plano). La advertencia era CS0414: `FatherAnimator.torchWeight` asignado y nunca leído, resto de quitar la capa del brazo de la linterna (8dbe8c0). Se quitó, junto con la variable `torch` que ya no se usaba.
+- Segundo build: **Succeeded, 0 errores, 0 advertencias, 260 MB**. `runInBackground` 0.
+- **Arranque** (`Builds/Windows/ProjectRidge.exe`, ventana 1280×720): a los **45 s sigue corriendo** (804 MB). En `Player.log`, los 4 Lurker en el NavMesh y **0 excepciones ni errores**. Se cerró a mano. Cierra el `UNVERIFIED` del 10-29 ("que el build corra 40 s seguidos").
+- Regresión del cambio en `FatherAnimator`: P7 **7/7**, P0 **8/8**.
+- `UNVERIFIED` (sin cambios): build de iOS (no hay módulo de iOS ni Mac); nadie jugó el build.
+
 ## 2026-11-11 — Bot: oído y zona muerta del stick en la planificación; la sala 2 sigue sin pasar
 Editor, play mode vía Unity MCP. Solo herramienta de QA (`LoopBot`); el juego no cambia.
 
@@ -190,7 +199,7 @@ Editor, play mode vía Unity MCP. Elegida por defecto la corrección por código
   - Primera vez: escena cargada, los 4 Lurker en el NavMesh, **0 excepciones** en `Player.log`.
   - En los tres arranques la ventana se cerró de forma ordenada (cierre del sistema de input, sin crash ni error) a los ~5 s.
   - En el mismo rato se cerró también el editor. Es compatible con alguien cerrando las ventanas a mano; no se volvió a lanzar.
-  - `UNVERIFIED`: que el build corra 40 s seguidos como el del 2026-10-28.
+  - `UNVERIFIED`: que el build corra 40 s seguidos como el del 2026-10-28. (Cerrado el 2026-11-11: el build nuevo corre 45 s sin excepciones.)
 
 ## 2026-10-29 — Regresión completa tras los cambios del 2026-10-28
 Editor, play mode vía Unity MCP, `PolishSuite.RunAll()` (cada fase en su propia sesión de play). Cubre los cambios del día anterior: círculo del reflector, helechos y cantos sin sombra, CP_Thicket movido 1 m.

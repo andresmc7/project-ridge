@@ -54,7 +54,6 @@ namespace ProjectRidge.Player
         private float fireTimer = 99f;
         private Vector3 lookTarget;
         private float lookWeight;
-        private float torchWeight;
         private Transform spine, chest;
         private Transform handR;
         private Vector3 clubHandPos;
@@ -257,12 +256,8 @@ namespace ProjectRidge.Player
             float dt = Time.deltaTime;
             animator.SetFloat(SpeedId, controller.CurrentSpeed, 0.08f, dt);
             animator.SetBool(CrouchId, controller.IsCrouching);
-            // Capa del brazo izquierdo (sostener la linterna): solo de pie, sin acción en curso.
-            bool torch = flashlight != null && flashlight.IsOn && !controller.IsCrouching && !controller.ActionLocked
-                         && combat.Phase == PlayerCombat.SwingPhase.None && fireTimer > 0.8f && !health.IsDead;
-            // (2026-10-31) Sin capa de brazo: la mano estirada al frente se leía como apuntar un arma. El brazo
-            // balancea natural; la luz va fija al cuerpo con suavizado (abajo).
-            torchWeight = 0f;
+            // (2026-10-31) Sin capa de brazo para la linterna: la mano estirada al frente se leía como apuntar un arma.
+            // El brazo balancea natural; la luz va fija al cuerpo con suavizado (abajo).
             animator.SetLayerWeight(1, 0f);
             animator.SetBool(DeadId, health.IsDead);
             if (wasDead && !health.IsDead) animator.SetTrigger(ReviveId);
